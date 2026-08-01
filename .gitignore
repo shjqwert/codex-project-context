@@ -1,0 +1,5 @@
+node_modules/
+.validator-deps/
+.local-marketplace/
+coverage/
+*.log

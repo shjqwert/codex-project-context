@@ -1,0 +1,24 @@
+{
+  "name": "codex-project-context",
+  "version": "0.1.0",
+  "description": "Codex plugin for durable project context and cross-task handoffs.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "codex-project-context": "./dist/cli/main.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
+    "test": "node --test tests/cli.test.mjs tests/hooks.test.mjs tests/matcher.test.mjs tests/plugin-shape.test.mjs",
+    "prepackage:local": "npm run build",
+    "package:local": "node scripts/prepare-local-marketplace.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2"
+  }
+}

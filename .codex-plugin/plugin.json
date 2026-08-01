@@ -1,0 +1,31 @@
+{
+  "name": "codex-project-context",
+  "version": "0.1.0+codex.20260801105143",
+  "description": "Initialize and route durable project context across Codex tasks.",
+  "author": {
+    "name": "Local developer"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "project-context",
+    "handoff"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Project Context",
+    "shortDescription": "Keep project context usable across Codex tasks.",
+    "longDescription": "Initialize stable project context, create evidence-based handoffs, and route relevant history into new Codex tasks.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Initialize this project for cross-task context.",
+      "Synchronize this project's context metadata.",
+      "Create an evidence-based handoff for this task."
+    ]
+  }
+}

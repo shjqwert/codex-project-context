@@ -1,0 +1,33 @@
+{
+  "description": "Load concise project context and match relevant handoffs.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'dist','hooks','session-start.js')).href)\"",
+            "timeout": 5,
+            "statusMessage": "Loading project context",
+            "additionalContextLimit": 800
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'dist','hooks','user-prompt-submit.js')).href)\"",
+            "timeout": 5,
+            "statusMessage": "Checking relevant handoffs",
+            "additionalContextLimit": 1200
+          }
+        ]
+      }
+    ]
+  }
+}
+
