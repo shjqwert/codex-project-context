@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex-project-context/schemas/context.schema.json",
+  "title": "Codex Project Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "projectRoot",
+    "currentCycle",
+    "agentsFile",
+    "handoffIndex",
+    "capabilities"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "projectRoot": { "const": "." },
+    "currentCycle": { "type": "string", "minLength": 1 },
+    "agentsFile": { "type": "string", "minLength": 1 },
+    "handoffIndex": { "type": "string", "minLength": 1 },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codegraph", "serena", "openspec"],
+      "properties": {
+        "codegraph": { "type": "boolean" },
+        "serena": { "type": "boolean" },
+        "openspec": { "type": "boolean" }
+      }
+    },
+    "profile": { "$ref": "#/$defs/profile" },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/resource" }
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "projectTypes",
+        "languages",
+        "sourceDirectories",
+        "testDirectories",
+        "specificationDirectories"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "projectTypes": { "$ref": "#/$defs/stringArray" },
+        "languages": { "$ref": "#/$defs/stringArray" },
+        "sourceDirectories": { "$ref": "#/$defs/stringArray" },
+        "testDirectories": { "$ref": "#/$defs/stringArray" },
+        "specificationDirectories": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path", "purpose"],
+      "properties": {
+        "kind": {
+          "enum": ["documentation", "manual", "hardware", "specification", "test"]
+        },
+        "path": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

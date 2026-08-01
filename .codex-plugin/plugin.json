@@ -1,6 +1,6 @@
 {
   "name": "codex-project-context",
-  "version": "0.2.0+codex.20260801145921",
+  "version": "0.3.4+codex.20260801172543",
   "description": "Initialize and route durable project context across Codex tasks.",
   "author": {
     "name": "Local developer"
@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "Codex Project Context",
     "shortDescription": "Keep project context usable across Codex tasks.",
-    "longDescription": "Initialize stable project context, create evidence-based handoffs, route relevant history, and validate durable project-level plan transitions.",
+    "longDescription": "Discover project evidence, generate complete managed AGENTS guidance, preserve evidence-based handoffs, route relevant history, and validate durable project-level plan transitions.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [
@@ -23,8 +23,8 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Initialize this project for cross-task context.",
-      "Synchronize this project's context metadata.",
+      "Explicitly initialize this project for cross-task context.",
+      "Explicitly synchronize this project's context metadata.",
       "Create an evidence-based handoff for this task.",
       "Record or transition a durable project-level plan."
     ]

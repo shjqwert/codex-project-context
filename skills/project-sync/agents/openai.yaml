@@ -1,0 +1,7 @@
+interface:
+  display_name: "Project Sync"
+  short_description: "Explicitly refresh managed project context."
+  default_prompt: "Use $project-sync to rescan and synchronize this initialized project context."
+
+policy:
+  allow_implicit_invocation: false

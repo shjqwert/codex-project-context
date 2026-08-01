@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex-project-context/schemas/handoff-index.schema.json",
+  "title": "Codex Project Handoff Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "entries"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "sectionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "summary"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cycle",
+        "title",
+        "summary",
+        "specRefs",
+        "bugIds",
+        "modules",
+        "files",
+        "symbols",
+        "testNames",
+        "tags",
+        "sections",
+        "sectionSummaries",
+        "groupKey",
+        "path",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^W[0-9]+$" },
+        "cycle": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string", "minLength": 1 },
+        "specRefs": { "$ref": "#/$defs/stringArray" },
+        "bugIds": { "$ref": "#/$defs/stringArray" },
+        "modules": { "$ref": "#/$defs/stringArray" },
+        "files": { "$ref": "#/$defs/stringArray" },
+        "symbols": { "$ref": "#/$defs/stringArray" },
+        "testNames": { "$ref": "#/$defs/stringArray" },
+        "tags": { "$ref": "#/$defs/stringArray" },
+        "sections": { "$ref": "#/$defs/stringArray" },
+        "sectionSummaries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sectionSummary" }
+        },
+        "groupKey": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

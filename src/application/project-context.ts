@@ -1,5 +1,11 @@
 import { isAbsolute, relative, resolve, sep } from "node:path";
-import type { HandoffIndex, ProjectCapabilities, ProjectContext } from "../types.js";
+import type {
+  ProjectCapabilities,
+  ProjectContext,
+  ProjectProfile,
+  ProjectResource,
+  ProjectResourceKind,
+} from "../types.js";
 import {
   assertDirectory,
   findProjectRoot,
@@ -11,9 +17,12 @@ import {
   writeTextAtomic,
 } from "../infrastructure/files.js";
 import { EMPTY_HANDOFF_INDEX, normalizeHandoffIndex } from "./handoff-index.js";
-
-const MANAGED_START = "<!-- PROJECT_CONTEXT_START -->";
-const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
+import {
+  countDocumentLines,
+  renderManagedAgentsSection,
+  upsertManagedAgentsSection,
+} from "./agents-document.js";
+import { discoverProject } from "./project-discovery.js";
 
 export interface ProjectUpdateResult {
   ok: true;
@@ -23,6 +32,8 @@ export interface ProjectUpdateResult {
   handoffIndexPath: string;
   agentsPath: string;
   capabilities: ProjectCapabilities;
+  profile: ProjectProfile;
+  resourceCount: number;
 }
 
 export async function initializeProject(projectDirectory: string): Promise<ProjectUpdateResult> {
@@ -51,6 +62,8 @@ export async function initializeProject(projectDirectory: string): Promise<Proje
     handoffIndexPath: indexPath,
     agentsPath,
     capabilities: context.capabilities,
+    profile: context.profile!,
+    resourceCount: context.resources?.length ?? 0,
   };
 }
 
@@ -77,6 +90,8 @@ export async function synchronizeProject(projectDirectory: string): Promise<Proj
     handoffIndexPath: indexPath,
     agentsPath,
     capabilities: context.capabilities,
+    profile: context.profile!,
+    resourceCount: context.resources?.length ?? 0,
   };
 }
 
@@ -119,13 +134,19 @@ async function buildContext(
   projectRoot: string,
   existing: ProjectContext | undefined,
 ): Promise<ProjectContext> {
+  const [capabilities, discovery] = await Promise.all([
+    detectCapabilities(projectRoot),
+    discoverProject(projectRoot),
+  ]);
   return {
     schemaVersion: 1,
     projectRoot: ".",
     currentCycle: existing?.currentCycle ?? "development",
     agentsFile: existing?.agentsFile ?? "AGENTS.md",
     handoffIndex: existing?.handoffIndex ?? ".agent/handoff/index.json",
-    capabilities: await detectCapabilities(projectRoot),
+    capabilities,
+    profile: discovery.profile,
+    resources: discovery.resources,
   };
 }
 
@@ -145,6 +166,8 @@ function validateStoredContext(projectRoot: string, value: unknown): ProjectCont
     throw new Error("Project context capabilities must contain boolean codegraph, serena, and openspec fields.");
   }
 
+  const profile = value.profile === undefined ? undefined : validateProfile(projectRoot, value.profile);
+  const resources = value.resources === undefined ? undefined : validateResources(projectRoot, value.resources);
   return {
     schemaVersion: 1,
     projectRoot: ".",
@@ -156,7 +179,65 @@ function validateStoredContext(projectRoot: string, value: unknown): ProjectCont
       serena,
       openspec,
     },
+    ...(profile === undefined ? {} : { profile }),
+    ...(resources === undefined ? {} : { resources }),
   };
+}
+
+function validateProfile(projectRoot: string, value: unknown): ProjectProfile {
+  if (!isRecord(value)) {
+    throw new Error("Project context profile must be an object.");
+  }
+  return {
+    name: requiredContextText(value.name, "profile name"),
+    projectTypes: contextStringArray(value.projectTypes, "projectTypes"),
+    languages: contextStringArray(value.languages, "languages"),
+    sourceDirectories: contextStringArray(value.sourceDirectories, "sourceDirectories").map((path) =>
+      validateProjectPath(projectRoot, path, "sourceDirectories entry"),
+    ),
+    testDirectories: contextStringArray(value.testDirectories, "testDirectories").map((path) =>
+      validateProjectPath(projectRoot, path, "testDirectories entry"),
+    ),
+    specificationDirectories: contextStringArray(
+      value.specificationDirectories ?? [],
+      "specificationDirectories",
+    ).map((path) => validateProjectPath(projectRoot, path, "specificationDirectories entry")),
+  };
+}
+
+function validateResources(projectRoot: string, value: unknown): ProjectResource[] {
+  if (!Array.isArray(value)) throw new Error("Project context resources must be an array.");
+  const kinds = new Set<ProjectResourceKind>([
+    "documentation",
+    "manual",
+    "hardware",
+    "specification",
+    "test",
+  ]);
+  return value.map((resource) => {
+    if (!isRecord(resource) || typeof resource.kind !== "string" || !kinds.has(resource.kind as ProjectResourceKind)) {
+      throw new Error("Project context resources contain an invalid kind.");
+    }
+    return {
+      kind: resource.kind as ProjectResourceKind,
+      path: validateProjectPath(projectRoot, resource.path, "resource path"),
+      purpose: requiredContextText(resource.purpose, "resource purpose"),
+    };
+  });
+}
+
+function contextStringArray(value: unknown, field: string): string[] {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error(`Project context ${field} must be a string array.`);
+  }
+  return value.map((item) => item.trim()).filter(Boolean);
+}
+
+function requiredContextText(value: unknown, field: string): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`Project context ${field} must be a non-empty string.`);
+  }
+  return value.trim();
 }
 
 function validateProjectPath(projectRoot: string, value: unknown, field: string): string {
@@ -192,44 +273,12 @@ async function updateManagedAgentsSection(
 ): Promise<string> {
   const agentsPath = resolve(projectRoot, context.agentsFile);
   const current = (await readTextIfPresent(agentsPath)) ?? "";
-  const managed = renderManagedSection(context);
-  const next = upsertManagedSection(current, managed);
+  const managed = renderManagedAgentsSection(context);
+  const managedLineCount = countDocumentLines(managed);
+  if (managedLineCount > 200) {
+    throw new Error(`Generated AGENTS.md managed section must contain at most 200 lines; received ${managedLineCount}.`);
+  }
+  const next = upsertManagedAgentsSection(current, managed);
   await writeTextAtomic(agentsPath, next);
   return agentsPath;
-}
-
-function upsertManagedSection(current: string, managed: string): string {
-  const start = current.indexOf(MANAGED_START);
-  const end = current.indexOf(MANAGED_END);
-
-  if ((start >= 0) !== (end >= 0) || (start >= 0 && end < start)) {
-    throw new Error("AGENTS.md contains an incomplete project-context managed section.");
-  }
-
-  if (start >= 0 && end >= 0) {
-    const after = end + MANAGED_END.length;
-    return `${current.slice(0, start)}${managed}${current.slice(after)}`;
-  }
-
-  const prefix = current.trimEnd();
-  return prefix.length === 0 ? `${managed}\n` : `${prefix}\n\n${managed}\n`;
-}
-
-function renderManagedSection(context: ProjectContext): string {
-  const enabled = Object.entries(context.capabilities)
-    .filter(([, value]) => value)
-    .map(([name]) => name)
-    .join(", ");
-
-  return `${MANAGED_START}
-## Project Context
-
-- Durable context configuration: \`${context.handoffIndex.replace("handoff/index.json", "context.json")}\`.
-- Handoff index: \`${context.handoffIndex}\`; read only records relevant to the current task.
-- Project-level plans, when present: \`.agent/planMsg.md\`; do not use it for routine bugs or tasks.
-- Create handoffs with \`$codex-project-context:project-handoff\`; every diagnosis and verification claim needs evidence.
-- Record or transition key plans with \`$codex-project-context:project-plan-msg\`; status changes require evidence.
-- Refresh detected resources with \`$codex-project-context:project-sync\` after project tooling or reference locations change.
-- Detected optional capabilities: ${enabled || "none"}.
-${MANAGED_END}`;
 }

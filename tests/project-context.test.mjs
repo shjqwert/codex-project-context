@@ -1,0 +1,117 @@
+import assert from "node:assert/strict";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { initializeProject, synchronizeProject } from "../dist/application/project-context.js";
+
+const REQUIRED_SECTIONS = [
+  "Project Overview",
+  "Build and Verification",
+  "Code Analysis",
+  "Project References",
+  "Project Context",
+  "Handoff Context",
+];
+
+test("new projects receive an evidence-based AGENTS document within 200 lines", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-discovery-"));
+  await mkdir(join(project, "src"));
+  await mkdir(join(project, "tests"));
+  await mkdir(join(project, "docs"));
+  await mkdir(join(project, "openspec"));
+  await mkdir(join(project, "openspec", "specs"));
+  await writeFile(join(project, "src", "main.ts"), "export const value = 1;\n", "utf8");
+  await writeFile(join(project, "tests", "main.test.ts"), "// focused test\n", "utf8");
+  await writeFile(join(project, "docs", "hardware-manual.pdf"), "fixture", "utf8");
+  await writeFile(join(project, "tsconfig.json"), "{}\n", "utf8");
+  await writeFile(
+    join(project, "package.json"),
+    JSON.stringify({
+      name: "discovery-fixture",
+      scripts: { build: "tsc", test: "node --test", lint: "eslint .", typecheck: "tsc --noEmit" },
+    }),
+    "utf8",
+  );
+  await writeFile(join(project, "package-lock.json"), "{}\n", "utf8");
+
+  await initializeProject(project);
+  const agentsPath = join(project, "AGENTS.md");
+  const firstAgents = await readFile(agentsPath, "utf8");
+  const lines = firstAgents.trimEnd().split(/\r?\n/u);
+  assert.ok(lines.length <= 200, `expected at most 200 lines, received ${lines.length}`);
+  for (const section of REQUIRED_SECTIONS) assert.match(firstAgents, new RegExp(`## ${section}`));
+  assert.doesNotMatch(firstAgents, /Detected package managers|Build commands|Test commands/);
+  assert.match(firstAgents, /Do not compile, build, download, flash, or program the target unless the user explicitly requests it/);
+  const buildSection = firstAgents.split("## Build and Verification")[1].split("## Code Analysis")[0];
+  assert.equal(buildSection.match(/^- /gmu)?.length, 1);
+  const codeAnalysis = firstAgents.split("## Code Analysis")[1].split("## Project References")[0];
+  assert.doesNotMatch(codeAnalysis, /OpenSpec/);
+  assert.doesNotMatch(firstAgents, /<!-- CODEGRAPH_START -->|codegraph_explore|## CodeGraph/);
+  assert.match(firstAgents, /Use Serena for symbol lookup, reference analysis, local reading, and precise modification/);
+  assert.doesNotMatch(firstAgents, /## Development Rules|## Specification Routing/);
+  assert.match(firstAgents, /SessionStart/);
+  assert.match(firstAgents, /UserPromptSubmit/);
+  assert.doesNotMatch(firstAgents, /project-init.*explicit-only|project-sync.*explicit-only/);
+  assert.match(firstAgents, /\.agent\/handoff\/records\/<cycle>/);
+  assert.match(firstAgents, /docs/);
+  const references = firstAgents.split("## Project References")[1].split("## Project Context")[0];
+  assert.doesNotMatch(references, /openspec/i);
+  assert.doesNotMatch(firstAgents, /## Completion Rules/);
+
+  const context = JSON.parse(await readFile(join(project, ".agent", "context.json"), "utf8"));
+  assert.equal(context.profile.name, "discovery-fixture");
+  assert.deepEqual(context.profile.projectTypes, ["Node.js", "TypeScript"]);
+  assert.deepEqual(context.profile.sourceDirectories, ["src"]);
+  assert.deepEqual(context.profile.testDirectories, ["tests"]);
+  assert.deepEqual(context.profile.specificationDirectories, ["openspec", "openspec/specs"]);
+  assert.ok(!context.profile.testDirectories.includes("openspec/specs"));
+  assert.equal(context.capabilities.openspec, true);
+  assert.ok(context.resources.some(({ path }) => path === "docs"));
+  assert.ok(context.resources.some(({ path }) => path === "docs/hardware-manual.pdf"));
+
+  await initializeProject(project);
+  assert.equal(await readFile(agentsPath, "utf8"), firstAgents);
+});
+
+test("Project References is omitted when only OpenSpec resources are detected", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-openspec-only-"));
+  await mkdir(join(project, "openspec"));
+  await mkdir(join(project, "openspec", "specs"));
+  await initializeProject(project);
+  const agents = await readFile(join(project, "AGENTS.md"), "utf8");
+  assert.doesNotMatch(agents, /## Project References/);
+  assert.doesNotMatch(agents, /## Development Rules|## Specification Routing|<!-- CODEGRAPH_START -->/);
+  assert.match(agents, /## Project Context/);
+});
+
+test("existing AGENTS content is preserved and synchronization is byte-stable", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-existing-"));
+  const original = "# User Rules\r\n\r\nKeep this exact line.  \r\n";
+  const agentsPath = join(project, "AGENTS.md");
+  await writeFile(agentsPath, original, "utf8");
+
+  await initializeProject(project);
+  const initialized = await readFile(agentsPath, "utf8");
+  assert.ok(initialized.startsWith(original));
+  const prefix = initialized.slice(0, initialized.indexOf("<!-- PROJECT_CONTEXT_START -->"));
+
+  await synchronizeProject(project);
+  const synchronized = await readFile(agentsPath, "utf8");
+  assert.equal(
+    synchronized.slice(0, synchronized.indexOf("<!-- PROJECT_CONTEXT_START -->")),
+    prefix,
+  );
+  await synchronizeProject(project);
+  assert.equal(await readFile(agentsPath, "utf8"), synchronized);
+});
+
+test("malformed package metadata does not prevent evidence-based initialization", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-malformed-package-"));
+  await writeFile(join(project, "package.json"), "{ invalid", "utf8");
+  await initializeProject(project);
+  const context = JSON.parse(await readFile(join(project, ".agent", "context.json"), "utf8"));
+  assert.deepEqual(context.profile.projectTypes, ["Node.js"]);
+  assert.equal("commands" in context.profile, false);
+  assert.equal("packageManagers" in context.profile, false);
+});

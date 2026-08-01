@@ -35,7 +35,6 @@ export async function runHook(action: () => Promise<void>): Promise<void> {
   try {
     await action();
   } catch {
-    // Hooks are advisory in v0.1.0. Fail open so project work is never blocked.
+    // Hooks are advisory. Fail open so project work is never blocked.
   }
 }
-

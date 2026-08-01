@@ -36,7 +36,7 @@ export async function createHandoff(
   const input = normalizeInput(rawInput);
   const id = nextHandoffId(index.entries);
   const cycle = sanitizeSegment(input.cycle ?? context.currentCycle, "development");
-  const relativePath = `.agent/handoff/cycles/${cycle}/${id}-${slugify(input.title)}.md`;
+  const relativePath = `.agent/handoff/records/${cycle}/${id}-${slugify(input.title)}.md`;
   const absolutePath = resolve(projectRoot, relativePath);
   const createdAt = new Date().toISOString();
   const entry = buildIndexEntry(id, cycle, relativePath, createdAt, input);

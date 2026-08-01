@@ -15,7 +15,7 @@ if (!pluginTarget.startsWith(expectedPrefix)) {
 await rm(pluginTarget, { recursive: true, force: true });
 await mkdir(pluginTarget, { recursive: true });
 
-for (const path of [".codex-plugin", "dist", "hooks", "skills", "package.json", "README.md"]) {
+for (const path of [".codex-plugin", "dist", "hooks", "schemas", "skills", "package.json", "README.md"]) {
   await cp(resolve(repositoryRoot, path), resolve(pluginTarget, path), { recursive: true });
 }
 
@@ -48,4 +48,3 @@ const marketplacePath = join(marketplaceRoot, ".agents", "plugins", "marketplace
 await mkdir(dirname(marketplacePath), { recursive: true });
 await writeFile(marketplacePath, `${JSON.stringify(marketplace, null, 2)}\n`, "utf8");
 process.stdout.write(`${marketplaceRoot}\n`);
-

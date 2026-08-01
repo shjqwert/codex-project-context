@@ -11,7 +11,10 @@ test("CLI initializes, records, reports, and matches project context", async () 
   const project = await mkdtemp(join(tmpdir(), "codex-project-context-cli-"));
   const initialized = runCli(["init", "--project", project]);
   assert.equal(initialized.status, 0, initialized.stderr);
-  assert.equal(JSON.parse(initialized.stdout).ok, true);
+  const initializedOutput = JSON.parse(initialized.stdout);
+  assert.equal(initializedOutput.ok, true);
+  assert.ok(initializedOutput.profile);
+  assert.equal(typeof initializedOutput.resourceCount, "number");
 
   const handoffInput = join(project, "handoff.json");
   await writeFile(
@@ -28,7 +31,9 @@ test("CLI initializes, records, reports, and matches project context", async () 
 
   const handoff = runCli(["handoff", "--project", project, "--input", handoffInput]);
   assert.equal(handoff.status, 0, handoff.stderr);
-  assert.equal(JSON.parse(handoff.stdout).id, "W001");
+  const handoffOutput = JSON.parse(handoff.stdout);
+  assert.equal(handoffOutput.id, "W001");
+  assert.match(handoffOutput.path.replaceAll("\\", "/"), /\.agent\/handoff\/records\/development\/W001-router-verification\.md$/u);
 
   const status = runCli(["status", "--project", project]);
   assert.equal(status.status, 0, status.stderr);
@@ -41,6 +46,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   const index = JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8"));
   assert.equal(index.entries.length, 1);
   assert.equal(index.schemaVersion, 2);
+  assert.equal(index.entries[0].path, ".agent/handoff/records/development/W001-router-verification.md");
 
   const planInput = join(project, "plan.json");
   await writeFile(

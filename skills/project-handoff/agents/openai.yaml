@@ -1,0 +1,7 @@
+interface:
+  display_name: "Project Handoff"
+  short_description: "Preserve evidence for another Codex task."
+  default_prompt: "Use $project-handoff to preserve evidence for continuation in another Codex task."
+
+policy:
+  allow_implicit_invocation: true

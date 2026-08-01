@@ -4,6 +4,28 @@ export interface ProjectCapabilities {
   openspec: boolean;
 }
 
+export interface ProjectProfile {
+  name: string;
+  projectTypes: string[];
+  languages: string[];
+  sourceDirectories: string[];
+  testDirectories: string[];
+  specificationDirectories: string[];
+}
+
+export type ProjectResourceKind =
+  | "documentation"
+  | "manual"
+  | "hardware"
+  | "specification"
+  | "test";
+
+export interface ProjectResource {
+  kind: ProjectResourceKind;
+  path: string;
+  purpose: string;
+}
+
 export interface ProjectContext {
   schemaVersion: 1;
   projectRoot: ".";
@@ -11,6 +33,8 @@ export interface ProjectContext {
   agentsFile: string;
   handoffIndex: string;
   capabilities: ProjectCapabilities;
+  profile?: ProjectProfile;
+  resources?: ProjectResource[];
 }
 
 export interface HandoffSections {
