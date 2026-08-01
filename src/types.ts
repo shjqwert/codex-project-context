@@ -53,12 +53,19 @@ export interface HandoffIndexEntry {
   testNames: string[];
   tags: string[];
   sections: string[];
+  sectionSummaries: HandoffSectionSummary[];
+  groupKey: string;
   path: string;
   createdAt: string;
 }
 
+export interface HandoffSectionSummary {
+  name: string;
+  summary: string;
+}
+
 export interface HandoffIndex {
-  schemaVersion: 1;
+  schemaVersion: 2;
   entries: HandoffIndexEntry[];
 }
 
@@ -66,5 +73,48 @@ export interface HandoffMatch {
   entry: HandoffIndexEntry;
   score: number;
   reasons: string[];
+  confidence: "exact" | "high" | "medium";
+  relatedIds: string[];
+  suggestedSections: HandoffSectionSummary[];
 }
 
+export type ProjectPlanStatus =
+  | "proposed"
+  | "accepted"
+  | "in-progress"
+  | "completed"
+  | "rejected"
+  | "superseded";
+
+export interface ProjectPlanTransition {
+  from: ProjectPlanStatus | null;
+  to: ProjectPlanStatus;
+  reason: string;
+  at: string;
+}
+
+export interface ProjectPlan {
+  id: string;
+  title: string;
+  summary: string;
+  status: ProjectPlanStatus;
+  successCriteria: string[];
+  specRefs: string[];
+  decisions: string[];
+  createdAt: string;
+  updatedAt: string;
+  transitions: ProjectPlanTransition[];
+}
+
+export interface ProjectPlanInput {
+  title: string;
+  summary: string;
+  successCriteria?: string[];
+  specRefs?: string[];
+  decisions?: string[];
+}
+
+export interface ProjectPlanDocument {
+  schemaVersion: 1;
+  plans: ProjectPlan[];
+}

@@ -9,19 +9,10 @@ await runHook(async () => {
   const projectRoot = await findProjectRoot(input.cwd);
   if (projectRoot === undefined) return;
 
-  const matches = await matchHandoffs(projectRoot, input.prompt, 3);
+  const matches = await matchHandoffs(projectRoot, input.prompt, 5);
   if (matches.length === 0) return;
 
-  const cards = matches.map(({ entry, score, reasons }) =>
-    [
-      `${entry.id}: ${entry.title} (score ${score})`,
-      `Match: ${reasons.join(", ")}`,
-      `Path: ${entry.path}`,
-      entry.sections.length > 0 ? `Suggested sections: ${entry.sections.join(", ")}` : undefined,
-    ]
-      .filter((line): line is string => line !== undefined)
-      .join("\n"),
-  );
+  const cards = renderCards(matches, 900);
 
   writeAdditionalContext(
     "UserPromptSubmit",
@@ -34,3 +25,28 @@ await runHook(async () => {
   );
 });
 
+function renderCards(matches: Awaited<ReturnType<typeof matchHandoffs>>, budget: number): string[] {
+  const cards: string[] = [];
+  let used = 0;
+  for (const { entry, score, reasons, confidence, relatedIds, suggestedSections } of matches) {
+    const sectionHints = suggestedSections
+      .slice(0, 2)
+      .map(({ name, summary }) => `${name}: ${summary}`)
+      .join(" | ");
+    const card = [
+      `${entry.id}: ${entry.title} (score ${score}, ${confidence})`,
+      `Match: ${reasons.join(", ")}`,
+      `Path: ${entry.path}`,
+      relatedIds.length > 0 ? `Related handoffs: ${relatedIds.join(", ")}` : undefined,
+      sectionHints.length > 0 ? `Suggested sections: ${sectionHints}` : undefined,
+    ]
+      .filter((line): line is string => line !== undefined)
+      .join("\n");
+    if (cards.length > 0 && used + card.length > budget) break;
+    const boundedCard = card.slice(0, Math.max(0, budget - used));
+    if (boundedCard.length === 0) break;
+    cards.push(boundedCard);
+    used += boundedCard.length;
+  }
+  return cards;
+}

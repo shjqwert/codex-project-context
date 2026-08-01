@@ -13,6 +13,7 @@ await runHook(async () => {
     [
       "[codex-project-context] This project has durable cross-task context enabled.",
       `Handoff index: ${context.handoffIndex}`,
+      "Project plan register: .agent/planMsg.md (only when key plans have been recorded).",
       "Read only handoff records relevant to the current task; current code and tests remain the source of truth.",
     ].join("\n"),
   );

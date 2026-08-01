@@ -1,12 +1,13 @@
 import { dirname, resolve } from "node:path";
 import type {
-  HandoffIndex,
   HandoffIndexEntry,
   HandoffInput,
   HandoffMatch,
   HandoffSections,
+  HandoffSectionSummary,
 } from "../types.js";
 import { ensureDirectory, readJson, writeJsonAtomic, writeTextAtomic } from "../infrastructure/files.js";
+import { buildHandoffGroupKey, normalizeHandoffIndex } from "./handoff-index.js";
 import { readProjectContext, requireProjectRoot } from "./project-context.js";
 
 const SECTION_LABELS: Array<[keyof HandoffSections, string]> = [
@@ -21,6 +22,8 @@ const SECTION_LABELS: Array<[keyof HandoffSections, string]> = [
   ["evidence", "Evidence"],
 ];
 
+const MATCH_THRESHOLD = 40;
+
 export async function createHandoff(
   projectDirectory: string,
   rawInput: HandoffInput,
@@ -28,8 +31,7 @@ export async function createHandoff(
   const projectRoot = await requireProjectRoot(projectDirectory);
   const context = await readProjectContext(projectRoot);
   const indexPath = resolve(projectRoot, context.handoffIndex);
-  const index = await readJson<HandoffIndex>(indexPath);
-  validateIndex(index);
+  const { index } = normalizeHandoffIndex(await readJson<unknown>(indexPath));
 
   const input = normalizeInput(rawInput);
   const id = nextHandoffId(index.entries);
@@ -50,18 +52,21 @@ export async function createHandoff(
 export async function matchHandoffs(
   projectDirectory: string,
   prompt: string,
-  limit = 3,
+  limit = 5,
 ): Promise<HandoffMatch[]> {
   const projectRoot = await requireProjectRoot(projectDirectory);
   const context = await readProjectContext(projectRoot);
-  const index = await readJson<HandoffIndex>(resolve(projectRoot, context.handoffIndex));
-  validateIndex(index);
+  const { index } = normalizeHandoffIndex(
+    await readJson<unknown>(resolve(projectRoot, context.handoffIndex)),
+  );
 
-  const normalizedPrompt = prompt.toLocaleLowerCase();
-  return index.entries
+  const normalizedPrompt = normalizeSearchText(prompt);
+  const scored = index.entries
     .map((entry) => scoreEntry(entry, normalizedPrompt))
-    .filter((result): result is HandoffMatch => result !== undefined && result.score >= 20)
-    .sort((left, right) => right.score - left.score || right.entry.createdAt.localeCompare(left.entry.createdAt))
+    .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD);
+
+  return aggregateMatches(scored, index.entries)
+    .sort(compareMatches)
     .slice(0, Math.max(0, limit));
 }
 
@@ -90,8 +95,13 @@ function buildIndexEntry(
   createdAt: string,
   input: HandoffInput,
 ): HandoffIndexEntry {
-  const sections = SECTION_LABELS.filter(([key]) => input.sections?.[key]?.trim()).map(([, label]) => label);
-  return {
+  const sectionSummaries = SECTION_LABELS.flatMap(([key, label]) => {
+    const content = input.sections?.[key]?.trim();
+    return content === undefined || content.length === 0
+      ? []
+      : [{ name: label, summary: summarizeSection(content) }];
+  });
+  const entry: HandoffIndexEntry = {
     id,
     cycle,
     title: input.title,
@@ -103,10 +113,14 @@ function buildIndexEntry(
     symbols: input.symbols ?? [],
     testNames: input.tests ?? [],
     tags: input.tags ?? [],
-    sections,
+    sections: sectionSummaries.map(({ name }) => name),
+    sectionSummaries,
+    groupKey: "",
     path,
     createdAt,
   };
+  entry.groupKey = buildHandoffGroupKey(entry);
+  return entry;
 }
 
 function renderHandoff(entry: HandoffIndexEntry, input: HandoffInput): string {
@@ -140,28 +154,106 @@ function scoreEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch | un
     reasons.push(reason);
   };
 
-  if (contains(prompt, entry.id) || entry.specRefs.some((value) => contains(prompt, value)) || entry.bugIds.some((value) => contains(prompt, value))) {
+  if (
+    containsBounded(prompt, entry.id) ||
+    entry.specRefs.some((value) => containsBounded(prompt, value)) ||
+    entry.bugIds.some((value) => containsBounded(prompt, value))
+  ) {
     add(100, "exact id");
   }
-  if (entry.files.some((value) => contains(prompt, value))) add(90, "file path");
-  if (entry.symbols.some((value) => contains(prompt, value))) add(80, "symbol");
-  if (entry.modules.some((value) => contains(prompt, value))) add(60, "module");
-  if (entry.testNames.some((value) => contains(prompt, value))) add(50, "test name");
+  if (entry.files.some((value) => containsPath(prompt, value))) add(90, "file path");
+  if (entry.symbols.some((value) => containsBounded(prompt, value))) add(80, "symbol");
+  if (entry.modules.some((value) => containsBounded(prompt, value))) add(60, "module");
+  if (entry.testNames.some((value) => containsBounded(prompt, value))) add(50, "test name");
   if (textMatches(prompt, entry.title)) add(40, "title");
-  if (textMatches(prompt, entry.summary) || entry.tags.some((value) => contains(prompt, value))) add(20, "summary or tag");
+  if (
+    textMatches(prompt, entry.summary) ||
+    entry.tags.some((value) => containsBounded(prompt, value))
+  ) {
+    add(20, "summary or tag");
+  }
 
-  return score === 0 ? undefined : { entry, score, reasons };
+  if (score === 0) return undefined;
+  return {
+    entry,
+    score,
+    reasons,
+    confidence: reasons.includes("exact id") ? "exact" : score >= 100 ? "high" : "medium",
+    relatedIds: [],
+    suggestedSections: entry.sectionSummaries,
+  };
+}
+
+function aggregateMatches(matches: HandoffMatch[], allEntries: HandoffIndexEntry[]): HandoffMatch[] {
+  const entriesByGroup = new Map<string, HandoffIndexEntry[]>();
+  for (const entry of allEntries) {
+    entriesByGroup.set(entry.groupKey, [...(entriesByGroup.get(entry.groupKey) ?? []), entry]);
+  }
+
+  const matchesByGroup = new Map<string, HandoffMatch[]>();
+  for (const match of matches) {
+    matchesByGroup.set(match.entry.groupKey, [...(matchesByGroup.get(match.entry.groupKey) ?? []), match]);
+  }
+
+  return [...matchesByGroup.values()].map((groupMatches) => {
+    const primary = [...groupMatches].sort(compareMatches)[0];
+    if (primary === undefined) throw new Error("Unexpected empty handoff match group.");
+    const groupEntries = [...(entriesByGroup.get(primary.entry.groupKey) ?? [])].sort((left, right) =>
+      right.createdAt.localeCompare(left.createdAt),
+    );
+    const suggestedSections = collectSectionSummaries(primary.entry, groupEntries);
+    return {
+      ...primary,
+      relatedIds: groupEntries.filter(({ id }) => id !== primary.entry.id).map(({ id }) => id),
+      suggestedSections,
+    };
+  });
+}
+
+function collectSectionSummaries(
+  primary: HandoffIndexEntry,
+  groupEntries: HandoffIndexEntry[],
+): HandoffSectionSummary[] {
+  const result = new Map<string, HandoffSectionSummary>();
+  for (const entry of [primary, ...groupEntries.filter(({ id }) => id !== primary.id)]) {
+    for (const section of entry.sectionSummaries) {
+      if (!result.has(section.name)) result.set(section.name, section);
+    }
+  }
+  return [...result.values()];
+}
+
+function compareMatches(left: HandoffMatch, right: HandoffMatch): number {
+  return right.score - left.score || right.entry.createdAt.localeCompare(left.entry.createdAt);
+}
+
+function summarizeSection(value: string): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+  return compact.length <= 180 ? compact : `${compact.slice(0, 177)}...`;
 }
 
 function textMatches(prompt: string, text: string): boolean {
-  const normalized = text.toLocaleLowerCase().trim();
+  const normalized = normalizeSearchText(text).trim();
   if (normalized.length >= 4 && prompt.includes(normalized)) return true;
-  return normalized.split(/[^\p{L}\p{N}_-]+/u).some((token) => token.length >= 4 && prompt.includes(token));
+  return normalized
+    .split(/[^\p{L}\p{N}_-]+/u)
+    .some((token) => token.length >= 4 && containsBounded(prompt, token));
 }
 
-function contains(prompt: string, value: string): boolean {
-  const normalized = value.toLocaleLowerCase().trim().replaceAll("\\", "/");
-  return normalized.length > 0 && prompt.replaceAll("\\", "/").includes(normalized);
+function containsPath(prompt: string, value: string): boolean {
+  const normalized = normalizeSearchText(value).trim();
+  return normalized.length > 0 && prompt.includes(normalized);
+}
+
+function containsBounded(prompt: string, value: string): boolean {
+  const normalized = normalizeSearchText(value).trim();
+  if (normalized.length === 0) return false;
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^\\p{L}\\p{N}_-])${escaped}(?=$|[^\\p{L}\\p{N}_-])`, "u").test(prompt);
+}
+
+function normalizeSearchText(value: string): string {
+  return value.toLocaleLowerCase().replaceAll("\\", "/");
 }
 
 function nextHandoffId(entries: HandoffIndexEntry[]): string {
@@ -194,10 +286,4 @@ function sanitizeSegment(value: string, fallback: string): string {
 
 function slugify(value: string): string {
   return sanitizeSegment(value.toLocaleLowerCase(), "handoff").slice(0, 64);
-}
-
-function validateIndex(index: HandoffIndex): void {
-  if (index.schemaVersion !== 1 || !Array.isArray(index.entries)) {
-    throw new Error("Unsupported or invalid handoff index.");
-  }
 }

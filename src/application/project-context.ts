@@ -10,10 +10,10 @@ import {
   writeJsonAtomic,
   writeTextAtomic,
 } from "../infrastructure/files.js";
+import { EMPTY_HANDOFF_INDEX, normalizeHandoffIndex } from "./handoff-index.js";
 
 const MANAGED_START = "<!-- PROJECT_CONTEXT_START -->";
 const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
-const DEFAULT_INDEX: HandoffIndex = { schemaVersion: 1, entries: [] };
 
 export interface ProjectUpdateResult {
   ok: true;
@@ -37,7 +37,9 @@ export async function initializeProject(projectDirectory: string): Promise<Proje
 
   await writeJsonAtomic(contextPath, context);
   if (!(await pathExists(indexPath))) {
-    await writeJsonAtomic(indexPath, DEFAULT_INDEX);
+    await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
+  } else {
+    await migrateIndexIfNeeded(indexPath);
   }
   const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
@@ -61,7 +63,9 @@ export async function synchronizeProject(projectDirectory: string): Promise<Proj
 
   await writeJsonAtomic(contextPath, context);
   if (!(await pathExists(indexPath))) {
-    await writeJsonAtomic(indexPath, DEFAULT_INDEX);
+    await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
+  } else {
+    await migrateIndexIfNeeded(indexPath);
   }
   const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
@@ -80,7 +84,9 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
   const projectRoot = await requireProjectRoot(projectDirectory);
   const contextPath = resolve(projectRoot, ".agent", "context.json");
   const context = await readProjectContext(projectRoot);
-  const index = await readJson<HandoffIndex>(resolve(projectRoot, context.handoffIndex));
+  const { index } = normalizeHandoffIndex(
+    await readJson<unknown>(resolve(projectRoot, context.handoffIndex)),
+  );
 
   return {
     ok: true,
@@ -89,6 +95,11 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
     context,
     handoffCount: index.entries.length,
   };
+}
+
+async function migrateIndexIfNeeded(indexPath: string): Promise<void> {
+  const normalized = normalizeHandoffIndex(await readJson<unknown>(indexPath));
+  if (normalized.migrated) await writeJsonAtomic(indexPath, normalized.index);
 }
 
 export async function requireProjectRoot(startDirectory: string): Promise<string> {
@@ -215,7 +226,9 @@ function renderManagedSection(context: ProjectContext): string {
 
 - Durable context configuration: \`${context.handoffIndex.replace("handoff/index.json", "context.json")}\`.
 - Handoff index: \`${context.handoffIndex}\`; read only records relevant to the current task.
+- Project-level plans, when present: \`.agent/planMsg.md\`; do not use it for routine bugs or tasks.
 - Create handoffs with \`$codex-project-context:project-handoff\`; every diagnosis and verification claim needs evidence.
+- Record or transition key plans with \`$codex-project-context:project-plan-msg\`; status changes require evidence.
 - Refresh detected resources with \`$codex-project-context:project-sync\` after project tooling or reference locations change.
 - Detected optional capabilities: ${enabled || "none"}.
 ${MANAGED_END}`;

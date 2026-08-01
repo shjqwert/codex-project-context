@@ -40,6 +40,49 @@ test("CLI initializes, records, reports, and matches project context", async () 
 
   const index = JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8"));
   assert.equal(index.entries.length, 1);
+  assert.equal(index.schemaVersion, 2);
+
+  const planInput = join(project, "plan.json");
+  await writeFile(
+    planInput,
+    JSON.stringify({
+      title: "Durable routing direction",
+      summary: "Keep project routing deterministic across tasks.",
+      successCriteria: ["A new task can locate relevant evidence."],
+    }),
+    "utf8",
+  );
+  const createdPlan = runCli([
+    "plan",
+    "--project",
+    project,
+    "--action",
+    "create",
+    "--input",
+    planInput,
+  ]);
+  assert.equal(createdPlan.status, 0, createdPlan.stderr);
+  assert.equal(JSON.parse(createdPlan.stdout).id, "P001");
+
+  const acceptedPlan = runCli([
+    "plan",
+    "--project",
+    project,
+    "--action",
+    "transition",
+    "--id",
+    "P001",
+    "--status",
+    "accepted",
+    "--reason",
+    "Direction approved for phase two.",
+  ]);
+  assert.equal(acceptedPlan.status, 0, acceptedPlan.stderr);
+  assert.equal(JSON.parse(acceptedPlan.stdout).status, "accepted");
+
+  const listedPlans = runCli(["plan", "--project", project, "--action", "list"]);
+  assert.equal(listedPlans.status, 0, listedPlans.stderr);
+  assert.equal(JSON.parse(listedPlans.stdout).plans[0].status, "accepted");
 });
 
 function runCli(arguments_) {
@@ -48,4 +91,3 @@ function runCli(arguments_) {
     encoding: "utf8",
   });
 }
-

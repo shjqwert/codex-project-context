@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Plan Message"
+  short_description: "Record and validate project-level plan decisions."
+  default_prompt: "Use $project-plan-msg to record a confirmed project-level plan and validate its status transition."

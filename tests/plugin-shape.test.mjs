@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("plugin manifest, hooks, and skills expose the first-version contract", async () => {
+test("plugin manifest, hooks, and skills expose the second-phase contract", async () => {
   const manifest = JSON.parse(await readFile(".codex-plugin/plugin.json", "utf8"));
   assert.equal(manifest.name, "codex-project-context");
   assert.equal(manifest.skills, "./skills/");
@@ -12,9 +12,11 @@ test("plugin manifest, hooks, and skills expose the first-version contract", asy
   assert.ok(hooks.hooks.SessionStart);
   assert.ok(hooks.hooks.UserPromptSubmit);
 
-  for (const skill of ["project-init", "project-sync", "project-handoff"]) {
+  for (const skill of ["project-init", "project-sync", "project-handoff", "project-plan-msg"]) {
     const content = await readFile(`skills/${skill}/SKILL.md`, "utf8");
     assert.match(content, new RegExp(`name: ${skill}`));
   }
-});
 
+  const planMetadata = await readFile("skills/project-plan-msg/agents/openai.yaml", "utf8");
+  assert.match(planMetadata, /\$project-plan-msg/);
+});

@@ -3,10 +3,15 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { stdin } from "node:process";
 import { createHandoff, matchHandoffs } from "../application/handoffs.js";
+import {
+  createProjectPlan,
+  listProjectPlans,
+  transitionProjectPlan,
+} from "../application/plan-msg.js";
 import { getProjectStatus, initializeProject, synchronizeProject } from "../application/project-context.js";
-import type { HandoffInput } from "../types.js";
+import type { HandoffInput, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -31,7 +36,7 @@ async function main(): Promise<void> {
       break;
     case "match": {
       const prompt = requiredOption(options, "prompt");
-      const limit = Number.parseInt(option(options, "limit") ?? "3", 10);
+      const limit = Number.parseInt(option(options, "limit") ?? "5", 10);
       if (!Number.isFinite(limit) || limit < 0) throw new Error("--limit must be a non-negative integer.");
       const matches = await matchHandoffs(project, prompt, limit);
       writeJson({ ok: true, projectRoot: project, matches });
@@ -39,8 +44,29 @@ async function main(): Promise<void> {
     }
     case "handoff": {
       const inputPath = requiredOption(options, "input");
-      const input = await readHandoffInput(inputPath);
+      const input = await readJsonInput<HandoffInput>(inputPath);
       writeJson(await createHandoff(project, input));
+      break;
+    }
+    case "plan": {
+      const action = requiredOption(options, "action");
+      if (action === "create") {
+        const input = await readJsonInput<ProjectPlanInput>(requiredOption(options, "input"));
+        writeJson(await createProjectPlan(project, input));
+      } else if (action === "transition") {
+        writeJson(
+          await transitionProjectPlan(
+            project,
+            requiredOption(options, "id"),
+            requiredOption(options, "status"),
+            requiredOption(options, "reason"),
+          ),
+        );
+      } else if (action === "list") {
+        writeJson(await listProjectPlans(project));
+      } else {
+        throw new Error("--action must be create, transition, or list.");
+      }
       break;
     }
     case "version":
@@ -88,9 +114,9 @@ function requiredOption(options: Map<string, string[]>, name: string): string {
   return value;
 }
 
-async function readHandoffInput(inputPath: string): Promise<HandoffInput> {
+async function readJsonInput<T>(inputPath: string): Promise<T> {
   const text = inputPath === "-" ? await readStandardInput() : await readFile(resolve(inputPath), "utf8");
-  return JSON.parse(text) as HandoffInput;
+  return JSON.parse(text) as T;
 }
 
 async function readStandardInput(): Promise<string> {
@@ -114,6 +140,8 @@ Usage:
   codex-project-context status [--project PATH]
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-
+  codex-project-context plan [--project PATH] --action create --input FILE|-
+  codex-project-context plan [--project PATH] --action transition --id P001 --status STATUS --reason TEXT
+  codex-project-context plan [--project PATH] --action list
 `;
 }
-
