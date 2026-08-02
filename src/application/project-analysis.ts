@@ -33,6 +33,8 @@ export async function validateProjectAnalysisDraft(
     throw new Error("Project analysis input is stale; run inspect again before initializing or synchronizing.");
   }
 
+  requireCapabilityRouting(draft, inventory);
+
   const evidencePaths = new Set<string>();
   for (const line of [...draft.overview, ...draft.buildAndVerification, ...draft.codeAnalysis, ...draft.referenceGuidance]) {
     for (const path of line.evidencePaths) evidencePaths.add(path);
@@ -46,6 +48,22 @@ export async function validateProjectAnalysisDraft(
   }
   for (const path of evidencePaths) await requireExistingEvidencePath(projectRoot, path);
   return draft;
+}
+
+function requireCapabilityRouting(draft: ProjectAnalysisDraft, inventory: ProjectInventory): void {
+  for (const [enabled, toolName, evidencePath] of [
+    [inventory.capabilities.codegraph, "CodeGraph", ".codegraph"],
+    [inventory.capabilities.serena, "Serena", ".serena"],
+  ] as const) {
+    if (!enabled) continue;
+    const routingLine = draft.codeAnalysis.find(({ text }) => text.toLocaleLowerCase().includes(toolName.toLocaleLowerCase()));
+    if (routingLine === undefined) {
+      throw new Error(`Project analysis codeAnalysis must route ${toolName} because ${evidencePath} was detected.`);
+    }
+    if (!routingLine.evidencePaths.includes(evidencePath)) {
+      throw new Error(`Project analysis ${toolName} routing must cite ${evidencePath}.`);
+    }
+  }
 }
 
 export function validateStoredProjectAnalysis(value: unknown): ProjectAnalysisDraft {

@@ -167,3 +167,25 @@ test("initialization rejects stale analysis and missing evidence", async () => {
     /evidence path does not exist/,
   );
 });
+
+test("initialization requires routing for detected analysis tools", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-tool-routing-"));
+  await mkdir(join(project, ".codegraph"));
+  await mkdir(join(project, ".serena"));
+
+  const missingSerena = await buildTestProjectAnalysis(project);
+  missingSerena.codeAnalysis.find(({ text }) => text.includes("CodeGraph")).evidencePaths = [".codegraph"];
+  missingSerena.codeAnalysis = missingSerena.codeAnalysis.filter(({ text }) => !text.includes("Serena"));
+  await assert.rejects(
+    initializeProjectWithAnalysis(project, missingSerena),
+    /must route Serena/,
+  );
+
+  const missingCodeGraphEvidence = await buildTestProjectAnalysis(project);
+  const codeGraphLine = missingCodeGraphEvidence.codeAnalysis.find(({ text }) => text.includes("CodeGraph"));
+  codeGraphLine.evidencePaths = ["."];
+  await assert.rejects(
+    initializeProjectWithAnalysis(project, missingCodeGraphEvidence),
+    /CodeGraph routing must cite \.codegraph/,
+  );
+});

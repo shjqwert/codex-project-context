@@ -1,6 +1,6 @@
 {
   "name": "codex-project-context",
-  "version": "0.4.0+codex.20260802115947",
+  "version": "0.4.0+codex.20260802121010",
   "description": "Initialize and route durable project context across Codex tasks.",
   "author": {
     "name": "Local developer"
