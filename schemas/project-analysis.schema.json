@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex-project-context/schemas/project-analysis.schema.json",
+  "title": "Agent-authored Project Analysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "inventoryFingerprint",
+    "overview",
+    "buildAndVerification",
+    "codeAnalysis",
+    "references",
+    "referenceGuidance",
+    "handoffSubjects",
+    "advisories"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "inventoryFingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "overview": { "type": "array", "minItems": 1, "maxItems": 16, "items": { "$ref": "#/$defs/line" } },
+    "buildAndVerification": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/line" } },
+    "codeAnalysis": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/line" } },
+    "references": { "type": "array", "maxItems": 24, "items": { "$ref": "#/$defs/reference" } },
+    "referenceGuidance": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/line" } },
+    "handoffSubjects": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "advisories": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/advisory" } }
+  },
+  "$defs": {
+    "evidencePaths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "evidencePaths"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "evidencePaths": { "$ref": "#/$defs/evidencePaths" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path", "purpose", "evidencePaths"],
+      "properties": {
+        "kind": { "enum": ["documentation", "manual", "hardware", "specification", "test"] },
+        "path": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "evidencePaths": { "$ref": "#/$defs/evidencePaths" }
+      }
+    },
+    "advisory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "subject", "reason", "action", "evidencePaths"],
+      "properties": {
+        "kind": { "enum": ["missing-reference", "unconfirmed-fact", "configuration-conflict"] },
+        "subject": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "action": { "enum": ["remind-user", "none"] },
+        "evidencePaths": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

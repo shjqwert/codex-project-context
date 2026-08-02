@@ -3,7 +3,12 @@ import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { initializeProject, synchronizeProject } from "../dist/application/project-context.js";
+import { initializeProject as initializeProjectWithAnalysis } from "../dist/application/project-context.js";
+import {
+  buildTestProjectAnalysis,
+  initializeAnalyzedProject as initializeProject,
+  synchronizeAnalyzedProject as synchronizeProject,
+} from "./helpers/project-analysis.mjs";
 
 const REQUIRED_SECTIONS = [
   "Project Overview",
@@ -114,4 +119,51 @@ test("malformed package metadata does not prevent evidence-based initialization"
   assert.deepEqual(context.profile.projectTypes, ["Node.js"]);
   assert.equal("commands" in context.profile, false);
   assert.equal("packageManagers" in context.profile, false);
+});
+
+test("synchronization migrates a readable schema v1 context to Agent-authored schema v2", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-v1-migration-"));
+  await mkdir(join(project, ".agent", "handoff"), { recursive: true });
+  await writeFile(
+    join(project, ".agent", "context.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      projectRoot: ".",
+      currentCycle: "development",
+      agentsFile: "AGENTS.md",
+      handoffIndex: ".agent/handoff/index.json",
+      capabilities: { codegraph: false, serena: false, openspec: false },
+    }),
+    "utf8",
+  );
+  await writeFile(
+    join(project, ".agent", "handoff", "index.json"),
+    JSON.stringify({ schemaVersion: 2, entries: [] }),
+    "utf8",
+  );
+
+  await synchronizeProject(project);
+  const context = JSON.parse(await readFile(join(project, ".agent", "context.json"), "utf8"));
+  assert.equal(context.schemaVersion, 2);
+  assert.match(context.inventoryFingerprint, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(context.analysis.schemaVersion, 1);
+  assert.ok(context.analysis.overview.length > 0);
+});
+
+test("initialization rejects stale analysis and missing evidence", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-analysis-guard-"));
+  await writeFile(join(project, "package.json"), JSON.stringify({ name: "analysis-guard" }), "utf8");
+  const stale = await buildTestProjectAnalysis(project);
+  await writeFile(join(project, "package.json"), JSON.stringify({ name: "analysis-guard-updated" }), "utf8");
+  await assert.rejects(
+    initializeProjectWithAnalysis(project, stale),
+    /analysis input is stale/,
+  );
+
+  const missingEvidence = await buildTestProjectAnalysis(project);
+  missingEvidence.overview[0].evidencePaths = ["missing-evidence.txt"];
+  await assert.rejects(
+    initializeProjectWithAnalysis(project, missingEvidence),
+    /evidence path does not exist/,
+  );
 });

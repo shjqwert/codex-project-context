@@ -1,22 +1,14 @@
-import type { ProjectContext, ProjectProfile, ProjectResource } from "../types.js";
+import type { ProjectAnalysisLine, ProjectContext, ProjectResource } from "../types.js";
 
 export const MANAGED_START = "<!-- PROJECT_CONTEXT_START -->";
 export const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
 
-const UNKNOWN_PROFILE: ProjectProfile = {
-  name: "Unknown project",
-  projectTypes: [],
-  languages: [],
-  sourceDirectories: [],
-  testDirectories: [],
-  specificationDirectories: [],
-};
-
 export function renderManagedAgentsSection(context: ProjectContext): string {
-  const profile = context.profile ?? UNKNOWN_PROFILE;
-  const resources = (context.resources ?? [])
-    .filter((resource) => !isOpenSpecResource(resource))
-    .slice(0, 8);
+  const analysis = context.analysis;
+  if (analysis === undefined) {
+    throw new Error("Project context does not contain Agent-authored analysis; run project-sync with a current analysis input.");
+  }
+  const resources = analysis.references.filter((resource) => !isOpenSpecResource(resource)).slice(0, 12);
   const lines = [
     MANAGED_START,
     "# Project Agent Instructions",
@@ -26,30 +18,17 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
     "",
     "## Project Overview",
     "",
-    `- Project name: ${profile.name}.`,
-    `- Project root: \`${context.projectRoot}\`.`,
-    `- Detected project types: ${renderValues(profile.projectTypes)}.`,
-    `- Detected implementation languages: ${renderValues(profile.languages)}.`,
-    `- Source directories: ${renderPaths(profile.sourceDirectories)}.`,
-    `- Test directories: ${renderPaths(profile.testDirectories)}.`,
-    `- Specification document directories: ${renderPaths(profile.specificationDirectories)}.`,
-    "- Confirm the runtime or hardware platform from project configuration or authoritative references before relying on it.",
-    "- Derive the project's core purpose from user-approved documentation and current implementation, not from directory names alone.",
-    "- Treat detected metadata as navigation evidence, not as proof that every component is active.",
-    "- Recheck relevant code and configuration before changing behavior.",
-    "- Keep project-specific facts here stable; task progress belongs in handoffs or accepted plans.",
+    ...renderAnalysisLines(analysis.overview),
     "",
     "## Build and Verification",
     "",
-    "- Do not compile, build, download, flash, or program the target unless the user explicitly requests it.",
+    ...renderAnalysisLines(analysis.buildAndVerification),
     "",
     "## Code Analysis",
     "",
-    "- Use CodeGraph for module relationships, call paths, and impact analysis when it is available.",
-    "- Use Serena for symbol lookup, reference analysis, local reading, and precise modification when it is available.",
-    "- If either tool is unavailable, continue with the project's normal tools; do not block the task or initialize tools automatically.",
+    ...renderAnalysisLines(analysis.codeAnalysis),
     "",
-    ...renderProjectReferences(resources),
+    ...renderProjectReferences(resources, analysis.referenceGuidance),
     "",
     "## Project Context",
     "",
@@ -72,7 +51,9 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
     "",
     "## Handoff Context",
     "",
-    "- When work must continue in another window, use the project context Skill to create a handoff record.",
+    ...(analysis.handoffSubjects.length === 0
+      ? ["- When coherent project work must continue in another window, create a handoff record."]
+      : [`- Create a handoff when coherent work involving ${analysis.handoffSubjects.join(", ")} must continue in another window.`]),
     "- New windows must not read all handoff records.",
     "- Query the index first, then open only records relevant to the current feature, module, file, symbol, or bug.",
     "- Store new handoffs under `.agent/handoff/records/<cycle>/<handoff-id>-<slug>.md`.",
@@ -112,26 +93,20 @@ export function countDocumentLines(content: string): number {
   return content.trimEnd().split(/\r?\n/u).length;
 }
 
-function renderValues(values: string[]): string {
-  return values.length === 0 ? "not detected" : values.join(", ");
+function renderAnalysisLines(lines: ProjectAnalysisLine[]): string[] {
+  return lines.map((line) => `- ${line.text}`);
 }
 
-function renderPaths(values: string[]): string {
-  return values.length === 0 ? "not detected" : values.map((value) => `\`${value}\``).join(", ");
-}
-
-function renderProjectReferences(resources: ProjectResource[]): string[] {
+function renderProjectReferences(
+  resources: ProjectResource[],
+  guidance: ProjectAnalysisLine[],
+): string[] {
   if (resources.length === 0) return [];
   return [
     "## Project References",
     "",
     ...resources.map((resource) => `- ${resource.kind}: \`${resource.path}\` — ${resource.purpose}`),
-    "",
-    "- Reference entries record paths and intended use; they do not imply that file contents were read.",
-    "- Open only the manual, schematic, hardware, test, or project document needed for the current question.",
-    "- For manuals and datasheets, inspect metadata and relevant sections instead of loading the entire file.",
-    "- For schematics and hardware references, preserve signal names, revisions, and board-specific constraints exactly.",
-    "- If project references conflict with code, record the conflict explicitly instead of guessing.",
+    ...(guidance.length === 0 ? [] : ["", ...renderAnalysisLines(guidance)]),
     "",
   ];
 }

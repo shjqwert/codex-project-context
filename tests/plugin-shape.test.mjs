@@ -4,7 +4,11 @@ import test from "node:test";
 
 test("plugin manifest, hooks, schemas, and skills expose the functional-completeness contract", async () => {
   const manifest = JSON.parse(await readFile(".codex-plugin/plugin.json", "utf8"));
+  const packageMetadata = JSON.parse(await readFile("package.json", "utf8"));
+  const cliSource = await readFile("src/cli/main.ts", "utf8");
   assert.equal(manifest.name, "codex-project-context");
+  assert.equal(manifest.version.split("+")[0], packageMetadata.version);
+  assert.match(cliSource, new RegExp(`const VERSION = "${packageMetadata.version.replaceAll(".", "\\.")}"`));
   assert.equal(manifest.skills, "./skills/");
   assert.equal("hooks" in manifest, false);
 
@@ -41,6 +45,7 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
 
   for (const path of [
     "schemas/context.schema.json",
+    "schemas/project-analysis.schema.json",
     "schemas/handoff-index.schema.json",
     "schemas/plan-document.schema.json",
   ]) {
@@ -52,4 +57,15 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.match(handoffSchema.$defs.entry.properties.dedupeKey.pattern, /sha256/);
   const planSchema = JSON.parse(await readFile("schemas/plan-document.schema.json", "utf8"));
   assert.match(planSchema.$defs.plan.properties.dedupeKey.pattern, /sha256/);
+  const contextSchema = JSON.parse(await readFile("schemas/context.schema.json", "utf8"));
+  assert.equal(contextSchema.properties.schemaVersion.const, 2);
+  assert.ok(contextSchema.required.includes("analysis"));
+
+  const initSkill = await readFile("skills/project-init/SKILL.md", "utf8");
+  assert.match(initSkill, /inspect --project/);
+  assert.match(initSkill, /--input <absolute-analysis-json>/);
+  assert.match(initSkill, /CodeGraph first/);
+  const syncSkill = await readFile("skills/project-sync/SKILL.md", "utf8");
+  assert.match(syncSkill, /inspect --project/);
+  assert.match(syncSkill, /--input <absolute-analysis-json>/);
 });

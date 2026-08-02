@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { createHandoff, matchHandoffs } from "../dist/application/handoffs.js";
-import { initializeProject, synchronizeProject } from "../dist/application/project-context.js";
+import {
+  initializeAnalyzedProject as initializeProject,
+  synchronizeAnalyzedProject as synchronizeProject,
+} from "./helpers/project-analysis.mjs";
 
 test("handoff matching prefers exact identifiers and file paths", async () => {
   const project = await mkdtemp(join(tmpdir(), "codex-project-context-match-"));

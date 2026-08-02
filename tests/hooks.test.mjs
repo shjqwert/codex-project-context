@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { createHandoff } from "../dist/application/handoffs.js";
-import { initializeProject } from "../dist/application/project-context.js";
+import { initializeAnalyzedProject as initializeProject } from "./helpers/project-analysis.mjs";
 
 test("SessionStart emits concise context only for initialized projects", async () => {
   const project = await mkdtemp(join(tmpdir(), "codex-project-context-hook-"));

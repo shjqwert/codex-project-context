@@ -26,8 +26,52 @@ export interface ProjectResource {
   purpose: string;
 }
 
-export interface ProjectContext {
+export interface ProjectAnalysisLine {
+  text: string;
+  evidencePaths: string[];
+}
+
+export interface ProjectAnalysisReference extends ProjectResource {
+  evidencePaths: string[];
+}
+
+export type ProjectAdvisoryKind =
+  | "missing-reference"
+  | "unconfirmed-fact"
+  | "configuration-conflict";
+
+export interface ProjectAdvisory {
+  kind: ProjectAdvisoryKind;
+  subject: string;
+  reason: string;
+  action: "remind-user" | "none";
+  evidencePaths: string[];
+}
+
+export interface ProjectAnalysisDraft {
   schemaVersion: 1;
+  inventoryFingerprint: string;
+  overview: ProjectAnalysisLine[];
+  buildAndVerification: ProjectAnalysisLine[];
+  codeAnalysis: ProjectAnalysisLine[];
+  references: ProjectAnalysisReference[];
+  referenceGuidance: ProjectAnalysisLine[];
+  handoffSubjects: string[];
+  advisories: ProjectAdvisory[];
+}
+
+export interface ProjectInventory {
+  schemaVersion: 1;
+  projectRoot: ".";
+  fingerprint: string;
+  capabilities: ProjectCapabilities;
+  profile: ProjectProfile;
+  resources: ProjectResource[];
+  paths: string[];
+}
+
+export interface ProjectContext {
+  schemaVersion: 1 | 2;
   projectRoot: ".";
   currentCycle: string;
   agentsFile: string;
@@ -35,6 +79,8 @@ export interface ProjectContext {
   capabilities: ProjectCapabilities;
   profile?: ProjectProfile;
   resources?: ProjectResource[];
+  inventoryFingerprint?: string;
+  analysis?: ProjectAnalysisDraft;
 }
 
 export interface HandoffSections {

@@ -1,7 +1,10 @@
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import type {
+  ProjectAdvisory,
+  ProjectAnalysisDraft,
   ProjectCapabilities,
   ProjectContext,
+  ProjectInventory,
   ProjectProfile,
   ProjectResource,
   ProjectResourceKind,
@@ -17,13 +20,17 @@ import {
   writeTextAtomic,
 } from "../infrastructure/files.js";
 import { withProjectWriteLock } from "../infrastructure/project-write-lock.js";
+import {
+  validateProjectAnalysisDraft,
+  validateStoredProjectAnalysis,
+} from "./project-analysis.js";
 import { EMPTY_HANDOFF_INDEX, normalizeHandoffIndex } from "./handoff-index.js";
 import {
   countDocumentLines,
   renderManagedAgentsSection,
   upsertManagedAgentsSection,
 } from "./agents-document.js";
-import { discoverProject } from "./project-discovery.js";
+import { inspectProject } from "./project-discovery.js";
 
 export interface ProjectUpdateResult {
   ok: true;
@@ -35,16 +42,23 @@ export interface ProjectUpdateResult {
   capabilities: ProjectCapabilities;
   profile: ProjectProfile;
   resourceCount: number;
+  inventoryFingerprint: string;
+  advisories: ProjectAdvisory[];
 }
 
-export async function initializeProject(projectDirectory: string): Promise<ProjectUpdateResult> {
+export async function initializeProject(
+  projectDirectory: string,
+  rawAnalysis: unknown,
+): Promise<ProjectUpdateResult> {
   const projectRoot = resolve(projectDirectory);
   await assertDirectory(projectRoot);
   return withProjectWriteLock(projectRoot, async () => {
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const stored = await readJsonIfPresent<unknown>(contextPath);
     const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
-    const context = await buildContext(projectRoot, existing);
+    const inventory = await inspectProject(projectRoot);
+    const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
+    const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
 
     await writeJsonAtomic(contextPath, context);
@@ -65,16 +79,23 @@ export async function initializeProject(projectDirectory: string): Promise<Proje
       capabilities: context.capabilities,
       profile: context.profile!,
       resourceCount: context.resources?.length ?? 0,
+      inventoryFingerprint: inventory.fingerprint,
+      advisories: analysis.advisories,
     };
   });
 }
 
-export async function synchronizeProject(projectDirectory: string): Promise<ProjectUpdateResult> {
+export async function synchronizeProject(
+  projectDirectory: string,
+  rawAnalysis: unknown,
+): Promise<ProjectUpdateResult> {
   const projectRoot = await requireProjectRoot(projectDirectory);
   return withProjectWriteLock(projectRoot, async () => {
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const existing = await readProjectContext(projectRoot);
-    const context = await buildContext(projectRoot, existing);
+    const inventory = await inspectProject(projectRoot);
+    const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
+    const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
 
     await writeJsonAtomic(contextPath, context);
@@ -95,6 +116,8 @@ export async function synchronizeProject(projectDirectory: string): Promise<Proj
       capabilities: context.capabilities,
       profile: context.profile!,
       resourceCount: context.resources?.length ?? 0,
+      inventoryFingerprint: inventory.fingerprint,
+      advisories: analysis.advisories,
     };
   });
 }
@@ -134,28 +157,27 @@ export async function readProjectContext(projectRoot: string): Promise<ProjectCo
   return validateStoredContext(projectRoot, stored);
 }
 
-async function buildContext(
-  projectRoot: string,
+function buildContext(
   existing: ProjectContext | undefined,
-): Promise<ProjectContext> {
-  const [capabilities, discovery] = await Promise.all([
-    detectCapabilities(projectRoot),
-    discoverProject(projectRoot),
-  ]);
+  inventory: ProjectInventory,
+  analysis: ProjectAnalysisDraft,
+): ProjectContext {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectRoot: ".",
     currentCycle: existing?.currentCycle ?? "development",
     agentsFile: existing?.agentsFile ?? "AGENTS.md",
     handoffIndex: existing?.handoffIndex ?? ".agent/handoff/index.json",
-    capabilities,
-    profile: discovery.profile,
-    resources: discovery.resources,
+    capabilities: inventory.capabilities,
+    profile: inventory.profile,
+    resources: analysis.references.map(({ kind, path, purpose }) => ({ kind, path, purpose })),
+    inventoryFingerprint: inventory.fingerprint,
+    analysis,
   };
 }
 
 function validateStoredContext(projectRoot: string, value: unknown): ProjectContext {
-  if (!isRecord(value) || value.schemaVersion !== 1 || value.projectRoot !== ".") {
+  if (!isRecord(value) || (value.schemaVersion !== 1 && value.schemaVersion !== 2) || value.projectRoot !== ".") {
     throw new Error("Unsupported or invalid project context.");
   }
   if (typeof value.currentCycle !== "string" || value.currentCycle.trim().length === 0) {
@@ -172,8 +194,15 @@ function validateStoredContext(projectRoot: string, value: unknown): ProjectCont
 
   const profile = value.profile === undefined ? undefined : validateProfile(projectRoot, value.profile);
   const resources = value.resources === undefined ? undefined : validateResources(projectRoot, value.resources);
+  const analysis = value.analysis === undefined ? undefined : validateStoredProjectAnalysis(value.analysis);
+  const inventoryFingerprint = value.inventoryFingerprint === undefined
+    ? undefined
+    : requiredContextText(value.inventoryFingerprint, "inventoryFingerprint");
+  if (value.schemaVersion === 2 && (analysis === undefined || inventoryFingerprint === undefined)) {
+    throw new Error("Project context schemaVersion 2 requires inventoryFingerprint and analysis.");
+  }
   return {
-    schemaVersion: 1,
+    schemaVersion: value.schemaVersion,
     projectRoot: ".",
     currentCycle: value.currentCycle.trim(),
     agentsFile: validateProjectPath(projectRoot, value.agentsFile, "agentsFile"),
@@ -185,6 +214,8 @@ function validateStoredContext(projectRoot: string, value: unknown): ProjectCont
     },
     ...(profile === undefined ? {} : { profile }),
     ...(resources === undefined ? {} : { resources }),
+    ...(inventoryFingerprint === undefined ? {} : { inventoryFingerprint }),
+    ...(analysis === undefined ? {} : { analysis }),
   };
 }
 
@@ -259,16 +290,6 @@ function validateProjectPath(projectRoot: string, value: unknown, field: string)
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-async function detectCapabilities(projectRoot: string): Promise<ProjectCapabilities> {
-  return {
-    codegraph: await pathExists(resolve(projectRoot, ".codegraph")),
-    serena: await pathExists(resolve(projectRoot, ".serena")),
-    openspec:
-      (await pathExists(resolve(projectRoot, "openspec"))) ||
-      (await pathExists(resolve(projectRoot, ".openspec"))),
-  };
 }
 
 async function updateManagedAgentsSection(

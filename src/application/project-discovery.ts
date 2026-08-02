@@ -1,12 +1,20 @@
-import { readdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readdir, stat } from "node:fs/promises";
 import { basename, extname, relative, resolve } from "node:path";
-import type { ProjectProfile, ProjectResource, ProjectResourceKind } from "../types.js";
-import { readJsonIfPresent } from "../infrastructure/files.js";
+import type {
+  ProjectCapabilities,
+  ProjectInventory,
+  ProjectProfile,
+  ProjectResource,
+  ProjectResourceKind,
+} from "../types.js";
+import { assertDirectory, readJsonIfPresent } from "../infrastructure/files.js";
 
 const MAX_DEPTH = 3;
 const MAX_ENTRIES = 5_000;
 const IGNORED_DIRECTORIES = new Set([
   ".agent",
+  ".codegraph",
   ".git",
   ".local-marketplace",
   ".pytest_cache",
@@ -24,11 +32,20 @@ const IGNORED_DIRECTORIES = new Set([
 interface ProjectSnapshot {
   files: string[];
   directories: string[];
+  fileSignatures: Array<[path: string, size: number, modifiedAt: number]>;
 }
+
+const CAPABILITY_DIRECTORIES = new Set([".codegraph", ".serena"]);
 
 export async function discoverProject(
   projectRoot: string,
 ): Promise<{ profile: ProjectProfile; resources: ProjectResource[] }> {
+  const inventory = await inspectProject(projectRoot);
+  return { profile: inventory.profile, resources: inventory.resources };
+}
+
+export async function inspectProject(projectRoot: string): Promise<ProjectInventory> {
+  await assertDirectory(projectRoot);
   const snapshot = await scanProject(projectRoot);
   const packageJson = await readPackageJson(projectRoot);
   const profile: ProjectProfile = {
@@ -52,12 +69,37 @@ export async function discoverProject(
     ]).filter((path) => !isSpecificationPath(path)),
     specificationDirectories: detectSpecificationDirectories(snapshot.directories),
   };
-  return { profile, resources: detectResources(snapshot) };
+  const resources = detectResources(snapshot);
+  const capabilities = detectCapabilities(snapshot);
+  const paths = [...new Set([...snapshot.directories, ...snapshot.files])].sort();
+  const fingerprintPaths = paths.filter((path) => path.toLocaleLowerCase() !== "agents.md");
+  const fileSignatures = snapshot.fileSignatures.filter(
+    ([path]) => path.toLocaleLowerCase() !== "agents.md",
+  );
+  const fingerprint = `sha256:${createHash("sha256")
+    .update(JSON.stringify({
+      capabilities,
+      profile,
+      resources,
+      paths: fingerprintPaths,
+      fileSignatures,
+    }))
+    .digest("hex")}`;
+  return {
+    schemaVersion: 1,
+    projectRoot: ".",
+    fingerprint,
+    capabilities,
+    profile,
+    resources,
+    paths,
+  };
 }
 
 async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
   const files: string[] = [];
   const directories: string[] = [];
+  const fileSignatures: Array<[string, number, number]> = [];
   let entriesSeen = 0;
 
   const visit = async (absoluteDirectory: string, depth: number): Promise<void> => {
@@ -76,18 +118,29 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
       const absolute = resolve(absoluteDirectory, entry.name);
       const projectPath = normalizePath(relative(projectRoot, absolute));
       if (entry.isDirectory()) {
+        const lowerName = entry.name.toLocaleLowerCase();
+        if (IGNORED_DIRECTORIES.has(lowerName)) {
+          if (depth === 0 && CAPABILITY_DIRECTORIES.has(lowerName)) directories.push(projectPath);
+          continue;
+        }
         directories.push(projectPath);
-        if (depth < MAX_DEPTH && !IGNORED_DIRECTORIES.has(entry.name.toLocaleLowerCase())) {
+        if (depth < MAX_DEPTH) {
           await visit(absolute, depth + 1);
         }
       } else if (entry.isFile()) {
         files.push(projectPath);
+        try {
+          const details = await stat(absolute);
+          fileSignatures.push([projectPath, details.size, details.mtimeMs]);
+        } catch {
+          fileSignatures.push([projectPath, -1, -1]);
+        }
       }
     }
   };
 
   await visit(projectRoot, 0);
-  return { files, directories };
+  return { files, directories, fileSignatures };
 }
 
 async function readPackageJson(
@@ -196,6 +249,19 @@ function detectResources(snapshot: ProjectSnapshot): ProjectResource[] {
     .slice(0, 24);
 }
 
+function detectCapabilities(snapshot: ProjectSnapshot): ProjectCapabilities {
+  const roots = new Set(
+    snapshot.directories
+      .filter((path) => !path.includes("/"))
+      .map((path) => path.toLocaleLowerCase()),
+  );
+  return {
+    codegraph: roots.has(".codegraph"),
+    serena: roots.has(".serena"),
+    openspec: roots.has("openspec") || roots.has(".openspec"),
+  };
+}
+
 function classifyResource(path: string, directory: boolean): ProjectResourceKind | undefined {
   const lower = path.toLocaleLowerCase();
   const name = basename(lower);
@@ -207,7 +273,8 @@ function classifyResource(path: string, directory: boolean): ProjectResourceKind
   if (/(schematic|hardware|pcb)/u.test(lower) || [".dsn", ".kicad_sch", ".sch"].includes(extension)) {
     return "hardware";
   }
-  if (/(manual|datasheet)/u.test(lower) || extension === ".pdf") return "manual";
+  if (/(manual|datasheet)/u.test(lower)) return "manual";
+  if (extension === ".pdf") return "documentation";
   if (
     /(^|\/)(docs?|documentation|references?)(\/|$)/u.test(lower) ||
     (!directory && ["readme.md", "architecture.md", "contributing.md"].includes(name))

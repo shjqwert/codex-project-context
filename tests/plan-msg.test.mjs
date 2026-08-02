@@ -8,7 +8,7 @@ import {
   listProjectPlans,
   transitionProjectPlan,
 } from "../dist/application/plan-msg.js";
-import { initializeProject } from "../dist/application/project-context.js";
+import { initializeAnalyzedProject as initializeProject } from "./helpers/project-analysis.mjs";
 
 test("plan register is lazy and validates status transitions", async () => {
   const project = await mkdtemp(join(tmpdir(), "codex-project-context-plan-"));

@@ -8,10 +8,11 @@ import {
   listProjectPlans,
   transitionProjectPlan,
 } from "../application/plan-msg.js";
+import { inspectProject } from "../application/project-discovery.js";
 import { getProjectStatus, initializeProject, synchronizeProject } from "../application/project-context.js";
-import type { HandoffInput, ProjectPlanInput } from "../types.js";
+import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.3.5";
+const VERSION = "0.4.0";
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -25,12 +26,19 @@ async function main(): Promise<void> {
   const project = resolve(option(options, "project") ?? process.cwd());
 
   switch (command) {
-    case "init":
-      writeJson(await initializeProject(project));
+    case "inspect":
+      writeJson({ ok: true, projectRoot: project, inventory: await inspectProject(project) });
       break;
-    case "sync":
-      writeJson(await synchronizeProject(project));
+    case "init": {
+      const input = await readJsonInput<ProjectAnalysisDraft>(requiredOption(options, "input"));
+      writeJson(await initializeProject(project, input));
       break;
+    }
+    case "sync": {
+      const input = await readJsonInput<ProjectAnalysisDraft>(requiredOption(options, "input"));
+      writeJson(await synchronizeProject(project, input));
+      break;
+    }
     case "status":
       writeJson(await getProjectStatus(project));
       break;
@@ -135,8 +143,9 @@ function helpText(): string {
   return `codex-project-context ${VERSION}
 
 Usage:
-  codex-project-context init [--project PATH]
-  codex-project-context sync [--project PATH]
+  codex-project-context inspect [--project PATH]
+  codex-project-context init [--project PATH] --input FILE|-
+  codex-project-context sync [--project PATH] --input FILE|-
   codex-project-context status [--project PATH]
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-

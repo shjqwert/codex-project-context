@@ -4,12 +4,19 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { buildTestProjectAnalysis } from "./helpers/project-analysis.mjs";
 
 const cli = resolve("dist", "cli", "main.js");
 
 test("CLI initializes, records, reports, and matches project context", async () => {
   const project = await mkdtemp(join(tmpdir(), "codex-project-context-cli-"));
-  const initialized = runCli(["init", "--project", project]);
+  const inspected = runCli(["inspect", "--project", project]);
+  assert.equal(inspected.status, 0, inspected.stderr);
+  assert.match(JSON.parse(inspected.stdout).inventory.fingerprint, /^sha256:[a-f0-9]{64}$/u);
+  const analysisDirectory = await mkdtemp(join(tmpdir(), "codex-project-context-analysis-"));
+  const analysisPath = join(analysisDirectory, "analysis.json");
+  await writeFile(analysisPath, JSON.stringify(await buildTestProjectAnalysis(project)), "utf8");
+  const initialized = runCli(["init", "--project", project, "--input", analysisPath]);
   assert.equal(initialized.status, 0, initialized.stderr);
   const initializedOutput = JSON.parse(initialized.stdout);
   assert.equal(initializedOutput.ok, true);
