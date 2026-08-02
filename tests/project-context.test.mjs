@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { initializeProject as initializeProjectWithAnalysis } from "../dist/application/project-context.js";
+import { inspectProject } from "../dist/application/project-discovery.js";
 import {
   buildTestProjectAnalysis,
   initializeAnalyzedProject as initializeProject,
@@ -188,4 +189,21 @@ test("initialization requires routing for detected analysis tools", async () => 
     initializeProjectWithAnalysis(project, missingCodeGraphEvidence),
     /CodeGraph routing must cite \.codegraph/,
   );
+});
+
+test("Serena cache changes do not stale the repository inventory", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-serena-cache-"));
+  await mkdir(join(project, ".serena", "cache"), { recursive: true });
+  const cachePath = join(project, ".serena", "cache", "symbols.json");
+  await writeFile(cachePath, "{\"revision\":1}\n", "utf8");
+
+  const before = await inspectProject(project);
+  await writeFile(cachePath, "{\"revision\":2}\n", "utf8");
+  const after = await inspectProject(project);
+
+  assert.equal(before.capabilities.serena, true);
+  assert.equal(after.capabilities.serena, true);
+  assert.equal(after.fingerprint, before.fingerprint);
+  assert.ok(after.paths.includes(".serena"));
+  assert.ok(after.paths.every((path) => !path.startsWith(".serena/")));
 });

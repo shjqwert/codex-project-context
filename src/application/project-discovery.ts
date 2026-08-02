@@ -18,6 +18,7 @@ const IGNORED_DIRECTORIES = new Set([
   ".git",
   ".local-marketplace",
   ".pytest_cache",
+  ".serena",
   ".turbo",
   ".venv",
   "build",
