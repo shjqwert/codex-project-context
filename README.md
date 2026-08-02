@@ -51,6 +51,24 @@ codex plugin marketplace add .local-marketplace
 codex plugin add codex-project-context@codex-project-context-dev
 ```
 
+## Install on Another Computer
+
+The repository intentionally excludes generated `dist/` and `.local-marketplace/` directories. On a new Windows computer, clone the repository and build the local package before adding the plugin:
+
+```powershell
+git clone https://github.com/shjqwert/codex-project-context.git
+cd codex-project-context
+
+npm ci
+npm test
+npm run package:local
+
+codex plugin marketplace add .local-marketplace
+codex plugin add codex-project-context@codex-project-context-dev
+```
+
+Install Node.js 20 or later and the Codex CLI first. Hook trust is local to each computer: review and trust the two plugin Hooks through `/hooks` after the first installation. Once trusted, normal use does not require a confirmation on every prompt.
+
 Hook changes may require review through `/hooks`. Skill metadata makes initialization and synchronization explicit-only while allowing semantic handoff and plan selection when their admission rules are satisfied.
 Hook failures remain fail-open and append bounded diagnostics without prompt contents to `$CODEX_HOME/logs/project-context-hooks.jsonl`. Prompt injection deduplication stores only SHA-256 markers under `$CODEX_HOME/state/project-context-hooks/prompt-injections`; prompt text is not persisted.
 
