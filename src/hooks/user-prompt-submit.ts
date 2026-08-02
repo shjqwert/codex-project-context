@@ -9,44 +9,45 @@ await runHook("UserPromptSubmit", async () => {
   const projectRoot = await findProjectRoot(input.cwd);
   if (projectRoot === undefined) return;
 
-  const matches = await matchHandoffs(projectRoot, input.prompt, 5);
+  const matches = await matchHandoffs(projectRoot, input.prompt);
   if (matches.length === 0) return;
 
-  const cards = renderCards(matches, 900);
+  const rendered = renderCards(matches, 900);
+  const recordCount = matches.reduce((count, match) => count + match.records.length, 0);
 
   writeAdditionalContext(
     "UserPromptSubmit",
     [
       "[codex-project-context] Potentially relevant handoff records:",
-      ...cards,
+      `Matched ${matches.length} work group(s) and ${recordCount} record(s).`,
+      ...rendered.cards,
+      ...(rendered.truncated
+        ? ["Hook routing output was truncated by its character budget. Run the handoff match CLI with the current prompt to retrieve the complete reliable match set."]
+        : []),
       `Project root: ${relative(input.cwd, projectRoot) || "."}`,
-      "Open only the relevant records and verify their claims against current code and tests.",
+      "Read every reliably relevant record listed by the complete match result, then verify its claims against current code and tests.",
     ].join("\n\n"),
   );
 });
 
-function renderCards(matches: Awaited<ReturnType<typeof matchHandoffs>>, budget: number): string[] {
+function renderCards(
+  matches: Awaited<ReturnType<typeof matchHandoffs>>,
+  budget: number,
+): { cards: string[]; truncated: boolean } {
   const cards: string[] = [];
   let used = 0;
-  for (const { entry, score, reasons, confidence, relatedIds, suggestedSections } of matches) {
-    const sectionHints = suggestedSections
-      .slice(0, 2)
-      .map(({ name, summary }) => `${name}: ${summary}`)
-      .join(" | ");
+  for (const { entry, score, reasons, confidence, records } of matches) {
+    const recordLines = records.map((record) =>
+      `${record.id}: ${record.path} [${record.availableSections.join(", ")}]`
+    );
     const card = [
-      `${entry.id}: ${entry.title} (score ${score}, ${confidence})`,
+      `${entry.title} (score ${score}, ${confidence})`,
       `Match: ${reasons.join(", ")}`,
-      `Path: ${entry.path}`,
-      relatedIds.length > 0 ? `Related handoffs: ${relatedIds.join(", ")}` : undefined,
-      sectionHints.length > 0 ? `Suggested sections: ${sectionHints}` : undefined,
-    ]
-      .filter((line): line is string => line !== undefined)
-      .join("\n");
-    if (cards.length > 0 && used + card.length > budget) break;
-    const boundedCard = card.slice(0, Math.max(0, budget - used));
-    if (boundedCard.length === 0) break;
-    cards.push(boundedCard);
-    used += boundedCard.length;
+      ...recordLines,
+    ].join("\n");
+    if (used + card.length > budget) return { cards, truncated: true };
+    cards.push(card);
+    used += card.length;
   }
-  return cards;
+  return { cards, truncated: false };
 }

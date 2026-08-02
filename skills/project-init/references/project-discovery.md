@@ -33,7 +33,7 @@ Create schemaVersion 1 JSON with the inventory fingerprint and these arrays:
 - `codeAnalysis`: concise routing based on tools actually available and the repository structure;
 - `references`: only real non-OpenSpec resources selected as useful project references;
 - `referenceGuidance`: rules that apply only to the selected reference categories;
-- `handoffSubjects`: project-specific coherent work areas useful for cross-window routing;
+- `handoffGuidance`: zero to three evidence-backed lines describing the routing dimensions that actually apply to this project, such as plugin capabilities and Hooks, embedded modules and peripherals, or ordinary files, symbols, tests, and bugs;
 - `advisories`: missing references, unconfirmed facts, or configuration conflicts that should be reported rather than asserted.
 
 Every generated line must be a bounded single line with at least one evidence path. Do not include Markdown headings or managed markers in input text.

@@ -49,7 +49,12 @@ export async function buildTestProjectAnalysis(project) {
     referenceGuidance: references.length === 0
       ? []
       : [{ text: "Open only references relevant to the current task.", evidencePaths: ["."] }],
-    handoffSubjects: ["features", "modules", "bugs"],
+    handoffGuidance: [
+      {
+        text: "Query handoffs by the current feature, module, file, symbol, test, or bug evidence.",
+        evidencePaths: ["."],
+      },
+    ],
     advisories: [],
   };
 }

@@ -6,7 +6,7 @@ Allowed updates:
 
 - detected profile, capabilities, inventory fingerprint, Agent analysis, evidence paths, references, and advisories in `.agent/context.json`;
 - plugin-managed `AGENTS.md` content;
-- missing or supported handoff index schema migration.
+- creation of a missing empty schema v3 handoff index only when no records exist; synchronization never rewrites Markdown records.
 
 Forbidden updates:
 
@@ -19,3 +19,5 @@ Forbidden updates:
 Preserve analysis lines while their evidence remains valid. Remove or revise a line when its cited evidence disappears or conflicts with current evidence. A generic PDF is documentation, not automatically a manual. Never classify OpenSpec-owned `specs` paths as tests or render OpenSpec-owned paths in `Project References`.
 
 Do not infer project stage, create tasks or plans, download missing references, or fabricate external facts. Return relevant missing inputs as advisories. Repeated synchronization with the same inventory and analysis must be byte-identical.
+
+Reject unsupported handoff index schemas. Do not migrate or rewrite earlier handoff formats.

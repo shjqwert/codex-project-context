@@ -56,10 +56,9 @@ test("new projects receive an evidence-based AGENTS document within 200 lines", 
   assert.doesNotMatch(firstAgents, /<!-- CODEGRAPH_START -->|codegraph_explore|## CodeGraph/);
   assert.match(firstAgents, /Use Serena for symbol lookup, reference analysis, local reading, and precise modification/);
   assert.doesNotMatch(firstAgents, /## Development Rules|## Specification Routing/);
-  assert.match(firstAgents, /SessionStart/);
-  assert.match(firstAgents, /UserPromptSubmit/);
+  assert.doesNotMatch(firstAgents, /SessionStart|UserPromptSubmit|fail open|schemaVersion/);
   assert.doesNotMatch(firstAgents, /project-init.*explicit-only|project-sync.*explicit-only/);
-  assert.match(firstAgents, /\.agent\/handoff\/records\/<cycle>/);
+  assert.match(firstAgents, /\.agent\/handoff\//);
   assert.match(firstAgents, /docs/);
   const references = firstAgents.split("## Project References")[1].split("## Project Context")[0];
   assert.doesNotMatch(references, /openspec/i);
@@ -139,7 +138,7 @@ test("synchronization migrates a readable schema v1 context to Agent-authored sc
   );
   await writeFile(
     join(project, ".agent", "handoff", "index.json"),
-    JSON.stringify({ schemaVersion: 2, entries: [] }),
+    JSON.stringify({ schemaVersion: 3, entries: [] }),
     "utf8",
   );
 

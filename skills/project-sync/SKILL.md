@@ -32,19 +32,21 @@ node <plugin-root>/dist/cli/main.js sync --project <absolute-project-root> --inp
 Synchronization may update only:
 
 - `.agent/context.json` inventory fingerprint, analysis, evidence, references, and advisories;
-- a missing or migratable `.agent/handoff/index.json`;
+- a missing `.agent/handoff/index.json` only when no handoff records exist; handoff creation and explicit index repair remain responsible for rebuilding it from current-format Markdown records;
 - content between the project-context managed boundary markers in `AGENTS.md`.
 
 It must not create `.agent/planMsg.md`, modify handoff Markdown files, or replace user-authored `AGENTS.md` content.
+
+If records exist but the index is missing or inconsistent, stop synchronization and use the explicit `handoff-index --action verify|rebuild` workflow; do not repair it implicitly during sync.
 
 ## Verify
 
 1. Require `ok: true` in the JSON result.
 2. Confirm the managed boundary appears exactly once.
 3. Confirm content outside the boundary is unchanged.
-4. Confirm all indexed handoff entries remain present after schema migration.
+4. Confirm all indexed handoff entries remain present; reject unsupported index schemas instead of migrating them.
 5. Confirm overview facts, rules, references, advisories, and evidence paths reflect current project evidence.
 6. Re-submit the same analysis and require byte-stable output when the project did not change.
-7. Report additions, removals, classification changes, and migrations separately.
+7. Report additions, removals, and classification changes separately.
 8. Confirm OpenSpec-owned paths are not rendered in `Project References`, broad Development, Specification, and Completion sections remain absent, and the context section names remain present.
 9. Remove only the temporary analysis JSON created for this operation and report `remind-user` advisories.

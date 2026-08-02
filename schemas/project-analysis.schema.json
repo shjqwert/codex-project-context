@@ -12,7 +12,7 @@
     "codeAnalysis",
     "references",
     "referenceGuidance",
-    "handoffSubjects",
+    "handoffGuidance",
     "advisories"
   ],
   "properties": {
@@ -23,11 +23,10 @@
     "codeAnalysis": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/line" } },
     "references": { "type": "array", "maxItems": 24, "items": { "$ref": "#/$defs/reference" } },
     "referenceGuidance": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/line" } },
-    "handoffSubjects": {
+    "handoffGuidance": {
       "type": "array",
-      "maxItems": 12,
-      "uniqueItems": true,
-      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/line" }
     },
     "advisories": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/advisory" } }
   },

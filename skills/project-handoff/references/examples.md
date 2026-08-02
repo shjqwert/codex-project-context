@@ -6,20 +6,25 @@
 {
   "title": "Session shutdown cleanup",
   "summary": "Verified cleanup now runs after the transport closes.",
+  "kind": "bug",
   "files": ["src/session.ts"],
   "symbols": ["stopSession"],
   "tests": ["session cleanup"],
   "sections": {
-    "bugDiagnosis": "The early return bypassed cleanup; the focused regression test failed before the change and passed afterward.",
-    "verification": "Focused session cleanup test passed."
+    "objective": "Preserve the verified cleanup fix for continuation in a new task.",
+    "currentState": "The early-return cleanup defect is fixed in src/session.ts.",
+    "workCompleted": "Moved cleanup after transport closure and added a focused regression test.",
+    "bugDiagnosis": "The early return bypassed cleanup; the focused test failed before the change and passed afterward.",
+    "verification": "The focused session cleanup test passed.",
+    "remainingWork": "Run the broader session suite and inspect any platform-specific shutdown failures."
   }
 }
 ```
 
 ## Unconfirmed Cause
 
-Omit `bugDiagnosis` when logs show a failure but code and controlled comparison do not establish the cause. Record the observed failure and missing evidence under `risks` and `evidence`.
+Omit `bugDiagnosis` when logs show a failure but code and controlled comparison do not establish the cause. Record the observed state under `currentState`, the needed investigation under `remainingWork`, and only material uncertainty under `risks`.
 
 ## Reject
 
-Do not create a handoff for formatting one file, answering a question, or restating an OpenSpec task without new implementation, diagnosis, constraint, or verification evidence.
+Do not create a handoff for formatting one file, answering a question, or restating an accepted specification without new implementation, diagnosis, constraint, verification, or continuation risk.

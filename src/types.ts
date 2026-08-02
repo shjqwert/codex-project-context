@@ -56,7 +56,7 @@ export interface ProjectAnalysisDraft {
   codeAnalysis: ProjectAnalysisLine[];
   references: ProjectAnalysisReference[];
   referenceGuidance: ProjectAnalysisLine[];
-  handoffSubjects: string[];
+  handoffGuidance: ProjectAnalysisLine[];
   advisories: ProjectAdvisory[];
 }
 
@@ -84,22 +84,41 @@ export interface ProjectContext {
 }
 
 export interface HandoffSections {
-  objective?: string;
-  startingState?: string;
+  objective: string;
+  currentState: string;
+  remainingWork: string;
   workCompleted?: string;
   bugDiagnosis?: string;
-  behavioralConstraints?: string;
-  changedAreas?: string;
+  decisionsAndConstraints?: string;
+  failedAttempts?: string;
   verification?: string;
   risks?: string;
   evidence?: string;
 }
 
+export type HandoffKind =
+  | "feature"
+  | "bug"
+  | "investigation"
+  | "maintenance"
+  | "verification";
+
+export interface HandoffRouting {
+  specRefs: string[];
+  bugIds: string[];
+  modules: string[];
+  files: string[];
+  symbols: string[];
+  tests: string[];
+  tags: string[];
+}
+
 export interface HandoffInput {
   title: string;
   summary: string;
+  kind: HandoffKind;
+  sections: HandoffSections;
   cycle?: string;
-  kind?: string[];
   specRefs?: string[];
   modules?: string[];
   symbols?: string[];
@@ -107,7 +126,6 @@ export interface HandoffInput {
   bugIds?: string[];
   tests?: string[];
   tags?: string[];
-  sections?: HandoffSections;
 }
 
 export interface HandoffIndexEntry {
@@ -115,29 +133,25 @@ export interface HandoffIndexEntry {
   cycle: string;
   title: string;
   summary: string;
-  specRefs: string[];
-  bugIds: string[];
-  modules: string[];
-  files: string[];
-  symbols: string[];
-  testNames: string[];
-  tags: string[];
-  sections: string[];
-  sectionSummaries: HandoffSectionSummary[];
+  kind: HandoffKind;
+  routing: HandoffRouting;
+  availableSections: string[];
   groupKey: string;
-  dedupeKey?: string;
+  dedupeKey: string;
   path: string;
   createdAt: string;
 }
 
-export interface HandoffSectionSummary {
-  name: string;
-  summary: string;
+export interface HandoffIndex {
+  schemaVersion: 3;
+  entries: HandoffIndexEntry[];
 }
 
-export interface HandoffIndex {
-  schemaVersion: 2;
-  entries: HandoffIndexEntry[];
+export interface HandoffRecordReference {
+  id: string;
+  path: string;
+  availableSections: string[];
+  createdAt: string;
 }
 
 export interface HandoffMatch {
@@ -145,8 +159,7 @@ export interface HandoffMatch {
   score: number;
   reasons: string[];
   confidence: "exact" | "high" | "medium";
-  relatedIds: string[];
-  suggestedSections: HandoffSectionSummary[];
+  records: HandoffRecordReference[];
 }
 
 export type ProjectPlanStatus =

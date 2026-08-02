@@ -36,7 +36,13 @@ export async function validateProjectAnalysisDraft(
   requireCapabilityRouting(draft, inventory);
 
   const evidencePaths = new Set<string>();
-  for (const line of [...draft.overview, ...draft.buildAndVerification, ...draft.codeAnalysis, ...draft.referenceGuidance]) {
+  for (const line of [
+    ...draft.overview,
+    ...draft.buildAndVerification,
+    ...draft.codeAnalysis,
+    ...draft.referenceGuidance,
+    ...draft.handoffGuidance,
+  ]) {
     for (const path of line.evidencePaths) evidencePaths.add(path);
   }
   for (const reference of draft.references) {
@@ -80,7 +86,7 @@ export function validateStoredProjectAnalysis(value: unknown): ProjectAnalysisDr
     codeAnalysis: analysisLines(value.codeAnalysis, "codeAnalysis", 1, 8),
     references: analysisReferences(value.references),
     referenceGuidance: analysisLines(value.referenceGuidance ?? [], "referenceGuidance", 0, 8),
-    handoffSubjects: singleLineArray(value.handoffSubjects ?? [], "handoffSubjects", 12, 100),
+    handoffGuidance: analysisLines(value.handoffGuidance ?? [], "handoffGuidance", 0, 3),
     advisories: analysisAdvisories(value.advisories ?? []),
   };
   return draft;
@@ -159,13 +165,6 @@ function evidencePathArray(value: unknown, field: string): string[] {
     throw new Error(`Project analysis ${field} must be a string array with at most 16 entries.`);
   }
   return [...new Set(value.map((item) => projectRelativePath(item, field, true)))];
-}
-
-function singleLineArray(value: unknown, field: string, maximum: number, maximumLength: number): string[] {
-  if (!Array.isArray(value) || value.length > maximum) {
-    throw new Error(`Project analysis ${field} must be an array with at most ${maximum} entries.`);
-  }
-  return [...new Set(value.map((entry, index) => requiredSingleLine(entry, `${field}[${index}]`, maximumLength)))];
 }
 
 function requiredSingleLine(value: unknown, field: string, maximumLength: number): string {

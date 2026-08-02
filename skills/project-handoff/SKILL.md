@@ -1,6 +1,6 @@
 ---
 name: project-handoff
-description: Create an evidence-based cross-task handoff and update its deterministic section-level index when work on a coherent feature, module, or bug investigation must continue in another Codex task or window. May be selected implicitly when durable continuation context is needed; do not trigger for routine questions, trivial edits, or mechanical session shutdown.
+description: Create an evidence-based cross-task handoff and update its lightweight relevance index when coherent work must continue in another Codex task or window. May be selected implicitly when durable continuation context is needed; do not trigger for routine questions, trivial edits, or mechanical session shutdown.
 ---
 
 # Project Handoff
@@ -22,12 +22,12 @@ Skip routine questions, trivial edits, duplicated information with no new eviden
 
 Read [handoff-format.md](references/handoff-format.md) for field rules. Read [examples.md](references/examples.md) when diagnosis quality, duplicate grouping, or evidence boundaries are uncertain.
 
-Use only facts supported by the current task, source, tests, logs, project references, or accepted specifications. Root-cause claims require evidence. If root cause remains uncertain, omit `sections.bugDiagnosis`; the renderer will state that it is unconfirmed.
+Use only facts supported by the current task, source, tests, logs, project references, or accepted specifications. Root-cause claims require evidence. If root cause remains uncertain, omit `sections.bugDiagnosis` and record the uncertainty only when it affects continuation.
 
 ## Record
 
-1. Prepare a temporary UTF-8 JSON input with `title` and `summary`.
-2. Add only supported metadata and non-empty sections.
+1. Prepare a temporary UTF-8 JSON input with `title`, `summary`, one supported `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
+2. Add only supported routing metadata and non-empty conditional sections.
 3. Resolve the plugin root as two directories above this `SKILL.md`.
 4. Run:
 
@@ -46,8 +46,25 @@ writes are serialized by a short-lived project lock.
 1. Require `ok: true`, a project-local output path, and inspect `deduplicated`.
 2. When `deduplicated` is `true`, confirm the returned ID and file already existed and no new record was written.
 3. Inspect a newly created Markdown file for evidence accuracy and unsupported claims.
-4. Confirm `.agent/handoff/index.json` contains the entry, section summaries, deterministic group key, and dedupe key.
+4. Confirm `.agent/handoff/index.json` contains the entry, routing metadata, available section names, deterministic group key, and dedupe key without copying section bodies.
 5. Confirm passed tests were actually observed in the current task.
 6. Confirm duplicate grouping did not merge unrelated work merely because it shared a broad module.
+7. Confirm the Markdown contains no empty or placeholder sections and can supply the metadata needed to rebuild the index.
 
 Report the handoff ID and path. Keep current code, tests, and accepted specifications authoritative over historical records.
+
+## Repair the Index
+
+When the index is missing, suspected stale, or inconsistent, verify before rebuilding:
+
+```text
+node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-root> --action verify
+```
+
+If verification fails because the cache differs from valid Markdown fact records, rebuild it explicitly:
+
+```text
+node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-root> --action rebuild
+```
+
+Rebuild only from current-format records. Reject unsupported headings, missing core sections, placeholder content, or disagreement between `available_sections` and actual Markdown sections; never overwrite records to make an index pass.

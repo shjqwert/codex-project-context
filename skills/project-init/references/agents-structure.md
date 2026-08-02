@@ -19,7 +19,11 @@ The project-specific content is authored from the validated Agent analysis; it i
 
 Keep `Code Analysis` concise and evidence-based. Mention CodeGraph or Serena only according to current capability evidence, and retain normal project tools as a non-blocking fallback. Do not embed the official CodeGraph managed block.
 
-Omit `Project References` when the analysis selects no non-OpenSpec references. Render category guidance only when the Agent submits it for selected resources. Do not generate `Development Rules`, `Specification Routing`, or `Completion Rules`. Keep the plugin's storage and Hook invariants in `Project Context`; combine the Agent's project-specific handoff subjects with the fixed index-first bounded-read contract in `Handoff Context`.
+Omit `Project References` when the analysis selects no non-OpenSpec references. Render category guidance only when the Agent submits it for selected resources. Do not generate `Development Rules`, `Specification Routing`, or `Completion Rules`.
+
+Keep the `Project Context` and `Handoff Context` section roles stable, but render their content from actual project configuration and evidence. `Project Context` names only the context, plan, and handoff entry points that apply. It must not expose Hook behavior, Skill selection, schema internals, migration rules, or write-boundary implementation details.
+
+`Handoff Context` combines four stable boundaries with up to three evidence-backed `handoffGuidance` lines: create records only for coherent cross-task continuation, read every reliably relevant record without a fixed count, do not force unrelated history when no reliable match exists, and keep current project evidence authoritative. Do not mention specifications, bug IDs, hardware, or other routing dimensions unless the analyzed project supports them.
 
 Invocation policy:
 

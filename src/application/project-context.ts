@@ -24,7 +24,7 @@ import {
   validateProjectAnalysisDraft,
   validateStoredProjectAnalysis,
 } from "./project-analysis.js";
-import { EMPTY_HANDOFF_INDEX, normalizeHandoffIndex } from "./handoff-index.js";
+import { EMPTY_HANDOFF_INDEX, validateHandoffIndex } from "./handoff-index.js";
 import {
   countDocumentLines,
   renderManagedAgentsSection,
@@ -61,11 +61,14 @@ export async function initializeProject(
     const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
 
+    const indexExists = await pathExists(indexPath);
+    if (indexExists) validateHandoffIndex(await readJson<unknown>(indexPath));
+    if (!indexExists && await pathExists(resolve(projectRoot, ".agent", "handoff", "records"))) {
+      throw new Error("Handoff index is missing while records exist; rebuild the index before initialization.");
+    }
     await writeJsonAtomic(contextPath, context);
-    if (!(await pathExists(indexPath))) {
+    if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
-    } else {
-      await migrateIndexIfNeeded(indexPath);
     }
     const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
@@ -98,11 +101,14 @@ export async function synchronizeProject(
     const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
 
+    const indexExists = await pathExists(indexPath);
+    if (indexExists) validateHandoffIndex(await readJson<unknown>(indexPath));
+    if (!indexExists && await pathExists(resolve(projectRoot, ".agent", "handoff", "records"))) {
+      throw new Error("Handoff index is missing while records exist; rebuild the index before synchronization.");
+    }
     await writeJsonAtomic(contextPath, context);
-    if (!(await pathExists(indexPath))) {
+    if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
-    } else {
-      await migrateIndexIfNeeded(indexPath);
     }
     const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
@@ -126,9 +132,7 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
   const projectRoot = await requireProjectRoot(projectDirectory);
   const contextPath = resolve(projectRoot, ".agent", "context.json");
   const context = await readProjectContext(projectRoot);
-  const { index } = normalizeHandoffIndex(
-    await readJson<unknown>(resolve(projectRoot, context.handoffIndex)),
-  );
+  const index = validateHandoffIndex(await readJson<unknown>(resolve(projectRoot, context.handoffIndex)));
 
   return {
     ok: true,
@@ -137,11 +141,6 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
     context,
     handoffCount: index.entries.length,
   };
-}
-
-async function migrateIndexIfNeeded(indexPath: string): Promise<void> {
-  const normalized = normalizeHandoffIndex(await readJson<unknown>(indexPath));
-  if (normalized.migrated) await writeJsonAtomic(indexPath, normalized.index);
 }
 
 export async function requireProjectRoot(startDirectory: string): Promise<string> {

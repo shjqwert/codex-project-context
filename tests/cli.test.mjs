@@ -29,9 +29,15 @@ test("CLI initializes, records, reports, and matches project context", async () 
     JSON.stringify({
       title: "Router verification",
       summary: "Verified the router entry point.",
+      kind: "verification",
       modules: ["router"],
       files: ["src/router.ts"],
-      sections: { verification: "Focused test passed." },
+      sections: {
+        objective: "Preserve the verified router state for continuation.",
+        currentState: "The router entry point has been verified.",
+        verification: "Focused test passed.",
+        remainingWork: "Run the broader router suite.",
+      },
     }),
     "utf8",
   );
@@ -56,10 +62,28 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(matched.status, 0, matched.stderr);
   assert.equal(JSON.parse(matched.stdout).matches[0].entry.id, "W001");
 
+  const verifiedIndex = runCli(["handoff-index", "--project", project, "--action", "verify"]);
+  assert.equal(verifiedIndex.status, 0, verifiedIndex.stderr);
+  assert.equal(JSON.parse(verifiedIndex.stdout).entryCount, 1);
+
+  await writeFile(
+    join(project, ".agent", "handoff", "index.json"),
+    `${JSON.stringify({ schemaVersion: 3, entries: [] }, null, 2)}\n`,
+    "utf8",
+  );
+  const inconsistentIndex = runCli(["handoff-index", "--project", project, "--action", "verify"]);
+  assert.equal(inconsistentIndex.status, 1);
+  assert.match(inconsistentIndex.stderr, /does not match/);
+  const rebuiltIndex = runCli(["handoff-index", "--project", project, "--action", "rebuild"]);
+  assert.equal(rebuiltIndex.status, 0, rebuiltIndex.stderr);
+  assert.equal(JSON.parse(rebuiltIndex.stdout).entryCount, 1);
+
   const index = JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8"));
   assert.equal(index.entries.length, 1);
-  assert.equal(index.schemaVersion, 2);
+  assert.equal(index.schemaVersion, 3);
   assert.equal(index.entries[0].path, ".agent/handoff/records/development/W001-router-verification.md");
+  assert.equal("sectionSummaries" in index.entries[0], false);
+  assert.deepEqual(index.entries[0].availableSections, ["objective", "currentState", "verification", "remainingWork"]);
 
   const planInput = join(project, "plan.json");
   await writeFile(

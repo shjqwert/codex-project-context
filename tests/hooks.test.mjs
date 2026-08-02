@@ -29,8 +29,14 @@ test("UserPromptSubmit emits matching handoff cards and stays silent otherwise",
   await createHandoff(project, {
     title: "HSS shutdown",
     summary: "Verified stopSession cleanup.",
+    kind: "verification",
     modules: ["hss"],
     symbols: ["stopSession"],
+    sections: {
+      objective: "Continue HSS shutdown verification.",
+      currentState: "stopSession cleanup is verified.",
+      remainingWork: "Run the broader shutdown suite.",
+    },
   });
 
   const matched = runHook("user-prompt-submit.js", {
@@ -48,6 +54,41 @@ test("UserPromptSubmit emits matching handoff cards and stays silent otherwise",
   });
   assert.equal(unrelated.status, 0, unrelated.stderr);
   assert.equal(unrelated.stdout, "");
+});
+
+test("UserPromptSubmit reports truncation without changing the complete handoff index", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-overflow-hook-"));
+  await initializeProject(project);
+  for (let index = 1; index <= 8; index += 1) {
+    await createHandoff(project, {
+      title: `Overflow routing record ${index}`,
+      summary: `Verified overflow routing evidence for independent symbol ${index}.`,
+      kind: "verification",
+      modules: ["stage8-overflow"],
+      symbols: [`OverflowSymbol${index}`],
+      sections: {
+        objective: `Preserve routing evidence for symbol ${index}.`,
+        currentState: `The independent routing record ${index} is available.`,
+        remainingWork: `Use record ${index} when its symbol is relevant.`,
+      },
+    });
+  }
+
+  const indexPath = join(project, ".agent", "handoff", "index.json");
+  const before = await readFile(indexPath, "utf8");
+  const result = runHook("user-prompt-submit.js", {
+    cwd: project,
+    hook_event_name: "UserPromptSubmit",
+    prompt: "Continue stage8-overflow work",
+  });
+  const after = await readFile(indexPath, "utf8");
+
+  assert.equal(result.status, 0, result.stderr);
+  const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.match(context, /Matched 8 work group\(s\) and 8 record\(s\)/);
+  assert.match(context, /Hook routing output was truncated/);
+  assert.match(context, /handoff match CLI with the current prompt/);
+  assert.equal(after, before);
 });
 
 test("hooks fail open and append bounded local diagnostics", async () => {

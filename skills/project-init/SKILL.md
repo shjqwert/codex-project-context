@@ -42,7 +42,7 @@ The command may:
 
 - validate that the inventory fingerprint is current and all cited paths exist inside the project;
 - create or refresh the schema v2 `.agent/context.json`;
-- create a missing schema v2 handoff index;
+- create a missing schema v3 handoff index;
 - render the Agent-authored project sections and fixed context-routing contract into `AGENTS.md`.
 
 Remove only the temporary analysis JSON created for this operation. The command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dependencies, or hardware tooling. It must not create `.agent/planMsg.md`.
@@ -56,7 +56,7 @@ Remove only the temporary analysis JSON created for this operation. The command 
 5. Re-submit the same analysis and confirm the managed section is not duplicated and output is byte-stable.
 6. Confirm every analysis line and reference in `.agent/context.json` retains its evidence paths.
 7. Confirm `Project Overview` contains only facts supported by the analysis, and `Build and Verification` contains only relevant authorization guidance.
-8. Confirm Code Analysis reflects available tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses index-first bounded reads.
+8. Confirm Code Analysis reflects available tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses evidence-backed, relevance-based reads without a fixed record count.
 9. Report `remind-user` advisories without turning them into confirmed project facts.
 
 Stop and report the exact validation failure instead of claiming initialization succeeded.

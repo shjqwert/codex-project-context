@@ -9,6 +9,12 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
     throw new Error("Project context does not contain Agent-authored analysis; run project-sync with a current analysis input.");
   }
   const resources = analysis.references.filter((resource) => !isOpenSpecResource(resource)).slice(0, 12);
+  const handoffContextEntries = context.handoffIndex === ".agent/handoff/index.json"
+    ? ["- `.agent/handoff/`: cross-task handoff index and records."]
+    : [
+        `- \`${context.handoffIndex}\`: cross-task handoff index.`,
+        "- `.agent/handoff/records/`: cross-task handoff records.",
+      ];
   const lines = [
     MANAGED_START,
     "# Project Agent Instructions",
@@ -32,43 +38,18 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
     "",
     "## Project Context",
     "",
-    "- `.agent/planMsg.md`: project-level key feature plans and confirmed decisions; it is not a task list.",
-    `- \`${context.handoffIndex}\`: cross-window history index used for bounded routing.`,
-    "- `.agent/handoff/records/`: concrete cross-window handoff records.",
-    "- `.agent/context.json`: detected project metadata and plugin routing configuration.",
-    "- `project-handoff` may be selected when durable cross-window continuation is needed.",
-    "- `project-plan-msg` may be selected when a qualifying project-level plan is created or changes state.",
-    "- Initialization must not create `.agent/planMsg.md`; create it only for the first qualifying project-level plan.",
-    "- `SessionStart` injects concise routing only for initialized projects and does not write project files.",
-    "- `UserPromptSubmit` queries the handoff index and returns bounded candidates instead of loading every record.",
-    "- Hooks are advisory and fail open; hook failure must not block ordinary project work.",
-    "- Hooks must not initialize, synchronize, create plans, create handoffs, or invoke other workflows implicitly.",
-    "- Initialization and synchronization may update only plugin-owned files and the managed `AGENTS.md` section.",
-    "- Treat current code, tests, and explicitly selected specifications as more authoritative than durable context files.",
-    "- Keep `AGENTS.md` for stable rules and routing, not transient status, plans, or development journals.",
-    "- Preserve all content outside the plugin-managed boundary markers byte-for-byte where possible.",
-    "- Repeated initialization or synchronization must remain idempotent.",
+    "- `.agent/context.json`: stable project metadata and context configuration.",
+    "- `.agent/planMsg.md`: confirmed project-level plans and key decisions, created only when needed.",
+    ...handoffContextEntries,
     "",
     "## Handoff Context",
     "",
-    ...(analysis.handoffSubjects.length === 0
-      ? ["- When coherent project work must continue in another window, create a handoff record."]
-      : [`- Create a handoff when coherent work involving ${analysis.handoffSubjects.join(", ")} must continue in another window.`]),
-    "- New windows must not read all handoff records.",
-    "- Query the index first, then open only records relevant to the current feature, module, file, symbol, or bug.",
-    "- Store new handoffs under `.agent/handoff/records/<cycle>/<handoff-id>-<slug>.md`.",
-    "- Existing records referenced by the index remain valid even when they use an earlier storage layout.",
-    "- Create a handoff only after a coherent feature, module, or bug investigation has durable continuation value.",
-    "- Do not create handoffs for routine questions, trivial edits, or content already captured by an accepted specification.",
-    "- The handoff index stores routing metadata and section summaries, not the full record.",
-    "- Use stable identifiers, files, symbols, specification IDs, and bug IDs to match related records.",
-    "- Use project-relative paths in handoff metadata so records remain portable across machines.",
-    "- Keep stable frontmatter for the record ID, cycle, date, modules, files, symbols, specifications, and bug IDs.",
-    "- Record confirmed work, constraints, verification, unresolved facts, risks, and supporting evidence.",
-    "- Preserve failed attempts only when they prevent repeated work or constrain the next safe approach.",
-    "- Do not present hypotheses as confirmed diagnosis; keep unresolved causes explicit.",
-    "- Treat current code, tests, and selected specifications as more authoritative than historical handoffs.",
-    "- Keep one handoff focused on one coherent feature, module, or bug context; never turn it into a development journal.",
+    "- Create a handoff only when coherent work must continue in another task; skip routine questions and one-off small changes.",
+    ...(analysis.handoffGuidance.length === 0
+      ? ["- Query the handoff index using reliable evidence from the current task, then read every reliably relevant record."]
+      : renderAnalysisLines(analysis.handoffGuidance)),
+    "- If no reliable match exists, continue from the current project without forcing historical context or reading unrelated records.",
+    "- Use handoffs only to restore the objective, confirmed progress, verification, remaining work, and risks; current code, configuration, references, and test evidence remain authoritative.",
     MANAGED_END,
   ];
   return lines.join("\n");

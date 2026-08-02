@@ -5,13 +5,13 @@
 ## Capabilities
 
 - Explicit `$codex-project-context:project-init` inventories the confirmed repository, directs the Agent to analyze it with available CodeGraph, Serena, configuration, code, and documentation evidence, then validates and persists an Agent-authored managed `AGENTS.md` section.
-- Explicit `$codex-project-context:project-sync` repeats the evidence-backed Agent analysis for an initialized project and synchronizes only supported managed context and index migrations.
-- Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a section-level schema v2 index.
+- Explicit `$codex-project-context:project-sync` repeats the evidence-backed Agent analysis for an initialized project and synchronizes only supported managed context.
+- Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
-- `UserPromptSubmit` ranks and aggregates matching handoff cards under a bounded context budget.
+- `UserPromptSubmit` ranks and aggregates matching handoff groups under a bounded context budget and reports when routing output is truncated.
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
-- Chinese phrases and explicit previous-task cues can return bounded handoff candidates without opening records automatically.
+- Chinese phrases can match all reliably relevant groups; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
 
 The plugin does not require Git, MCP, OpenSpec, CodeGraph, or Serena. It detects optional tools but never initializes or upgrades them automatically.
 
@@ -28,9 +28,11 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 
 `Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`.
 
+`Project Context` contains only the context, plan, and handoff entry points that apply. `Handoff Context` keeps stable relevance and evidence boundaries while using up to three project-specific, evidence-backed routing lines; it does not use a project-type template or expose Hook and schema internals.
+
 Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is created or replaced. The CLI separates inventory from judgment: `inspect` returns a bounded repository inventory and fingerprint, while `init` and `sync` require a schemaVersion 1 Agent analysis whose facts and rules cite current project-relative evidence. The CLI validates paths, freshness, managed boundaries, and the 200-line limit. It does not infer project stage, create tasks, download missing references, or load full manuals and schematics.
 
-Initialization creates `.agent/context.json` and a schema v2 handoff index. New handoff records are stored under `.agent/handoff/records/<cycle>/`; older indexed paths remain readable. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
+Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
 
 ## Development
 
@@ -58,7 +60,10 @@ node dist/cli/main.js init --project D:\path\to\project --input D:\temp\project-
 node dist/cli/main.js sync --project D:\path\to\project --input D:\temp\project-analysis.json
 node dist/cli/main.js status --project D:\path\to\project
 node dist/cli/main.js match --project D:\path\to\project --prompt "continue W001"
+node dist/cli/main.js handoff-index --project D:\path\to\project --action verify
+node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuild
 node dist/cli/main.js plan --project D:\path\to\project --action list
 ```
 
 `handoff` and plan creation accept UTF-8 JSON from a file or standard input. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
+The handoff index commands verify or rebuild the schema v3 cache from immutable Markdown records. Rebuild rejects section metadata that does not exactly match the rendered Markdown body.
