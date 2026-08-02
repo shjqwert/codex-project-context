@@ -1,11 +1,15 @@
 import { readProjectContext } from "../application/project-context.js";
 import { findProjectRoot } from "../infrastructure/files.js";
 import { readHookInput, runHook, writeAdditionalContext } from "./hook-io.js";
+import { resetPromptInjectionState } from "./prompt-injection-state.js";
 
 await runHook("SessionStart", async () => {
   const input = await readHookInput();
   const projectRoot = await findProjectRoot(input.cwd);
   if (projectRoot === undefined) return;
+  if (input.source === "clear" || input.source === "compact") {
+    await resetPromptInjectionState(input.session_id, projectRoot);
+  }
 
   const context = await readProjectContext(projectRoot);
   writeAdditionalContext(

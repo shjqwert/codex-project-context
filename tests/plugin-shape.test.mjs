@@ -31,6 +31,9 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
     const metadata = await readFile(`skills/${skill}/agents/openai.yaml`, "utf8");
     assert.match(metadata, /allow_implicit_invocation: true/);
   }
+  const handoffSkill = await readFile("skills/project-handoff/SKILL.md", "utf8");
+  assert.match(handoffSkill, /2-6 concise retrieval aliases/);
+  assert.match(handoffSkill, /at least one natural Chinese phrase and one natural English phrase/);
 
   for (const path of [
     "skills/project-init/references/project-discovery.md",
@@ -57,6 +60,8 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.equal(handoffSchema.properties.schemaVersion.const, 3);
   assert.match(handoffSchema.$defs.entry.properties.dedupeKey.pattern, /sha256/);
   assert.equal("sectionSummaries" in handoffSchema.$defs.entry.properties, false);
+  assert.ok(handoffSchema.$defs.routing.properties.aliases);
+  assert.equal(handoffSchema.$defs.routing.required.includes("aliases"), false);
   const planSchema = JSON.parse(await readFile("schemas/plan-document.schema.json", "utf8"));
   assert.match(planSchema.$defs.plan.properties.dedupeKey.pattern, /sha256/);
   const contextSchema = JSON.parse(await readFile("schemas/context.schema.json", "utf8"));

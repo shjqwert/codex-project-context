@@ -29,7 +29,8 @@
         "files": { "$ref": "#/$defs/stringArray" },
         "symbols": { "$ref": "#/$defs/stringArray" },
         "tests": { "$ref": "#/$defs/stringArray" },
-        "tags": { "$ref": "#/$defs/stringArray" }
+        "tags": { "$ref": "#/$defs/stringArray" },
+        "aliases": { "$ref": "#/$defs/stringArray" }
       }
     },
     "entry": {

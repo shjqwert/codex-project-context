@@ -2,6 +2,7 @@ import { relative } from "node:path";
 import { matchHandoffs } from "../application/handoffs.js";
 import { findProjectRoot } from "../infrastructure/files.js";
 import { readHookInput, runHook, writeAdditionalContext } from "./hook-io.js";
+import { claimPromptInjection } from "./prompt-injection-state.js";
 
 await runHook("UserPromptSubmit", async () => {
   const input = await readHookInput();
@@ -11,6 +12,15 @@ await runHook("UserPromptSubmit", async () => {
 
   const matches = await matchHandoffs(projectRoot, input.prompt);
   if (matches.length === 0) return;
+  const matchIdentity = JSON.stringify(
+    matches
+      .map(({ entry, records }) => ({
+        groupKey: entry.groupKey,
+        recordIds: records.map(({ id }) => id).sort(),
+      }))
+      .sort((left, right) => left.groupKey.localeCompare(right.groupKey)),
+  );
+  if (!(await claimPromptInjection(input.session_id, projectRoot, matchIdentity))) return;
 
   const rendered = renderCards(matches, 900);
   const recordCount = matches.reduce((count, match) => count + match.records.length, 0);

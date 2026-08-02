@@ -34,19 +34,51 @@ test("handoff matching prefers exact identifiers and file paths", async () => {
     title: "Session cleanup",
     summary: "Preserve the existing error envelope.",
     modules: ["session"],
-    files: ["src/session.ts"],
+    files: ["src/runtime-cleanup.ts"],
     symbols: ["stopSession"],
+    specRefs: ["SPEC-42"],
+    bugIds: ["BUG-7"],
     tests: ["session cleanup"],
     tags: ["lifecycle"],
   }));
 
-  const byId = await matchHandoffs(project, "Continue W001 and verify it.");
+  const byId = await matchHandoffs(project, "Continue Ｗ００１ and verify it.");
   assert.equal(byId[0]?.entry.id, "W001");
   assert.equal(byId[0]?.score, 100);
 
-  const byPath = await matchHandoffs(project, "Inspect src/session.ts stopSession.");
-  assert.equal(byPath[0]?.score, 270);
-  assert.deepEqual(byPath[0]?.reasons, ["file path", "symbol", "module", "title"]);
+  const bySpec = await matchHandoffs(project, "Continue SPEC-42.");
+  assert.equal(bySpec[0]?.score, 100);
+  assert.deepEqual(bySpec[0]?.reasons, ["spec id"]);
+
+  const byBug = await matchHandoffs(project, "Investigate BUG-7.");
+  assert.equal(byBug[0]?.score, 100);
+  assert.deepEqual(byBug[0]?.reasons, ["bug id"]);
+
+  const byPath = await matchHandoffs(project, "Inspect SRC\\RUNTIME-CLEANUP.TS.");
+  assert.equal(byPath[0]?.score, 90);
+  assert.deepEqual(byPath[0]?.reasons, ["file path"]);
+
+  const bySymbol = await matchHandoffs(project, "Inspect stopSession.");
+  assert.equal(bySymbol[0]?.score, 80);
+  assert.deepEqual(bySymbol[0]?.reasons, ["symbol"]);
+
+  const byModule = await matchHandoffs(project, "Continue SESSION.");
+  assert.equal(byModule[0]?.score, 60);
+  assert.deepEqual(byModule[0]?.reasons, ["module"]);
+
+  const combined = await matchHandoffs(project, "Inspect src/runtime-cleanup.ts stopSession session.");
+  assert.equal(combined[0]?.score, 230);
+  assert.deepEqual(combined[0]?.reasons, ["file path", "symbol", "module"]);
+
+  await createHandoff(project, completeInput({
+    title: "Thermal restart diagnostics",
+    summary: "Motor thermal restart evidence is available.",
+    modules: ["motor-control"],
+  }));
+  const exactAboveLexical = await matchHandoffs(project, "Continue W001 thermal motor restart diagnostics");
+  assert.equal(exactAboveLexical[0]?.entry.id, "W001");
+  assert.equal(exactAboveLexical[0]?.score, 100);
+  assert.ok(exactAboveLexical.some(({ entry, score }) => entry.id === "W002" && score < 60));
 
   const unrelated = await matchHandoffs(project, "Update the release notes.");
   assert.deepEqual(unrelated, []);
@@ -194,7 +226,8 @@ test("matching supports Chinese phrases and returns the complete most recent gro
 
   const chinese = await matchHandoffs(project, "继续幂等性测试");
   assert.equal(chinese[0]?.entry.id, "W002");
-  assert.ok(chinese[0]?.reasons.includes("title") || chinese[0]?.reasons.includes("test name"));
+  assert.match(chinese[0]?.reasons[0] ?? "", /bm25 lexical/);
+  assert.ok((chinese[0]?.matchedTerms?.length ?? 0) >= 2);
 
   const recent = await matchHandoffs(project, "继续上次的工作");
   assert.equal(recent.length, 1);
@@ -217,6 +250,149 @@ test("matching returns all reliable groups without a default record-count limit"
   const matches = await matchHandoffs(project, "Continue the router work");
   assert.equal(matches.length, 7);
   assert.equal((await matchHandoffs(project, "Continue the router work", 3)).length, 3);
+});
+
+test("BM25 natural-language matching stays read-only and rejects broad or unrelated prompts", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-match-"));
+  await initializeProject(project);
+  await createHandoff(project, completeInput({
+    title: "Thermal motor restart diagnostics",
+    summary: "PWM output stays disabled until current samples fall below the safety threshold.",
+    modules: ["DriveSupervisor"],
+    tags: ["overcurrent", "safe-restart"],
+    tests: ["cold restart safety"],
+  }));
+  await createHandoff(project, completeInput({
+    title: "CAN timeout recovery",
+    summary: "The communication controller restarts after a receive timeout.",
+    modules: ["CanSupervisor"],
+    tags: ["communication"],
+  }));
+  const indexPath = join(project, ".agent", "handoff", "index.json");
+  const recordsDirectory = join(project, ".agent", "handoff", "records", "development");
+  const beforeIndex = await readFile(indexPath, "utf8");
+  const beforeRecords = await Promise.all(
+    (await readdir(recordsDirectory)).map(async (name) => [name, await readFile(join(recordsDirectory, name), "utf8")]),
+  );
+
+  const natural = await matchHandoffs(project, "thermal current threshold safe restart");
+  assert.equal(natural[0]?.entry.id, "W001");
+  assert.equal(natural[0]?.score, 30);
+  assert.match(natural[0]?.reasons[0] ?? "", /bm25 lexical/);
+  assert.ok((natural[0]?.lexicalScore ?? 0) >= 0.25);
+  assert.ok((natural[0]?.matchedTerms?.length ?? 0) >= 2);
+  assert.deepEqual(await matchHandoffs(project, "evidence"), []);
+  assert.deepEqual(await matchHandoffs(project, "prepare unrelated release documentation"), []);
+
+  assert.equal(await readFile(indexPath, "utf8"), beforeIndex);
+  const afterRecords = await Promise.all(
+    (await readdir(recordsDirectory)).map(async (name) => [name, await readFile(join(recordsDirectory, name), "utf8")]),
+  );
+  assert.deepEqual(afterRecords, beforeRecords);
+});
+
+test("bilingual aliases retrieve English handoffs and remain outside handoff identity", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-aliases-"));
+  await initializeProject(project);
+  const input = completeInput({
+    title: "Motor overcurrent safe restart",
+    summary: "PWM output remains disabled until sampled current falls below the safety threshold.",
+    files: ["src/motor-supervisor.ts"],
+    symbols: ["restartMotor"],
+    aliases: [
+      "电机过流安全重启",
+      "电流恢复后重新启动",
+      "motor safety restart",
+      "restart after current recovery",
+    ],
+  });
+  const created = await createHandoff(project, input);
+  const body = (await readFile(created.path, "utf8")).split(/^---$/mu).slice(2).join("---");
+
+  const chinese = await matchHandoffs(project, "确认电机过流安全重启路径");
+  assert.equal(chinese[0]?.entry.id, "W001");
+  assert.equal(chinese[0]?.score, 30);
+  assert.match(chinese[0]?.reasons[0] ?? "", /bm25 lexical/);
+  assert.equal((await matchHandoffs(project, "motor safety restart"))[0]?.entry.id, "W001");
+  assert.equal((await matchHandoffs(project, "Continue W001"))[0]?.score, 100);
+  assert.equal((await matchHandoffs(project, "Inspect src/motor-supervisor.ts"))[0]?.score, 90);
+  assert.equal((await matchHandoffs(project, "Inspect restartMotor"))[0]?.score, 80);
+  assert.deepEqual(await matchHandoffs(project, "处理"), []);
+  assert.deepEqual(await matchHandoffs(project, "周末餐厅推荐"), []);
+  assert.doesNotMatch(body, /电机过流安全重启|motor safety restart/u);
+
+  const duplicate = await createHandoff(project, {
+    ...input,
+    aliases: [
+      "  RESTART   AFTER CURRENT RECOVERY  ",
+      "ＭＯＴＯＲ　ＳＡＦＥＴＹ　ＲＥＳＴＡＲＴ",
+      "电流恢复后重新启动",
+      "电机过流安全重启",
+    ],
+  });
+  assert.equal(duplicate.id, "W001");
+  assert.equal(duplicate.deduplicated, true);
+  assert.deepEqual(
+    await readdir(join(project, ".agent", "handoff", "records", "development")),
+    ["W001-motor-overcurrent-safe-restart.md"],
+  );
+  assert.equal((await verifyHandoffIndex(project)).entryCount, 1);
+
+  await assert.rejects(createHandoff(project, completeInput({
+    title: "Broad aliases",
+    summary: "This input must be rejected.",
+    aliases: ["功能", "feature"],
+  })), /broad retrieval terms/);
+  await assert.rejects(createHandoff(project, completeInput({
+    title: "Single language aliases",
+    summary: "This input must also be rejected.",
+    aliases: ["motor safety restart", "restart after current recovery"],
+  })), /both Chinese and English/);
+  await assert.rejects(createHandoff(project, completeInput({
+    title: "Duplicated alias phrase",
+    summary: "This input repeats its title as an alias.",
+    aliases: ["duplicated alias phrase", "重复别名短语"],
+  })), /must not duplicate the title or summary/);
+});
+
+test("legacy single-language records verify and rebuild without migration", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-legacy-alias-"));
+  await initializeProject(project);
+  const created = await createHandoff(project, completeInput({
+    title: "Router evidence",
+    summary: "Confirmed router evidence.",
+    files: ["src/router.ts"],
+  }));
+  const indexPath = join(project, ".agent", "handoff", "index.json");
+  const legacyMarkdown = (await readFile(created.path, "utf8")).replace(/^aliases: \[\]\r?\n/mu, "");
+  const legacyIndex = JSON.parse(await readFile(indexPath, "utf8"));
+  delete legacyIndex.entries[0].routing.aliases;
+  await writeFile(created.path, legacyMarkdown, "utf8");
+  await writeFile(indexPath, `${JSON.stringify(legacyIndex, null, 2)}\n`, "utf8");
+
+  assert.equal((await verifyHandoffIndex(project)).entryCount, 1);
+  assert.equal((await matchHandoffs(project, "Inspect src/router.ts"))[0]?.entry.id, "W001");
+  await unlink(indexPath);
+  const rebuilt = await rebuildHandoffIndex(project);
+  assert.deepEqual(rebuilt.entries[0]?.routing.aliases, []);
+  assert.doesNotMatch(await readFile(created.path, "utf8"), /^aliases:/mu);
+});
+
+test("BM25 close leaders return every reliable work group instead of forcing one", async () => {
+  const project = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-tie-"));
+  await initializeProject(project);
+  for (const [file, symbol] of [["src/motor-a.ts", "recoverMotorA"], ["src/motor-b.ts", "recoverMotorB"]]) {
+    await createHandoff(project, completeInput({
+      title: "Motor thermal recovery",
+      summary: "Thermal shutdown recovery is confirmed.",
+      files: [file],
+      symbols: [symbol],
+    }));
+  }
+  const matches = await matchHandoffs(project, "motor thermal recovery");
+  assert.equal(matches.length, 2);
+  assert.deepEqual(matches.map(({ entry }) => entry.id).sort(), ["W001", "W002"]);
+  assert.ok(matches.every(({ score }) => score === 30));
 });
 
 test("records omit empty sections and rebuild a missing index without Hook-style writes", async () => {

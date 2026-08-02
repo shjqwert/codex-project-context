@@ -9,9 +9,9 @@
 - Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
-- `UserPromptSubmit` ranks and aggregates matching handoff groups under a bounded context budget and reports when routing output is truncated.
+- `UserPromptSubmit` merges deterministic ID/path/symbol/module routing with a dependency-free TypeScript BM25 ranker over lightweight title, summary, module, tag, test, and bilingual alias fields. It reports when bounded routing output is truncated. Within one task, an unchanged match set is injected only once; a new group or record is injected again, and `clear`/`compact` resets that task-local suppression state.
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
-- Chinese phrases can match all reliably relevant groups; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
+- Evidence-based bilingual aliases let Chinese phrases retrieve English handoffs without duplicating translated titles, summaries, or bodies; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
 
 The plugin does not require Git, MCP, OpenSpec, CodeGraph, or Serena. It detects optional tools but never initializes or upgrades them automatically.
 
@@ -34,6 +34,8 @@ Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is c
 
 Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
 
+Handoff matching builds an in-memory BM25 corpus from schema v3 index entries on each query; it never stores term frequencies or reads Markdown bodies during normal indexed matching. Exact IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules always rank above lexical results. Optional aliases are bounded bilingual retrieval phrases generated from task evidence, are excluded from handoff identity, and are never rendered as translated body content or complete Hook metadata. BM25 requires at least two useful terms, minimum term coverage and score quality, and returns close reliable leaders together instead of selecting an arbitrary record.
+
 ## Development
 
 ```powershell
@@ -50,7 +52,7 @@ codex plugin add codex-project-context@codex-project-context-dev
 ```
 
 Hook changes may require review through `/hooks`. Skill metadata makes initialization and synchronization explicit-only while allowing semantic handoff and plan selection when their admission rules are satisfied.
-Hook failures remain fail-open and append bounded diagnostics without prompt contents to `$CODEX_HOME/logs/project-context-hooks.jsonl`.
+Hook failures remain fail-open and append bounded diagnostics without prompt contents to `$CODEX_HOME/logs/project-context-hooks.jsonl`. Prompt injection deduplication stores only SHA-256 markers under `$CODEX_HOME/state/project-context-hooks/prompt-injections`; prompt text is not persisted.
 
 ## CLI
 

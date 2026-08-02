@@ -111,6 +111,7 @@ export interface HandoffRouting {
   symbols: string[];
   tests: string[];
   tags: string[];
+  aliases: string[];
 }
 
 export interface HandoffInput {
@@ -126,6 +127,7 @@ export interface HandoffInput {
   bugIds?: string[];
   tests?: string[];
   tags?: string[];
+  aliases?: string[];
 }
 
 export interface HandoffIndexEntry {
@@ -160,6 +162,10 @@ export interface HandoffMatch {
   reasons: string[];
   confidence: "exact" | "high" | "medium";
   records: HandoffRecordReference[];
+  lexicalScore?: number;
+  bm25Score?: number;
+  matchedTerms?: string[];
+  termCoverage?: number;
 }
 
 export type ProjectPlanStatus =

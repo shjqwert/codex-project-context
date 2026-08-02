@@ -26,6 +26,17 @@ const AVAILABLE_SECTIONS = new Set([
   "evidence",
 ]);
 
+export const HANDOFF_ALIAS_MIN_COUNT = 2;
+export const HANDOFF_ALIAS_MAX_COUNT = 8;
+export const HANDOFF_ALIAS_MAX_LENGTH = 80;
+export const HANDOFF_ALIAS_FORBIDDEN_TERMS = Object.freeze([
+  "功能", "模块", "代码", "问题", "处理",
+  "code", "feature", "handling", "issue", "module", "problem", "process",
+]);
+const FORBIDDEN_ALIAS_TERMS = new Set(HANDOFF_ALIAS_FORBIDDEN_TERMS);
+const CJK_ALIAS_TERM = /\p{Script=Han}/u;
+const LATIN_ALIAS_TERM = /\p{Script=Latin}/u;
+
 export const EMPTY_HANDOFF_INDEX: HandoffIndex = { schemaVersion: 3, entries: [] };
 
 export function validateHandoffIndex(value: unknown): HandoffIndex {
@@ -65,7 +76,7 @@ function normalizeEntry(value: unknown): HandoffIndexEntry {
     throw new Error(`Unsupported handoff kind: ${kind}.`);
   }
   if (!isRecord(value.routing)) throw new Error("Handoff index routing must be an object.");
-  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags"], "routing");
+  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases"], "routing");
   const routing = normalizeRouting(value.routing);
   const entry: HandoffIndexEntry = {
     id: requiredString(value.id, "id"),
@@ -106,7 +117,54 @@ function normalizeRouting(value: Record<string, unknown>): HandoffRouting {
     symbols: stringArray(value.symbols, "routing.symbols"),
     tests: stringArray(value.tests, "routing.tests"),
     tags: stringArray(value.tags, "routing.tags"),
+    aliases: normalizeHandoffAliases(value.aliases, "routing.aliases"),
   };
+}
+
+export function normalizeHandoffAliases(value: unknown, field = "aliases"): string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error(`Handoff ${field} must be a string array.`);
+  }
+  const unique = new Map<string, string>();
+  for (const raw of value as string[]) {
+    const alias = raw.normalize("NFKC").replace(/\s+/gu, " ").trim();
+    if (alias.length === 0) continue;
+    if (alias.length > HANDOFF_ALIAS_MAX_LENGTH) {
+      throw new Error(`Handoff ${field} entries must not exceed ${HANDOFF_ALIAS_MAX_LENGTH} characters.`);
+    }
+    if (isBroadAlias(alias)) {
+      throw new Error(`Handoff ${field} must not contain only broad retrieval terms.`);
+    }
+    const key = alias.toLocaleLowerCase();
+    if (!unique.has(key)) unique.set(key, alias);
+  }
+  const aliases = [...unique.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, alias]) => alias);
+  if (aliases.length === 0) return [];
+  if (aliases.length < HANDOFF_ALIAS_MIN_COUNT || aliases.length > HANDOFF_ALIAS_MAX_COUNT) {
+    throw new Error(
+      `Handoff ${field} must contain ${HANDOFF_ALIAS_MIN_COUNT}-${HANDOFF_ALIAS_MAX_COUNT} unique aliases when provided.`,
+    );
+  }
+  if (!aliases.some((alias) => CJK_ALIAS_TERM.test(alias)) || !aliases.some((alias) => LATIN_ALIAS_TERM.test(alias))) {
+    throw new Error(`Handoff ${field} must include both Chinese and English retrieval phrases.`);
+  }
+  return aliases;
+}
+
+function isBroadAlias(alias: string): boolean {
+  const normalized = alias.toLocaleLowerCase();
+  if (FORBIDDEN_ALIAS_TERMS.has(normalized)) return true;
+  let remainder = normalized;
+  for (const term of HANDOFF_ALIAS_FORBIDDEN_TERMS.filter((value) => CJK_ALIAS_TERM.test(value))) {
+    remainder = remainder.replaceAll(term, " ");
+  }
+  const meaningfulCjk = (remainder.match(/\p{Script=Han}/gu) ?? []).length >= 2;
+  const latinTerms = normalized.match(/[\p{Script=Latin}\p{N}]+/gu) ?? [];
+  const meaningfulLatin = latinTerms.some((term) => !FORBIDDEN_ALIAS_TERMS.has(term));
+  return !meaningfulCjk && !meaningfulLatin;
 }
 
 function stringArray(value: unknown, field: string): string[] {

@@ -9,7 +9,9 @@
 - `sections.currentState`: the confirmed state at handoff time.
 - `sections.remainingWork`: concrete unfinished work or the next evidence needed.
 
-Optional routing arrays: `specRefs`, `modules`, `symbols`, `files`, `bugIds`, `tests`, and `tags`.
+Optional routing arrays: `specRefs`, `modules`, `symbols`, `files`, `bugIds`, `tests`, `tags`, and `aliases`.
+
+Generate `aliases` for new Skill-created handoffs as 2-6 short retrieval phrases with at least one Chinese and one English phrase. Derive them from confirmed task concepts and likely future search wording. Do not copy the title or summary, translate identifiers, or use broad standalone terms such as `功能`, `模块`, `代码`, `问题`, or `处理`. Aliases are search-only metadata; they do not create translated titles, summaries, or body sections.
 
 Optional sections:
 
@@ -41,6 +43,10 @@ Index verification requires `available_sections` to match the actual level-two s
 
 Group repeated work by strongest stable evidence in order: specification ID, bug ID, file plus symbol, symbol, then normalized title. A shared broad module alone is insufficient.
 
-Exact normalized input is deduplicated before writing. Reordered routing arrays, Unicode width or case differences, and repeated whitespace do not create another record. Changed evidence or sections create a new immutable record and may join the same group.
+Exact normalized input is deduplicated before writing. Aliases do not participate in the dedupe key because they are derived retrieval hints; reordered, reformatted, or revised aliases cannot create another record for otherwise identical evidence. Reordered routing arrays, Unicode width or case differences, and repeated whitespace do not create another record. Changed evidence or sections create a new immutable record and may join the same group.
 
-Chinese phrases of at least three characters may match titles, summaries, tests, and tags. Reliable matches return every record in each matched group without a fixed record count. A prompt that explicitly refers to the previous task or window but has no stronger evidence returns the complete most recent coherent group; it does not open Markdown automatically.
+## Retrieval
+
+Exact handoff, specification, and bug IDs, complete paths, symbols, and explicit module names use deterministic routing and always rank above lexical results. Natural-language matching uses an in-memory BM25 corpus built only from index `title`, `summary`, `routing.modules`, `routing.tags`, `routing.tests`, and `routing.aliases`; it does not persist term statistics or index Markdown bodies. Hook cards do not output the complete alias list.
+
+BM25 applies NFKC/case/path normalization, identifier boundaries, stop words, and two- to three-character CJK n-grams. It requires at least two useful matched terms, minimum query coverage and score quality, and a reliable group-level lead. Close leaders are returned together rather than forcing one result. Reliable matches return every record in each matched group without a fixed record count. A prompt that explicitly refers to the previous task or window but has no stronger evidence returns the complete most recent coherent group; it does not open Markdown automatically.

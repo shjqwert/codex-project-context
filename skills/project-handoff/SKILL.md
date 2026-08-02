@@ -27,15 +27,16 @@ Use only facts supported by the current task, source, tests, logs, project refer
 ## Record
 
 1. Prepare a temporary UTF-8 JSON input with `title`, `summary`, one supported `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
-2. Add only supported routing metadata and non-empty conditional sections.
-3. Resolve the plugin root as two directories above this `SKILL.md`.
-4. Run:
+2. Generate 2-6 concise retrieval aliases from confirmed task concepts: include at least one natural Chinese phrase and one natural English phrase. Use phrases a future user could search for; do not translate identifiers, duplicate the title or summary, or use broad filler such as `功能`, `模块`, `代码`, `问题`, or `处理`.
+3. Add the aliases, only supported routing metadata, and non-empty conditional sections.
+4. Resolve the plugin root as two directories above this `SKILL.md`.
+5. Run:
 
 ```text
 node <plugin-root>/dist/cli/main.js handoff --project <absolute-project-root> --input <absolute-json-input>
 ```
 
-5. Remove only the temporary input created for this operation.
+6. Remove only the temporary input created for this operation.
 
 Equivalent normalized inputs are idempotent. The CLI returns the existing handoff ID with
 `deduplicated: true` and must not create another Markdown file or index entry. Project-context
@@ -46,10 +47,11 @@ writes are serialized by a short-lived project lock.
 1. Require `ok: true`, a project-local output path, and inspect `deduplicated`.
 2. When `deduplicated` is `true`, confirm the returned ID and file already existed and no new record was written.
 3. Inspect a newly created Markdown file for evidence accuracy and unsupported claims.
-4. Confirm `.agent/handoff/index.json` contains the entry, routing metadata, available section names, deterministic group key, and dedupe key without copying section bodies.
+4. Confirm `.agent/handoff/index.json` contains the entry, bounded bilingual aliases, routing metadata, available section names, deterministic group key, and dedupe key without copying section bodies.
 5. Confirm passed tests were actually observed in the current task.
 6. Confirm duplicate grouping did not merge unrelated work merely because it shared a broad module.
 7. Confirm the Markdown contains no empty or placeholder sections and can supply the metadata needed to rebuild the index.
+8. Confirm aliases are specific to this work, include both languages, and do not repeat titles, summaries, paths, identifiers, or broad filler terms.
 
 Report the handoff ID and path. Keep current code, tests, and accepted specifications authoritative over historical records.
 

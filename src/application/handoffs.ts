@@ -22,8 +22,10 @@ import { withProjectWriteLock } from "../infrastructure/project-write-lock.js";
 import {
   buildHandoffGroupKey,
   EMPTY_HANDOFF_INDEX,
+  normalizeHandoffAliases,
   validateHandoffIndex,
 } from "./handoff-index.js";
+import { searchHandoffsBm25, type Bm25Hit } from "./bm25.js";
 import { readProjectContext, requireProjectRoot } from "./project-context.js";
 
 const SECTION_LABELS: Array<[keyof HandoffSections, string]> = [
@@ -47,6 +49,7 @@ const HANDOFF_KINDS = new Set<HandoffKind>([
   "verification",
 ]);
 const MATCH_THRESHOLD = 40;
+const BM25_MATCH_SCORE = 30;
 
 export async function createHandoff(
   projectDirectory: string,
@@ -101,23 +104,41 @@ export async function matchHandoffs(
   const context = await readProjectContext(projectRoot);
   const indexPath = resolve(projectRoot, context.handoffIndex);
   const index = await readOrRebuildIndex(projectRoot, indexPath, false);
-  const normalizedPrompt = normalizeSearchText(prompt);
-  const scored = index.entries
-    .map((entry) => scoreEntry(entry, normalizedPrompt))
-    .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD);
-
-  let matches: HandoffMatch[];
-  if (scored.length > 0) {
-    matches = aggregateMatches(scored, index.entries).sort(compareMatches);
-  } else if (hasRecentContinuationCue(normalizedPrompt)) {
-    const mostRecent = [...index.entries].sort(compareEntriesByRecency)[0];
-    matches = mostRecent === undefined
-      ? []
-      : aggregateMatches([baseMatch(mostRecent, MATCH_THRESHOLD, ["recent continuation cue"])], index.entries);
-  } else {
-    matches = [];
-  }
+  const matches = matchHandoffEntries(index.entries, prompt);
   return limit === undefined ? matches : matches.slice(0, Math.max(0, limit));
+}
+
+export function matchHandoffEntries(
+  entries: HandoffIndexEntry[],
+  prompt: string,
+  bm25Search: (entries: HandoffIndexEntry[], query: string) => Bm25Hit[] = searchHandoffsBm25,
+): HandoffMatch[] {
+  const normalizedPrompt = normalizeSearchText(prompt);
+  const ruleMatches = entries
+    .map((entry) => scoreRuleEntry(entry, normalizedPrompt))
+    .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD);
+  let lexicalHits: Bm25Hit[] = [];
+  try {
+    lexicalHits = bm25Search(entries, prompt);
+  } catch {
+    // BM25 is an optional ranking channel; deterministic routing must remain available.
+  }
+
+  const merged = new Map<string, HandoffMatch>();
+  for (const match of ruleMatches) merged.set(match.entry.id, match);
+  for (const hit of lexicalHits) {
+    if (!merged.has(hit.entry.id)) merged.set(hit.entry.id, bm25Match(hit));
+  }
+  if (merged.size > 0) {
+    return aggregateMatches([...merged.values()], entries).sort(compareMatches);
+  }
+  if (hasRecentContinuationCue(normalizedPrompt)) {
+    const mostRecent = [...entries].sort(compareEntriesByRecency)[0];
+    return mostRecent === undefined
+      ? []
+      : aggregateMatches([baseMatch(mostRecent, MATCH_THRESHOLD, ["recent continuation cue"])], entries);
+  }
+  return [];
 }
 
 export async function rebuildHandoffIndex(projectDirectory: string): Promise<HandoffIndex> {
@@ -152,7 +173,7 @@ function normalizeInput(input: HandoffInput): HandoffInput {
   if (!isRecord(input)) throw new Error("Handoff input must be an object.");
   assertOnlyKeys(input, [
     "title", "summary", "kind", "sections", "cycle", "specRefs", "modules", "symbols",
-    "files", "bugIds", "tests", "tags",
+    "files", "bugIds", "tests", "tags", "aliases",
   ], "input");
   const kind = requiredText(input.kind, "kind") as HandoffKind;
   if (!HANDOFF_KINDS.has(kind)) throw new Error(`Unsupported handoff kind: ${kind}.`);
@@ -165,9 +186,16 @@ function normalizeInput(input: HandoffInput): HandoffInput {
     }),
   ) as unknown as HandoffSections;
   for (const key of CORE_SECTIONS) requiredText(sections[key], `sections.${key}`);
+  const title = requiredText(input.title, "title");
+  const summary = requiredText(input.summary, "summary");
+  const aliases = normalizeHandoffAliases(input.aliases);
+  const repeatedContent = new Set([title, summary].map(normalizeDedupeText));
+  if (aliases.some((alias) => repeatedContent.has(normalizeDedupeText(alias)))) {
+    throw new Error("Handoff aliases must not duplicate the title or summary.");
+  }
   return {
-    title: requiredText(input.title, "title"),
-    summary: requiredText(input.summary, "summary"),
+    title,
+    summary,
     kind,
     ...(input.cycle === undefined ? {} : { cycle: requiredText(input.cycle, "cycle") }),
     specRefs: uniqueStrings(input.specRefs),
@@ -177,6 +205,7 @@ function normalizeInput(input: HandoffInput): HandoffInput {
     bugIds: uniqueStrings(input.bugIds),
     tests: uniqueStrings(input.tests),
     tags: uniqueStrings(input.tags),
+    aliases,
     sections,
   };
 }
@@ -197,6 +226,7 @@ function buildIndexEntry(
     symbols: input.symbols ?? [],
     tests: input.tests ?? [],
     tags: input.tags ?? [],
+    aliases: input.aliases ?? [],
   };
   const entry: HandoffIndexEntry = {
     id,
@@ -236,6 +266,7 @@ function renderHandoff(entry: HandoffIndexEntry, input: HandoffInput): string {
     `symbols: ${JSON.stringify(entry.routing.symbols)}`,
     `tests: ${JSON.stringify(entry.routing.tests)}`,
     `tags: ${JSON.stringify(entry.routing.tags)}`,
+    `aliases: ${JSON.stringify(entry.routing.aliases)}`,
     `available_sections: ${JSON.stringify(entry.availableSections)}`,
     "---",
   ];
@@ -246,7 +277,7 @@ function renderHandoff(entry: HandoffIndexEntry, input: HandoffInput): string {
   return `${frontmatter.join("\n")}\n\n# ${entry.id} ${entry.title}\n\n> ${entry.summary}\n\n${sections.join("\n\n")}\n`;
 }
 
-function scoreEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch | undefined {
+function scoreRuleEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch | undefined {
   let score = 0;
   const reasons: string[] = [];
   const add = (weight: number, reason: string): void => {
@@ -254,20 +285,27 @@ function scoreEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch | un
     reasons.push(reason);
   };
   const routing = entry.routing;
-  if (
-    containsBounded(prompt, entry.id) ||
-    routing.specRefs.some((value) => containsBounded(prompt, value)) ||
-    routing.bugIds.some((value) => containsBounded(prompt, value))
-  ) add(100, "exact id");
+  if (containsBounded(prompt, entry.id)) add(100, "handoff id");
+  if (routing.specRefs.some((value) => containsBounded(prompt, value))) add(100, "spec id");
+  if (routing.bugIds.some((value) => containsBounded(prompt, value))) add(100, "bug id");
   if (routing.files.some((value) => containsPath(prompt, value))) add(90, "file path");
   if (routing.symbols.some((value) => containsBounded(prompt, value))) add(80, "symbol");
   if (routing.modules.some((value) => containsBounded(prompt, value))) add(60, "module");
-  if (routing.tests.some((value) => routingValueMatches(prompt, value))) add(50, "test name");
-  if (textMatches(prompt, entry.title)) add(40, "title");
-  if (textMatches(prompt, entry.summary) || routing.tags.some((value) => routingValueMatches(prompt, value))) {
-    add(20, "summary or tag");
-  }
   return score === 0 ? undefined : baseMatch(entry, score, reasons);
+}
+
+function bm25Match(hit: Bm25Hit): HandoffMatch {
+  return {
+    ...baseMatch(
+      hit.entry,
+      BM25_MATCH_SCORE,
+      [`bm25 lexical: ${hit.matchedTerms.slice(0, 8).join(", ")}`],
+    ),
+    lexicalScore: hit.normalizedScore,
+    bm25Score: hit.rawScore,
+    matchedTerms: hit.matchedTerms,
+    termCoverage: hit.termCoverage,
+  };
 }
 
 function baseMatch(entry: HandoffIndexEntry, score: number, reasons: string[]): HandoffMatch {
@@ -275,7 +313,9 @@ function baseMatch(entry: HandoffIndexEntry, score: number, reasons: string[]): 
     entry,
     score,
     reasons,
-    confidence: reasons.includes("exact id") ? "exact" : score >= 100 ? "high" : "medium",
+    confidence: reasons.some((reason) => ["handoff id", "spec id", "bug id"].includes(reason))
+      ? "exact"
+      : score >= 100 ? "high" : "medium",
     records: [recordReference(entry)],
   };
 }
@@ -388,6 +428,7 @@ function parseRecord(projectRoot: string, path: string, markdown: string): Hando
     symbols: fields.get("symbols"),
     tests: fields.get("tests"),
     tags: fields.get("tags"),
+    aliases: fields.get("aliases") ?? [],
   };
   return validateHandoffIndex({
     schemaVersion: 3,
@@ -408,36 +449,14 @@ function parseRecord(projectRoot: string, path: string, markdown: string): Hando
 }
 
 function compareMatches(left: HandoffMatch, right: HandoffMatch): number {
-  return right.score - left.score || compareEntriesByRecency(left.entry, right.entry);
+  return right.score - left.score ||
+    (right.lexicalScore ?? 0) - (left.lexicalScore ?? 0) ||
+    (right.bm25Score ?? 0) - (left.bm25Score ?? 0) ||
+    compareEntriesByRecency(left.entry, right.entry);
 }
 
 function compareEntriesByRecency(left: HandoffIndexEntry, right: HandoffIndexEntry): number {
   return right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id);
-}
-
-function textMatches(prompt: string, text: string): boolean {
-  const normalized = normalizeSearchText(text).trim();
-  if (normalized.length >= 4 && prompt.includes(normalized)) return true;
-  return normalized.split(/[^\p{L}\p{N}_-]+/u).some((token) =>
-    containsCjkOverlap(prompt, token) || (token.length >= 4 && containsBounded(prompt, token))
-  );
-}
-
-function containsCjkOverlap(prompt: string, token: string): boolean {
-  const runs = token.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]+/gu) ?? [];
-  for (const run of runs) {
-    for (let size = Math.min(8, run.length); size >= 3; size -= 1) {
-      for (let offset = 0; offset <= run.length - size; offset += 1) {
-        if (prompt.includes(run.slice(offset, offset + size))) return true;
-      }
-    }
-  }
-  return false;
-}
-
-function routingValueMatches(prompt: string, value: string): boolean {
-  const normalized = normalizeSearchText(value).trim();
-  return containsBounded(prompt, normalized) || containsCjkOverlap(prompt, normalized);
 }
 
 function containsPath(prompt: string, value: string): boolean {
@@ -476,6 +495,8 @@ function buildHandoffDedupeKey(input: HandoffInput, cycle: string): string {
     bugIds: canonicalList(input.bugIds),
     tests: canonicalList(input.tests),
     tags: canonicalList(input.tags),
+    // Aliases are derived retrieval hints, not durable work identity. Excluding them keeps
+    // existing dedupe keys stable and prevents reordered or reformatted aliases creating records.
     sections,
   };
   return `sha256:${createHash("sha256").update(JSON.stringify(canonical)).digest("hex")}`;

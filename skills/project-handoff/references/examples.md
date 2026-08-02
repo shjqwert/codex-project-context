@@ -10,6 +10,12 @@
   "files": ["src/session.ts"],
   "symbols": ["stopSession"],
   "tests": ["session cleanup"],
+  "aliases": [
+    "会话关闭资源清理",
+    "传输关闭后清理",
+    "session shutdown resource cleanup",
+    "cleanup after transport close"
+  ],
   "sections": {
     "objective": "Preserve the verified cleanup fix for continuation in a new task.",
     "currentState": "The early-return cleanup defect is fixed in src/session.ts.",
