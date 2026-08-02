@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import type {
   ProjectPlan,
@@ -6,6 +7,7 @@ import type {
   ProjectPlanStatus,
 } from "../types.js";
 import { readTextIfPresent, writeTextAtomic } from "../infrastructure/files.js";
+import { withProjectWriteLock } from "../infrastructure/project-write-lock.js";
 import { requireProjectRoot } from "./project-context.js";
 
 const DATA_START = "<!-- PROJECT_PLAN_DATA_START -->";
@@ -31,29 +33,52 @@ const ALLOWED_TRANSITIONS: Record<ProjectPlanStatus, ProjectPlanStatus[]> = {
 export async function createProjectPlan(
   projectDirectory: string,
   rawInput: ProjectPlanInput,
-): Promise<{ ok: true; id: string; status: ProjectPlanStatus; path: string; projectRoot: string }> {
+): Promise<{
+  ok: true;
+  id: string;
+  status: ProjectPlanStatus;
+  path: string;
+  projectRoot: string;
+  deduplicated: boolean;
+}> {
   const projectRoot = await requireProjectRoot(projectDirectory);
-  const planPath = resolve(projectRoot, ".agent", "planMsg.md");
-  const document = await readPlanDocument(planPath);
-  const input = normalizeInput(rawInput);
-  const id = nextPlanId(document.plans);
-  const now = new Date().toISOString();
-  const plan: ProjectPlan = {
-    id,
-    title: input.title,
-    summary: input.summary,
-    status: "proposed",
-    successCriteria: input.successCriteria ?? [],
-    specRefs: input.specRefs ?? [],
-    decisions: input.decisions ?? [],
-    createdAt: now,
-    updatedAt: now,
-    transitions: [{ from: null, to: "proposed", reason: "Plan recorded.", at: now }],
-  };
+  return withProjectWriteLock(projectRoot, async () => {
+    const planPath = resolve(projectRoot, ".agent", "planMsg.md");
+    const document = await readPlanDocument(planPath);
+    const input = normalizeInput(rawInput);
+    const dedupeKey = buildPlanDedupeKey(input);
+    const duplicate = document.plans.find((plan) => plan.dedupeKey === dedupeKey);
+    if (duplicate !== undefined) {
+      return {
+        ok: true,
+        id: duplicate.id,
+        status: duplicate.status,
+        path: planPath,
+        projectRoot,
+        deduplicated: true,
+      };
+    }
 
-  document.plans.push(plan);
-  await writeTextAtomic(planPath, renderPlanDocument(document));
-  return { ok: true, id, status: plan.status, path: planPath, projectRoot };
+    const id = nextPlanId(document.plans);
+    const now = new Date().toISOString();
+    const plan: ProjectPlan = {
+      id,
+      title: input.title,
+      summary: input.summary,
+      status: "proposed",
+      successCriteria: input.successCriteria ?? [],
+      specRefs: input.specRefs ?? [],
+      decisions: input.decisions ?? [],
+      dedupeKey,
+      createdAt: now,
+      updatedAt: now,
+      transitions: [{ from: null, to: "proposed", reason: "Plan recorded.", at: now }],
+    };
+
+    document.plans.push(plan);
+    await writeTextAtomic(planPath, renderPlanDocument(document));
+    return { ok: true, id, status: plan.status, path: planPath, projectRoot, deduplicated: false };
+  });
 }
 
 export async function transitionProjectPlan(
@@ -63,25 +88,27 @@ export async function transitionProjectPlan(
   reason: string,
 ): Promise<{ ok: true; id: string; status: ProjectPlanStatus; path: string; projectRoot: string }> {
   const projectRoot = await requireProjectRoot(projectDirectory);
-  const planPath = resolve(projectRoot, ".agent", "planMsg.md");
-  const document = await readPlanDocument(planPath);
-  const normalizedId = requiredText(id, "id").toLocaleUpperCase();
-  const plan = document.plans.find((candidate) => candidate.id === normalizedId);
-  if (plan === undefined) throw new Error(`Project plan ${normalizedId} was not found.`);
+  return withProjectWriteLock(projectRoot, async () => {
+    const planPath = resolve(projectRoot, ".agent", "planMsg.md");
+    const document = await readPlanDocument(planPath);
+    const normalizedId = requiredText(id, "id").toLocaleUpperCase();
+    const plan = document.plans.find((candidate) => candidate.id === normalizedId);
+    if (plan === undefined) throw new Error(`Project plan ${normalizedId} was not found.`);
 
-  const nextStatus = parseStatus(requestedStatus);
-  const transitionReason = requiredText(reason, "transition reason");
-  if (!ALLOWED_TRANSITIONS[plan.status].includes(nextStatus)) {
-    throw new Error(`Invalid project plan transition: ${plan.status} -> ${nextStatus}.`);
-  }
+    const nextStatus = parseStatus(requestedStatus);
+    const transitionReason = requiredText(reason, "transition reason");
+    if (!ALLOWED_TRANSITIONS[plan.status].includes(nextStatus)) {
+      throw new Error(`Invalid project plan transition: ${plan.status} -> ${nextStatus}.`);
+    }
 
-  const now = new Date().toISOString();
-  const previousStatus = plan.status;
-  plan.status = nextStatus;
-  plan.updatedAt = now;
-  plan.transitions.push({ from: previousStatus, to: nextStatus, reason: transitionReason, at: now });
-  await writeTextAtomic(planPath, renderPlanDocument(document));
-  return { ok: true, id: plan.id, status: plan.status, path: planPath, projectRoot };
+    const now = new Date().toISOString();
+    const previousStatus = plan.status;
+    plan.status = nextStatus;
+    plan.updatedAt = now;
+    plan.transitions.push({ from: previousStatus, to: nextStatus, reason: transitionReason, at: now });
+    await writeTextAtomic(planPath, renderPlanDocument(document));
+    return { ok: true, id: plan.id, status: plan.status, path: planPath, projectRoot };
+  });
 }
 
 export async function listProjectPlans(
@@ -119,7 +146,7 @@ function validatePlan(value: unknown): ProjectPlan {
     throw new Error("Project plan entries must be objects with transitions.");
   }
   const status = parseStatus(value.status);
-  return {
+  const plan: ProjectPlan = {
     id: requiredText(value.id, "stored plan id").toLocaleUpperCase(),
     title: requiredText(value.title, "stored plan title"),
     summary: requiredText(value.summary, "stored plan summary"),
@@ -139,6 +166,12 @@ function validatePlan(value: unknown): ProjectPlan {
       };
     }),
   };
+  if (typeof value.dedupeKey === "string" && value.dedupeKey.trim().length > 0) {
+    plan.dedupeKey = value.dedupeKey.trim();
+  } else {
+    plan.dedupeKey = buildPlanDedupeKey(plan);
+  }
+  return plan;
 }
 
 function renderPlanDocument(document: ProjectPlanDocument): string {
@@ -198,6 +231,25 @@ function normalizeInput(input: ProjectPlanInput): ProjectPlanInput & Required<Pi
     specRefs: uniqueStrings(input.specRefs),
     decisions: uniqueStrings(input.decisions),
   };
+}
+
+function buildPlanDedupeKey(input: ProjectPlanInput): string {
+  const canonical = {
+    title: normalizeDedupeText(input.title),
+    summary: normalizeDedupeText(input.summary),
+    successCriteria: canonicalList(input.successCriteria),
+    specRefs: canonicalList(input.specRefs),
+    decisions: canonicalList(input.decisions),
+  };
+  return `sha256:${createHash("sha256").update(JSON.stringify(canonical)).digest("hex")}`;
+}
+
+function canonicalList(values: string[] | undefined): string[] {
+  return [...(values ?? [])].map(normalizeDedupeText).filter(Boolean).sort();
+}
+
+function normalizeDedupeText(value: string): string {
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/\s+/gu, " ").trim();
 }
 
 function nextPlanId(plans: ProjectPlan[]): string {

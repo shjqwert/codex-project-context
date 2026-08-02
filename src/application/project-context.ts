@@ -16,6 +16,7 @@ import {
   writeJsonAtomic,
   writeTextAtomic,
 } from "../infrastructure/files.js";
+import { withProjectWriteLock } from "../infrastructure/project-write-lock.js";
 import { EMPTY_HANDOFF_INDEX, normalizeHandoffIndex } from "./handoff-index.js";
 import {
   countDocumentLines,
@@ -39,60 +40,63 @@ export interface ProjectUpdateResult {
 export async function initializeProject(projectDirectory: string): Promise<ProjectUpdateResult> {
   const projectRoot = resolve(projectDirectory);
   await assertDirectory(projectRoot);
+  return withProjectWriteLock(projectRoot, async () => {
+    const contextPath = resolve(projectRoot, ".agent", "context.json");
+    const stored = await readJsonIfPresent<unknown>(contextPath);
+    const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
+    const context = await buildContext(projectRoot, existing);
+    const indexPath = resolve(projectRoot, context.handoffIndex);
 
-  const contextPath = resolve(projectRoot, ".agent", "context.json");
-  const stored = await readJsonIfPresent<unknown>(contextPath);
-  const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
-  const context = await buildContext(projectRoot, existing);
-  const indexPath = resolve(projectRoot, context.handoffIndex);
+    await writeJsonAtomic(contextPath, context);
+    if (!(await pathExists(indexPath))) {
+      await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
+    } else {
+      await migrateIndexIfNeeded(indexPath);
+    }
+    const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
-  await writeJsonAtomic(contextPath, context);
-  if (!(await pathExists(indexPath))) {
-    await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
-  } else {
-    await migrateIndexIfNeeded(indexPath);
-  }
-  const agentsPath = await updateManagedAgentsSection(projectRoot, context);
-
-  return {
-    ok: true,
-    action: "initialized",
-    projectRoot,
-    contextPath,
-    handoffIndexPath: indexPath,
-    agentsPath,
-    capabilities: context.capabilities,
-    profile: context.profile!,
-    resourceCount: context.resources?.length ?? 0,
-  };
+    return {
+      ok: true,
+      action: "initialized",
+      projectRoot,
+      contextPath,
+      handoffIndexPath: indexPath,
+      agentsPath,
+      capabilities: context.capabilities,
+      profile: context.profile!,
+      resourceCount: context.resources?.length ?? 0,
+    };
+  });
 }
 
 export async function synchronizeProject(projectDirectory: string): Promise<ProjectUpdateResult> {
   const projectRoot = await requireProjectRoot(projectDirectory);
-  const contextPath = resolve(projectRoot, ".agent", "context.json");
-  const existing = await readProjectContext(projectRoot);
-  const context = await buildContext(projectRoot, existing);
-  const indexPath = resolve(projectRoot, context.handoffIndex);
+  return withProjectWriteLock(projectRoot, async () => {
+    const contextPath = resolve(projectRoot, ".agent", "context.json");
+    const existing = await readProjectContext(projectRoot);
+    const context = await buildContext(projectRoot, existing);
+    const indexPath = resolve(projectRoot, context.handoffIndex);
 
-  await writeJsonAtomic(contextPath, context);
-  if (!(await pathExists(indexPath))) {
-    await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
-  } else {
-    await migrateIndexIfNeeded(indexPath);
-  }
-  const agentsPath = await updateManagedAgentsSection(projectRoot, context);
+    await writeJsonAtomic(contextPath, context);
+    if (!(await pathExists(indexPath))) {
+      await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
+    } else {
+      await migrateIndexIfNeeded(indexPath);
+    }
+    const agentsPath = await updateManagedAgentsSection(projectRoot, context);
 
-  return {
-    ok: true,
-    action: "synchronized",
-    projectRoot,
-    contextPath,
-    handoffIndexPath: indexPath,
-    agentsPath,
-    capabilities: context.capabilities,
-    profile: context.profile!,
-    resourceCount: context.resources?.length ?? 0,
-  };
+    return {
+      ok: true,
+      action: "synchronized",
+      projectRoot,
+      contextPath,
+      handoffIndexPath: indexPath,
+      agentsPath,
+      capabilities: context.capabilities,
+      profile: context.profile!,
+      resourceCount: context.resources?.length ?? 0,
+    };
+  });
 }
 
 export async function getProjectStatus(projectDirectory: string): Promise<Record<string, unknown>> {

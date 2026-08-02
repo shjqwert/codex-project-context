@@ -2,7 +2,7 @@ import { readProjectContext } from "../application/project-context.js";
 import { findProjectRoot } from "../infrastructure/files.js";
 import { readHookInput, runHook, writeAdditionalContext } from "./hook-io.js";
 
-await runHook(async () => {
+await runHook("SessionStart", async () => {
   const input = await readHookInput();
   const projectRoot = await findProjectRoot(input.cwd);
   if (projectRoot === undefined) return;

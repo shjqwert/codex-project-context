@@ -32,3 +32,7 @@ Store new records under `.agent/handoff/records/<cycle>/<handoff-id>-<slug>.md`.
 ## Duplicate Grouping
 
 Group repeated work by strongest stable evidence in order: specification ID, bug ID, file plus symbol, symbol, then normalized title. A shared broad module alone is insufficient.
+
+Exact normalized input is deduplicated before writing. Reordered routing arrays, Unicode width or case differences, and repeated whitespace do not create another record. Changed evidence or sections create a new historical record and may be grouped with related work during matching.
+
+Chinese phrases of at least three characters may match titles, summaries, test names, and tags. A prompt that explicitly refers to the previous task or window but has no stronger evidence returns at most two recent index candidates; it does not open their Markdown automatically.

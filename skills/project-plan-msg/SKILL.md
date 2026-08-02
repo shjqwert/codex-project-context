@@ -37,6 +37,10 @@ node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --act
 
 New records begin as `proposed`. Remove only the temporary input created for this operation.
 
+Equivalent normalized inputs are idempotent. The CLI returns the existing plan ID and status with
+`deduplicated: true`; do not create or transition a second plan merely because a request was retried.
+Project-context writes are serialized by a short-lived project lock.
+
 ## Transition
 
 Supply a concise reason grounded in a user decision, accepted specification, implementation state, or observed verification:
@@ -49,7 +53,8 @@ Follow the state graph in [plan-msg-format.md](references/plan-msg-format.md). T
 
 ## Verify
 
-1. Require `ok: true` and the expected final status.
+1. Require `ok: true`, inspect `deduplicated`, and confirm the expected final status.
 2. Confirm `.agent/planMsg.md` was created only when a plan was actually recorded.
-3. Confirm the rendered summary, success criteria, decisions, references, and transition reason match the evidence.
-4. Confirm no routine task or unsupported completion claim was added.
+3. When `deduplicated` is `true`, confirm no second plan entry or file was written.
+4. Confirm the rendered summary, success criteria, decisions, references, and transition reason match the evidence.
+5. Confirm no routine task or unsupported completion claim was added.

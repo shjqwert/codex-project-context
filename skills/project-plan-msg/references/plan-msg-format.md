@@ -20,6 +20,8 @@ Do not admit routine bugs, code tasks, one OpenSpec task, temporary ideas, or de
 - Explicitly tracked but unconfirmed direction: create as `proposed`.
 - Confirmed direction: create as `proposed`, then immediately transition to `accepted` with the confirmation evidence.
 
+Exact normalized input is idempotent. Reordered criteria, references, or decisions and differences in Unicode width, case, or repeated whitespace return the existing plan. A genuinely changed direction must change its supported summary, criteria, references, or decisions; terminal plans remain immutable.
+
 ## State Graph
 
 ```text

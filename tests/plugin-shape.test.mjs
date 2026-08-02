@@ -47,4 +47,9 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
     const schema = JSON.parse(await readFile(path, "utf8"));
     assert.match(schema.$schema, /json-schema/);
   }
+
+  const handoffSchema = JSON.parse(await readFile("schemas/handoff-index.schema.json", "utf8"));
+  assert.match(handoffSchema.$defs.entry.properties.dedupeKey.pattern, /sha256/);
+  const planSchema = JSON.parse(await readFile("schemas/plan-document.schema.json", "utf8"));
+  assert.match(planSchema.$defs.plan.properties.dedupeKey.pattern, /sha256/);
 });

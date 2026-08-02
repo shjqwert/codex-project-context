@@ -33,7 +33,13 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(handoff.status, 0, handoff.stderr);
   const handoffOutput = JSON.parse(handoff.stdout);
   assert.equal(handoffOutput.id, "W001");
+  assert.equal(handoffOutput.deduplicated, false);
   assert.match(handoffOutput.path.replaceAll("\\", "/"), /\.agent\/handoff\/records\/development\/W001-router-verification\.md$/u);
+
+  const duplicateHandoff = runCli(["handoff", "--project", project, "--input", handoffInput]);
+  assert.equal(duplicateHandoff.status, 0, duplicateHandoff.stderr);
+  assert.equal(JSON.parse(duplicateHandoff.stdout).id, "W001");
+  assert.equal(JSON.parse(duplicateHandoff.stdout).deduplicated, true);
 
   const status = runCli(["status", "--project", project]);
   assert.equal(status.status, 0, status.stderr);
@@ -69,6 +75,20 @@ test("CLI initializes, records, reports, and matches project context", async () 
   ]);
   assert.equal(createdPlan.status, 0, createdPlan.stderr);
   assert.equal(JSON.parse(createdPlan.stdout).id, "P001");
+  assert.equal(JSON.parse(createdPlan.stdout).deduplicated, false);
+
+  const duplicatePlan = runCli([
+    "plan",
+    "--project",
+    project,
+    "--action",
+    "create",
+    "--input",
+    planInput,
+  ]);
+  assert.equal(duplicatePlan.status, 0, duplicatePlan.stderr);
+  assert.equal(JSON.parse(duplicatePlan.stdout).id, "P001");
+  assert.equal(JSON.parse(duplicatePlan.stdout).deduplicated, true);
 
   const acceptedPlan = runCli([
     "plan",
@@ -89,6 +109,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   const listedPlans = runCli(["plan", "--project", project, "--action", "list"]);
   assert.equal(listedPlans.status, 0, listedPlans.stderr);
   assert.equal(JSON.parse(listedPlans.stdout).plans[0].status, "accepted");
+  assert.equal(JSON.parse(listedPlans.stdout).plans.length, 1);
 });
 
 function runCli(arguments_) {

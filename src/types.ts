@@ -79,6 +79,7 @@ export interface HandoffIndexEntry {
   sections: string[];
   sectionSummaries: HandoffSectionSummary[];
   groupKey: string;
+  dedupeKey?: string;
   path: string;
   createdAt: string;
 }
@@ -125,6 +126,7 @@ export interface ProjectPlan {
   successCriteria: string[];
   specRefs: string[];
   decisions: string[];
+  dedupeKey?: string;
   createdAt: string;
   updatedAt: string;
   transitions: ProjectPlanTransition[];

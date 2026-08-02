@@ -37,12 +37,17 @@ node <plugin-root>/dist/cli/main.js handoff --project <absolute-project-root> --
 
 5. Remove only the temporary input created for this operation.
 
+Equivalent normalized inputs are idempotent. The CLI returns the existing handoff ID with
+`deduplicated: true` and must not create another Markdown file or index entry. Project-context
+writes are serialized by a short-lived project lock.
+
 ## Verify
 
-1. Require `ok: true`, a new handoff ID, and a project-local output path.
-2. Inspect the created Markdown for evidence accuracy and unsupported claims.
-3. Confirm `.agent/handoff/index.json` contains the new entry, section summaries, and a deterministic group key.
-4. Confirm passed tests were actually observed in the current task.
-5. Confirm duplicate grouping did not merge unrelated work merely because it shared a broad module.
+1. Require `ok: true`, a project-local output path, and inspect `deduplicated`.
+2. When `deduplicated` is `true`, confirm the returned ID and file already existed and no new record was written.
+3. Inspect a newly created Markdown file for evidence accuracy and unsupported claims.
+4. Confirm `.agent/handoff/index.json` contains the entry, section summaries, deterministic group key, and dedupe key.
+5. Confirm passed tests were actually observed in the current task.
+6. Confirm duplicate grouping did not merge unrelated work merely because it shared a broad module.
 
 Report the handoff ID and path. Keep current code, tests, and accepted specifications authoritative over historical records.

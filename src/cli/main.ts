@@ -11,7 +11,7 @@ import {
 import { getProjectStatus, initializeProject, synchronizeProject } from "../application/project-context.js";
 import type { HandoffInput, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.3.4";
+const VERSION = "0.3.5";
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

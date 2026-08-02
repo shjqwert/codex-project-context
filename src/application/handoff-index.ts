@@ -69,6 +69,9 @@ function normalizeEntry(value: unknown): HandoffIndexEntry {
     path: requiredString(value.path, "path"),
     createdAt: requiredString(value.createdAt, "createdAt"),
   };
+  if (typeof value.dedupeKey === "string" && value.dedupeKey.trim().length > 0) {
+    entry.dedupeKey = value.dedupeKey.trim();
+  }
   entry.groupKey =
     typeof value.groupKey === "string" && value.groupKey.trim().length > 0
       ? value.groupKey.trim()

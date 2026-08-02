@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, and evidence-based handoffs across tasks. Version `0.3.4` is a functional-completeness candidate for local evaluation; it is not a public release.
+`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, and evidence-based handoffs across tasks. Version `0.3.5` is a functional-completeness candidate for local evaluation; it is not a public release.
 
 ## Capabilities
 
@@ -10,6 +10,8 @@
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
 - `UserPromptSubmit` ranks and aggregates matching handoff cards under a bounded context budget.
+- Equivalent handoff and plan inputs are idempotent under a project-local write lock.
+- Chinese phrases and explicit previous-task cues can return bounded handoff candidates without opening records automatically.
 
 The plugin does not require Git, MCP, OpenSpec, CodeGraph, or Serena. It detects optional tools but never initializes or upgrades them automatically.
 
@@ -46,6 +48,7 @@ codex plugin add codex-project-context@codex-project-context-dev
 ```
 
 Hook changes may require review through `/hooks`. Skill metadata makes initialization and synchronization explicit-only while allowing semantic handoff and plan selection when their admission rules are satisfied.
+Hook failures remain fail-open and append bounded diagnostics without prompt contents to `$CODEX_HOME/logs/project-context-hooks.jsonl`.
 
 ## CLI
 

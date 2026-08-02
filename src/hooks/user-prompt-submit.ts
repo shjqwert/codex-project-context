@@ -3,7 +3,7 @@ import { matchHandoffs } from "../application/handoffs.js";
 import { findProjectRoot } from "../infrastructure/files.js";
 import { readHookInput, runHook, writeAdditionalContext } from "./hook-io.js";
 
-await runHook(async () => {
+await runHook("UserPromptSubmit", async () => {
   const input = await readHookInput();
   if (typeof input.prompt !== "string" || input.prompt.trim().length === 0) return;
   const projectRoot = await findProjectRoot(input.cwd);
