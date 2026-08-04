@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 2,
+  "projectRoot": ".",
+  "currentCycle": "development",
+  "agentsFile": "AGENTS.md",
+  "handoffIndex": ".agent/handoff/index.json",
+  "capabilities": {
+    "codegraph": false,
+    "serena": true,
+    "openspec": false
+  },
+  "profile": {
+    "name": "codex-project-context",
+    "projectTypes": [
+      "Node.js",
+      "TypeScript"
+    ],
+    "languages": [
+      "Python",
+      "TypeScript"
+    ],
+    "sourceDirectories": [
+      "src"
+    ],
+    "testDirectories": [
+      "tests"
+    ],
+    "specificationDirectories": []
+  },
+  "resources": [
+    {
+      "kind": "documentation",
+      "path": "README.md",
+      "purpose": "User-facing capabilities, installation, packaging, Hook trust, and CLI usage."
+    },
+    {
+      "kind": "documentation",
+      "path": "skills/project-init/references",
+      "purpose": "Project discovery and generated AGENTS structure contracts used by initialization and synchronization."
+    },
+    {
+      "kind": "documentation",
+      "path": "skills/project-handoff/references",
+      "purpose": "Handoff record, index, aliases, grouping, deduplication, and retrieval contracts."
+    },
+    {
+      "kind": "test",
+      "path": "tests",
+      "purpose": "Automated verification for CLI, Hooks, matching, project context, plans, schemas, and plugin shape."
+    }
+  ],
+  "inventoryFingerprint": "sha256:89113188e55d827d2c164ebf77480373bb0548d15cf40e5e21e3fd64d700e0ed",
+  "analysis": {
+    "schemaVersion": 1,
+    "inventoryFingerprint": "sha256:89113188e55d827d2c164ebf77480373bb0548d15cf40e5e21e3fd64d700e0ed",
+    "overview": [
+      {
+        "text": "This repository implements the codex-project-context Codex plugin for durable project guidance, project plans, and cross-task handoffs.",
+        "evidencePaths": [
+          "README.md",
+          ".codex-plugin/plugin.json"
+        ]
+      },
+      {
+        "text": "The implementation targets Node.js 20 or later, uses strict TypeScript under src, and keeps automated coverage under tests.",
+        "evidencePaths": [
+          "package.json",
+          "tsconfig.json",
+          "src",
+          "tests"
+        ]
+      },
+      {
+        "text": "The plugin bundles explicit project initialization and synchronization Skills plus implicit-capable handoff and project-plan Skills.",
+        "evidencePaths": [
+          ".codex-plugin/plugin.json",
+          "skills/project-init",
+          "skills/project-sync",
+          "skills/project-handoff",
+          "skills/project-plan-msg"
+        ]
+      },
+      {
+        "text": "The plugin integrates SessionStart and UserPromptSubmit lifecycle Hooks for concise context routing and handoff matching.",
+        "evidencePaths": [
+          "hooks/hooks.json",
+          "src/hooks/session-start.ts",
+          "src/hooks/user-prompt-submit.ts"
+        ]
+      }
+    ],
+    "buildAndVerification": [
+      {
+        "text": "Do not build, package, install, or publish the plugin unless the user explicitly requests that operation.",
+        "evidencePaths": [
+          "package.json",
+          "README.md"
+        ]
+      },
+      {
+        "text": "When verification is requested, start with tests for the changed application, Hook, Skill, or schema surface and use the full suite for release or publish validation.",
+        "evidencePaths": [
+          "package.json",
+          "tests"
+        ]
+      }
+    ],
+    "codeAnalysis": [
+      {
+        "text": "Use Serena for symbol lookup, reference analysis, focused reading, and precise edits when available in this repository.",
+        "evidencePaths": [
+          ".serena",
+          "src"
+        ]
+      },
+      {
+        "text": "Route durable context behavior through src/application, lifecycle integration through src/hooks, commands through src/cli, and shared contracts through src/types.ts and schemas.",
+        "evidencePaths": [
+          "src/application",
+          "src/hooks",
+          "src/cli",
+          "src/types.ts",
+          "schemas"
+        ]
+      },
+      {
+        "text": "Use the matching test surface under tests for the affected capability; if Serena is unavailable, continue with focused source reading and normal repository search.",
+        "evidencePaths": [
+          "tests",
+          "src",
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "references": [
+      {
+        "kind": "documentation",
+        "path": "README.md",
+        "purpose": "User-facing capabilities, installation, packaging, Hook trust, and CLI usage.",
+        "evidencePaths": [
+          "README.md"
+        ]
+      },
+      {
+        "kind": "documentation",
+        "path": "skills/project-init/references",
+        "purpose": "Project discovery and generated AGENTS structure contracts used by initialization and synchronization.",
+        "evidencePaths": [
+          "skills/project-init/references"
+        ]
+      },
+      {
+        "kind": "documentation",
+        "path": "skills/project-handoff/references",
+        "purpose": "Handoff record, index, aliases, grouping, deduplication, and retrieval contracts.",
+        "evidencePaths": [
+          "skills/project-handoff/references"
+        ]
+      },
+      {
+        "kind": "test",
+        "path": "tests",
+        "purpose": "Automated verification for CLI, Hooks, matching, project context, plans, schemas, and plugin shape.",
+        "evidencePaths": [
+          "tests"
+        ]
+      }
+    ],
+    "referenceGuidance": [
+      {
+        "text": "Read README.md for user-visible or installation changes, and open only the Skill reference and tests relevant to the capability being changed.",
+        "evidencePaths": [
+          "README.md",
+          "skills",
+          "tests"
+        ]
+      }
+    ],
+    "handoffGuidance": [
+      {
+        "text": "Route continuation by the affected capability, including initialization, synchronization, plans, handoffs, Hooks, BM25, or bilingual aliases.",
+        "evidencePaths": [
+          "skills",
+          "src/application/bm25.ts",
+          "src/application/handoffs.ts",
+          "src/hooks"
+        ]
+      },
+      {
+        "text": "Use source files, exported symbols, schemas, Skill names, Hook names, and focused test names as retrieval evidence.",
+        "evidencePaths": [
+          "src",
+          "schemas",
+          "skills",
+          "hooks/hooks.json",
+          "tests"
+        ]
+      },
+      {
+        "text": "For packaging and installation continuation, include the package manifest and local marketplace preparation script in the evidence set.",
+        "evidencePaths": [
+          "package.json",
+          "scripts/prepare-local-marketplace.mjs"
+        ]
+      }
+    ],
+    "advisories": []
+  }
+}
