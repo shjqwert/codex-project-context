@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { access, mkdir, mkdtemp, readFile, readdir, unlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { access, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 import {
   createHandoff,
   matchHandoffs,
@@ -28,7 +28,7 @@ function completeInput(input) {
 }
 
 test("handoff matching prefers exact identifiers and file paths", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-match-"));
+  const project = await makeTempDirectory("codex-project-context-match-");
   await initializeProject(project);
   await createHandoff(project, completeInput({
     title: "Session cleanup",
@@ -85,7 +85,7 @@ test("handoff matching prefers exact identifiers and file paths", async () => {
 });
 
 test("initialization preserves user-authored AGENTS content", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-agents-"));
+  const project = await makeTempDirectory("codex-project-context-agents-");
   const agentsPath = join(project, "AGENTS.md");
   await writeFile(agentsPath, "# User Rules\n\nKeep this line.\n", "utf8");
   await initializeProject(project);
@@ -97,7 +97,7 @@ test("initialization preserves user-authored AGENTS content", async () => {
 });
 
 test("initialization rejects configured paths outside the project", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-paths-"));
+  const project = await makeTempDirectory("codex-project-context-paths-");
   await mkdir(join(project, ".agent"), { recursive: true });
   await writeFile(
     join(project, ".agent", "context.json"),
@@ -116,7 +116,7 @@ test("initialization rejects configured paths outside the project", async () => 
 });
 
 test("matching aggregates related handoffs and returns every record reference", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-aggregate-"));
+  const project = await makeTempDirectory("codex-project-context-aggregate-");
   await initializeProject(project);
   await createHandoff(project, completeInput({
     title: "Session cleanup baseline",
@@ -142,7 +142,7 @@ test("matching aggregates related handoffs and returns every record reference", 
 });
 
 test("matching uses token boundaries and rejects unsupported index schemas", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-migrate-"));
+  const project = await makeTempDirectory("codex-project-context-migrate-");
   await initializeProject(project);
   const indexPath = join(project, ".agent", "handoff", "index.json");
   await writeFile(
@@ -176,7 +176,7 @@ test("matching uses token boundaries and rejects unsupported index schemas", asy
 });
 
 test("concurrent equivalent handoffs create one durable record", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-dedupe-"));
+  const project = await makeTempDirectory("codex-project-context-dedupe-");
   await initializeProject(project);
   const input = completeInput({
     title: "Session cleanup",
@@ -210,7 +210,7 @@ test("concurrent equivalent handoffs create one durable record", async () => {
 });
 
 test("matching supports Chinese phrases and returns the complete most recent group", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-fuzzy-"));
+  const project = await makeTempDirectory("codex-project-context-fuzzy-");
   await initializeProject(project);
   await createHandoff(project, completeInput({
     title: "初始化检查",
@@ -237,7 +237,7 @@ test("matching supports Chinese phrases and returns the complete most recent gro
 });
 
 test("matching returns all reliable groups without a default record-count limit", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-unlimited-"));
+  const project = await makeTempDirectory("codex-project-context-unlimited-");
   await initializeProject(project);
   for (let index = 1; index <= 7; index += 1) {
     await createHandoff(project, completeInput({
@@ -253,7 +253,7 @@ test("matching returns all reliable groups without a default record-count limit"
 });
 
 test("BM25 natural-language matching stays read-only and rejects broad or unrelated prompts", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-match-"));
+  const project = await makeTempDirectory("codex-project-context-bm25-match-");
   await initializeProject(project);
   await createHandoff(project, completeInput({
     title: "Thermal motor restart diagnostics",
@@ -292,7 +292,7 @@ test("BM25 natural-language matching stays read-only and rejects broad or unrela
 });
 
 test("bilingual aliases retrieve English handoffs and remain outside handoff identity", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-aliases-"));
+  const project = await makeTempDirectory("codex-project-context-aliases-");
   await initializeProject(project);
   const input = completeInput({
     title: "Motor overcurrent safe restart",
@@ -356,7 +356,7 @@ test("bilingual aliases retrieve English handoffs and remain outside handoff ide
 });
 
 test("legacy single-language records verify and rebuild without migration", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-legacy-alias-"));
+  const project = await makeTempDirectory("codex-project-context-legacy-alias-");
   await initializeProject(project);
   const created = await createHandoff(project, completeInput({
     title: "Router evidence",
@@ -379,7 +379,7 @@ test("legacy single-language records verify and rebuild without migration", asyn
 });
 
 test("BM25 close leaders return every reliable work group instead of forcing one", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-tie-"));
+  const project = await makeTempDirectory("codex-project-context-bm25-tie-");
   await initializeProject(project);
   for (const [file, symbol] of [["src/motor-a.ts", "recoverMotorA"], ["src/motor-b.ts", "recoverMotorB"]]) {
     await createHandoff(project, completeInput({
@@ -396,7 +396,7 @@ test("BM25 close leaders return every reliable work group instead of forcing one
 });
 
 test("records omit empty sections and rebuild a missing index without Hook-style writes", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-rebuild-"));
+  const project = await makeTempDirectory("codex-project-context-rebuild-");
   await initializeProject(project);
   const created = await createHandoff(project, completeInput({
     title: "Router evidence",
@@ -433,7 +433,7 @@ test("records omit empty sections and rebuild a missing index without Hook-style
 });
 
 test("handoff creation rejects missing core sections, unknown fields, and escaping paths", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-input-guard-"));
+  const project = await makeTempDirectory("codex-project-context-input-guard-");
   await initializeProject(project);
   await assert.rejects(createHandoff(project, {
     title: "Missing state",

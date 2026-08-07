@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, readFile, readdir, unlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { access, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 import { createHandoff } from "../dist/application/handoffs.js";
 import { initializeAnalyzedProject as initializeProject } from "./helpers/project-analysis.mjs";
 
 test("SessionStart emits concise context only for initialized projects", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-hook-"));
+  const project = await makeTempDirectory("codex-project-context-hook-");
   await initializeProject(project);
 
   const result = runHook("session-start.js", {
@@ -25,7 +25,7 @@ test("SessionStart emits concise context only for initialized projects", async (
 });
 
 test("UserPromptSubmit emits matching handoff cards and stays silent otherwise", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-prompt-hook-"));
+  const project = await makeTempDirectory("codex-project-context-prompt-hook-");
   await initializeProject(project);
   await createHandoff(project, {
     title: "HSS shutdown",
@@ -58,8 +58,8 @@ test("UserPromptSubmit emits matching handoff cards and stays silent otherwise",
 });
 
 test("UserPromptSubmit injects each unchanged match set once per task", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-prompt-dedupe-"));
-  const stateDirectory = await mkdtemp(join(tmpdir(), "codex-project-context-hook-state-"));
+  const project = await makeTempDirectory("codex-project-context-prompt-dedupe-");
+  const stateDirectory = await makeTempDirectory("codex-project-context-hook-state-");
   await initializeProject(project);
   await createHandoff(project, handoffInput("HSS shutdown", "hss", "stopSession", "initial"));
 
@@ -155,7 +155,7 @@ test("UserPromptSubmit injects each unchanged match set once per task", async ()
 });
 
 test("UserPromptSubmit reports truncation without changing the complete handoff index", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-overflow-hook-"));
+  const project = await makeTempDirectory("codex-project-context-overflow-hook-");
   await initializeProject(project);
   for (let index = 1; index <= 8; index += 1) {
     await createHandoff(project, {
@@ -190,8 +190,8 @@ test("UserPromptSubmit reports truncation without changing the complete handoff 
 });
 
 test("UserPromptSubmit deduplicates BM25 matches and keeps lexical queries read-only", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-hook-"));
-  const stateDirectory = await mkdtemp(join(tmpdir(), "codex-project-context-bm25-hook-state-"));
+  const project = await makeTempDirectory("codex-project-context-bm25-hook-");
+  const stateDirectory = await makeTempDirectory("codex-project-context-bm25-hook-state-");
   await initializeProject(project);
   await createHandoff(project, {
     ...handoffInput("Thermal motor restart diagnostics", "DriveSupervisor", "restartMotor", "thermal"),
@@ -222,8 +222,8 @@ test("UserPromptSubmit deduplicates BM25 matches and keeps lexical queries read-
 });
 
 test("UserPromptSubmit retrieves bilingual aliases without emitting alias lists or repeated context", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-alias-hook-"));
-  const stateDirectory = await mkdtemp(join(tmpdir(), "codex-project-context-alias-hook-state-"));
+  const project = await makeTempDirectory("codex-project-context-alias-hook-");
+  const stateDirectory = await makeTempDirectory("codex-project-context-alias-hook-state-");
   await initializeProject(project);
   await createHandoff(project, {
     ...handoffInput("Motor overcurrent restart", "DriveSupervisor", "restartMotor", "alias"),
@@ -259,7 +259,7 @@ test("UserPromptSubmit retrieves bilingual aliases without emitting alias lists 
 });
 
 test("UserPromptSubmit remains read-only when matching from a missing index", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-missing-index-hook-"));
+  const project = await makeTempDirectory("codex-project-context-missing-index-hook-");
   await initializeProject(project);
   await createHandoff(project, handoffInput("HSS shutdown", "hss", "stopSession", "missing-index"));
   const indexPath = join(project, ".agent", "handoff", "index.json");
@@ -277,8 +277,8 @@ test("UserPromptSubmit remains read-only when matching from a missing index", as
 });
 
 test("UserPromptSubmit stays below its timeout with 1000 lightweight index entries", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-large-hook-"));
-  const stateDirectory = await mkdtemp(join(tmpdir(), "codex-project-context-large-hook-state-"));
+  const project = await makeTempDirectory("codex-project-context-large-hook-");
+  const stateDirectory = await makeTempDirectory("codex-project-context-large-hook-state-");
   await initializeProject(project);
   const indexPath = join(project, ".agent", "handoff", "index.json");
   const diagnosticPath = join(stateDirectory, "errors.jsonl");
@@ -304,14 +304,14 @@ test("UserPromptSubmit stays below its timeout with 1000 lightweight index entri
 });
 
 test("hooks fail open and append bounded local diagnostics", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "codex-project-context-hook-errors-"));
+  const directory = await makeTempDirectory("codex-project-context-hook-errors-");
   const diagnosticPath = join(directory, "hook-errors.jsonl");
   const malformed = runRawHook("user-prompt-submit.js", "not-json", diagnosticPath);
   assert.equal(malformed.status, 0, malformed.stderr);
   assert.equal(malformed.stdout, "");
   assert.equal(malformed.stderr, "");
 
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-hook-index-"));
+  const project = await makeTempDirectory("codex-project-context-hook-index-");
   await initializeProject(project);
   const indexPath = join(project, ".agent", "handoff", "index.json");
   await writeFile(indexPath, "{ invalid index", "utf8");
