@@ -1,6 +1,6 @@
 {
   "name": "codex-project-context",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Codex plugin for durable project context and cross-task handoffs.",
   "type": "module",
   "private": true,

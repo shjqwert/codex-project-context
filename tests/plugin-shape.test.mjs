@@ -70,9 +70,19 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
 
   const initSkill = await readFile("skills/project-init/SKILL.md", "utf8");
   assert.match(initSkill, /inspect --project/);
-  assert.match(initSkill, /--input <absolute-analysis-json>/);
+  assert.match(initSkill, /--input -/);
+  assert.match(initSkill, /standard input/);
+  assert.doesNotMatch(initSkill, /temporary .*JSON/i);
   assert.match(initSkill, /CodeGraph first/);
   const syncSkill = await readFile("skills/project-sync/SKILL.md", "utf8");
   assert.match(syncSkill, /inspect --project/);
-  assert.match(syncSkill, /--input <absolute-analysis-json>/);
+  assert.match(syncSkill, /--input -/);
+  assert.match(syncSkill, /standard input/);
+  assert.doesNotMatch(syncSkill, /temporary .*JSON/i);
+
+  for (const skill of [handoffSkill, await readFile("skills/project-plan-msg/SKILL.md", "utf8")]) {
+    assert.match(skill, /--input -/);
+    assert.match(skill, /standard input/);
+    assert.doesNotMatch(skill, /temporary .*input/i);
+  }
 });

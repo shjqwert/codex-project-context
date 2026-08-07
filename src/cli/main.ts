@@ -17,7 +17,7 @@ import { inspectProject } from "../application/project-discovery.js";
 import { getProjectStatus, initializeProject, synchronizeProject } from "../application/project-context.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.4.0";
+const VERSION = "0.4.1";
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

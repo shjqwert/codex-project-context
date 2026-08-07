@@ -29,13 +29,13 @@ Record a plan only when it affects project direction, an important capability, m
 
 ## Create
 
-Prepare a temporary UTF-8 JSON input with `title`, `summary`, and supported `successCriteria`, `specRefs`, and `decisions`, then run:
+Prepare a UTF-8 JSON value in memory with `title`, `summary`, and supported `successCriteria`, `specRefs`, and `decisions`, then run:
 
 ```text
-node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --action create --input <absolute-json-input>
+node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --action create --input -
 ```
 
-New records begin as `proposed`. Remove only the temporary input created for this operation.
+Write the prepared JSON directly to the command's standard input. Do not create an intermediate JSON file. New records begin as `proposed`.
 
 Equivalent normalized inputs are idempotent. The CLI returns the existing plan ID and status with
 `deduplicated: true`; do not create or transition a second plan merely because a request was retried.
