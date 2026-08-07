@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 import { initializeProject as initializeProjectWithAnalysis } from "../dist/application/project-context.js";
 import { inspectProject } from "../dist/application/project-discovery.js";
 import {
@@ -21,7 +21,7 @@ const REQUIRED_SECTIONS = [
 ];
 
 test("new projects receive an evidence-based AGENTS document within 200 lines", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-discovery-"));
+  const project = await makeTempDirectory("codex-project-context-discovery-");
   await mkdir(join(project, "src"));
   await mkdir(join(project, "tests"));
   await mkdir(join(project, "docs"));
@@ -80,7 +80,7 @@ test("new projects receive an evidence-based AGENTS document within 200 lines", 
 });
 
 test("Project References is omitted when only OpenSpec resources are detected", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-openspec-only-"));
+  const project = await makeTempDirectory("codex-project-context-openspec-only-");
   await mkdir(join(project, "openspec"));
   await mkdir(join(project, "openspec", "specs"));
   await initializeProject(project);
@@ -91,7 +91,7 @@ test("Project References is omitted when only OpenSpec resources are detected", 
 });
 
 test("existing AGENTS content is preserved and synchronization is byte-stable", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-existing-"));
+  const project = await makeTempDirectory("codex-project-context-existing-");
   const original = "# User Rules\r\n\r\nKeep this exact line.  \r\n";
   const agentsPath = join(project, "AGENTS.md");
   await writeFile(agentsPath, original, "utf8");
@@ -112,7 +112,7 @@ test("existing AGENTS content is preserved and synchronization is byte-stable", 
 });
 
 test("malformed package metadata does not prevent evidence-based initialization", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-malformed-package-"));
+  const project = await makeTempDirectory("codex-project-context-malformed-package-");
   await writeFile(join(project, "package.json"), "{ invalid", "utf8");
   await initializeProject(project);
   const context = JSON.parse(await readFile(join(project, ".agent", "context.json"), "utf8"));
@@ -122,7 +122,7 @@ test("malformed package metadata does not prevent evidence-based initialization"
 });
 
 test("synchronization migrates a readable schema v1 context to Agent-authored schema v2", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-v1-migration-"));
+  const project = await makeTempDirectory("codex-project-context-v1-migration-");
   await mkdir(join(project, ".agent", "handoff"), { recursive: true });
   await writeFile(
     join(project, ".agent", "context.json"),
@@ -151,7 +151,7 @@ test("synchronization migrates a readable schema v1 context to Agent-authored sc
 });
 
 test("initialization rejects stale analysis and missing evidence", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-analysis-guard-"));
+  const project = await makeTempDirectory("codex-project-context-analysis-guard-");
   await writeFile(join(project, "package.json"), JSON.stringify({ name: "analysis-guard" }), "utf8");
   const stale = await buildTestProjectAnalysis(project);
   await writeFile(join(project, "package.json"), JSON.stringify({ name: "analysis-guard-updated" }), "utf8");
@@ -169,7 +169,7 @@ test("initialization rejects stale analysis and missing evidence", async () => {
 });
 
 test("initialization requires routing for detected analysis tools", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-tool-routing-"));
+  const project = await makeTempDirectory("codex-project-context-tool-routing-");
   await mkdir(join(project, ".codegraph"));
   await mkdir(join(project, ".serena"));
 
@@ -191,7 +191,7 @@ test("initialization requires routing for detected analysis tools", async () => 
 });
 
 test("Serena cache changes do not stale the repository inventory", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-serena-cache-"));
+  const project = await makeTempDirectory("codex-project-context-serena-cache-");
   await mkdir(join(project, ".serena", "cache"), { recursive: true });
   const cachePath = join(project, ".serena", "cache", "symbols.json");
   await writeFile(cachePath, "{\"revision\":1}\n", "utf8");

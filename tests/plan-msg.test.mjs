@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { access, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 import {
   createProjectPlan,
   listProjectPlans,
@@ -11,7 +11,7 @@ import {
 import { initializeAnalyzedProject as initializeProject } from "./helpers/project-analysis.mjs";
 
 test("plan register is lazy and validates status transitions", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-plan-"));
+  const project = await makeTempDirectory("codex-project-context-plan-");
   await initializeProject(project);
   const planPath = join(project, ".agent", "planMsg.md");
 
@@ -50,7 +50,7 @@ test("plan register is lazy and validates status transitions", async () => {
 });
 
 test("concurrent equivalent project plans create one record", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-plan-dedupe-"));
+  const project = await makeTempDirectory("codex-project-context-plan-dedupe-");
   await initializeProject(project);
   const input = {
     title: "Cross-task context",

@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 import { buildTestProjectAnalysis } from "./helpers/project-analysis.mjs";
 
 const cli = resolve("dist", "cli", "main.js");
 
 test("CLI initializes, records, reports, and matches project context", async () => {
-  const project = await mkdtemp(join(tmpdir(), "codex-project-context-cli-"));
+  const project = await makeTempDirectory("codex-project-context-cli-");
   const inspected = runCli(["inspect", "--project", project]);
   assert.equal(inspected.status, 0, inspected.stderr);
   assert.match(JSON.parse(inspected.stdout).inventory.fingerprint, /^sha256:[a-f0-9]{64}$/u);
