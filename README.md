@@ -76,8 +76,8 @@ Hook failures remain fail-open and append bounded diagnostics without prompt con
 
 ```powershell
 node dist/cli/main.js inspect --project D:\path\to\project
-node dist/cli/main.js init --project D:\path\to\project --input D:\temp\project-analysis.json
-node dist/cli/main.js sync --project D:\path\to\project --input D:\temp\project-analysis.json
+$analysisJson | node dist/cli/main.js init --project D:\path\to\project --input -
+$analysisJson | node dist/cli/main.js sync --project D:\path\to\project --input -
 node dist/cli/main.js status --project D:\path\to\project
 node dist/cli/main.js match --project D:\path\to\project --prompt "continue W001"
 node dist/cli/main.js handoff-index --project D:\path\to\project --action verify
@@ -85,5 +85,5 @@ node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuil
 node dist/cli/main.js plan --project D:\path\to\project --action list
 ```
 
-`handoff` and plan creation accept UTF-8 JSON from a file or standard input. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
+Initialization, synchronization, handoff creation, and plan creation accept UTF-8 JSON from a file or standard input. The bundled Skills write generated JSON directly to standard input so they do not create intermediate files. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
 The handoff index commands verify or rebuild the schema v3 cache from immutable Markdown records. Rebuild rejects section metadata that does not exactly match the rendered Markdown body.

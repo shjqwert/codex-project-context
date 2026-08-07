@@ -26,17 +26,17 @@ Use only facts supported by the current task, source, tests, logs, project refer
 
 ## Record
 
-1. Prepare a temporary UTF-8 JSON input with `title`, `summary`, one supported `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
+1. Prepare a UTF-8 JSON value in memory with `title`, `summary`, one supported `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
 2. Generate 2-6 concise retrieval aliases from confirmed task concepts: include at least one natural Chinese phrase and one natural English phrase. Use phrases a future user could search for; do not translate identifiers, duplicate the title or summary, or use broad filler such as `功能`, `模块`, `代码`, `问题`, or `处理`.
 3. Add the aliases, only supported routing metadata, and non-empty conditional sections.
 4. Resolve the plugin root as two directories above this `SKILL.md`.
 5. Run:
 
 ```text
-node <plugin-root>/dist/cli/main.js handoff --project <absolute-project-root> --input <absolute-json-input>
+node <plugin-root>/dist/cli/main.js handoff --project <absolute-project-root> --input -
 ```
 
-6. Remove only the temporary input created for this operation.
+6. Write the prepared JSON directly to the command's standard input. Do not create an intermediate JSON file.
 
 Equivalent normalized inputs are idempotent. The CLI returns the existing handoff ID with
 `deduplicated: true` and must not create another Markdown file or index entry. Project-context
