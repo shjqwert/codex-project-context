@@ -67,6 +67,8 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   const contextSchema = JSON.parse(await readFile("schemas/context.schema.json", "utf8"));
   assert.equal(contextSchema.properties.schemaVersion.const, 2);
   assert.ok(contextSchema.required.includes("analysis"));
+  assert.equal("context7" in contextSchema.properties.capabilities.properties, false);
+  assert.equal("markitdown" in contextSchema.properties.capabilities.properties, false);
 
   const initSkill = await readFile("skills/project-init/SKILL.md", "utf8");
   assert.match(initSkill, /inspect --project/);
@@ -74,11 +76,23 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.match(initSkill, /standard input/);
   assert.doesNotMatch(initSkill, /temporary .*JSON/i);
   assert.match(initSkill, /CodeGraph first/);
+  assert.match(initSkill, /Context7/);
+  assert.match(initSkill, /MarkItDown/);
+  assert.match(initSkill, /session-local/);
+  assert.match(initSkill, /do not bulk-convert/);
   const syncSkill = await readFile("skills/project-sync/SKILL.md", "utf8");
   assert.match(syncSkill, /inspect --project/);
   assert.match(syncSkill, /--input -/);
   assert.match(syncSkill, /standard input/);
   assert.doesNotMatch(syncSkill, /temporary .*JSON/i);
+  assert.match(syncSkill, /Context7/);
+  assert.match(syncSkill, /MarkItDown/);
+  assert.match(syncSkill, /session-local/);
+
+  const discoveryContract = await readFile("skills/project-init/references/project-discovery.md", "utf8");
+  assert.match(discoveryContract, /Context7 and MarkItDown are optional session tools/);
+  assert.match(discoveryContract, /cannot supply a project-relative evidence path/);
+  assert.match(discoveryContract, /Do not bulk-convert/);
 
   for (const skill of [handoffSkill, await readFile("skills/project-plan-msg/SKILL.md", "utf8")]) {
     assert.match(skill, /--input -/);

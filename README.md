@@ -4,8 +4,8 @@
 
 ## Capabilities
 
-- Explicit `$codex-project-context:project-init` inventories the confirmed repository, directs the Agent to analyze it with available CodeGraph, Serena, configuration, code, and documentation evidence, then validates and persists an Agent-authored managed `AGENTS.md` section.
-- Explicit `$codex-project-context:project-sync` repeats the evidence-backed Agent analysis for an initialized project and synchronizes only supported managed context.
+- Explicit `$codex-project-context:project-init` inventories the confirmed repository, directs the Agent to analyze it with available CodeGraph, Serena, configuration, code, and documentation evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
+- Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
 - Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
@@ -13,7 +13,7 @@
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
 - Evidence-based bilingual aliases let Chinese phrases retrieve English handoffs without duplicating translated titles, summaries, or bodies; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
 
-The plugin does not require Git, MCP, OpenSpec, CodeGraph, or Serena. It detects optional tools but never initializes or upgrades them automatically.
+The plugin does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. It never initializes or upgrades optional tools automatically, and it does not persist session-local Context7 or MarkItDown availability as a project capability.
 
 ## Generated Project Context
 
