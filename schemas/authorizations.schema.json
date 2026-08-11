@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex-project-context/schemas/authorizations.schema.json",
+  "title": "Codex Project Authorizations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "authorizations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "authorizations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["solAdvisor"],
+      "properties": {
+        "solAdvisor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["implicitDelegation"],
+          "properties": {
+            "implicitDelegation": { "const": true }
+          }
+        }
+      }
+    }
+  }
+}

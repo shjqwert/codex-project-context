@@ -36,6 +36,8 @@ Do not read entire manuals, schematics, binaries, or large references. Do not in
 
 ## Initialize
 
+Before initialization, determine whether the user has already explicitly chosen to allow implicit Sol Advisor delegation in this project. If no choice is present, ask once. A clear approval means enable it after initialization; a decline or no clear approval means keep the default off. Do not infer approval from an installed plugin, task complexity, or earlier use in another project.
+
 Submit the Agent-authored analysis to the validation and persistence CLI:
 
 ```text
@@ -53,6 +55,14 @@ The command may:
 
 The command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dependencies, or hardware tooling. It must not create `.agent/planMsg.md`.
 
+Initialization itself never creates `.agent/authorizations.json`. After a successful init, only when the user clearly approved implicit Sol Advisor delegation, run:
+
+```text
+node <plugin-root>/dist/cli/main.js authorization --project <absolute-project-root> --sol-advisor-implicit-delegation enable
+```
+
+This writes the separate schema v1 authorization file and renders the corresponding bounded-delegation contract inside the existing managed `AGENTS.md` section. If the user did not approve, leave the file absent. Do not probe for or require the Sol Advisor plugin; unavailable orchestration must fall back to the primary session.
+
 ## Verify
 
 1. Require `ok: true` in the JSON result.
@@ -64,5 +74,6 @@ The command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dep
 7. Confirm `Project Overview` contains only facts supported by the analysis, and `Build and Verification` contains only relevant authorization guidance.
 8. Confirm Code Analysis reflects detected repository analysis capabilities without persisting session-local tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses evidence-backed, relevance-based reads without a fixed record count.
 9. Report `remind-user` advisories without turning them into confirmed project facts.
+10. Confirm `.agent/authorizations.json` is absent by default. When enabled, require `authorizations.solAdvisor.implicitDelegation` to be exactly `true`, require the managed authorization text once, and repeat the authorization command to confirm byte-stable output.
 
 Stop and report the exact validation failure instead of claiming initialization succeeded.

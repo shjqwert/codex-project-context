@@ -1,11 +1,12 @@
 # Codex Project Context
 
-`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, and evidence-based handoffs across tasks. Version `0.4.0` is a functional-completeness candidate for local evaluation; it is not a public release.
+`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and explicit project-level delegation authorization across tasks. Version `0.4.1` is a functional-completeness candidate for local evaluation; it is not a public release.
 
 ## Capabilities
 
 - Explicit `$codex-project-context:project-init` inventories the confirmed repository, directs the Agent to analyze it with available CodeGraph, Serena, configuration, code, and documentation evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
 - Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
+- Project initialization asks once whether to authorize implicit Sol Advisor delegation. The default is off; explicit enablement is stored separately in `.agent/authorizations.json`, reflected inside the managed `AGENTS.md` section, and can be removed without changing durable project context.
 - Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
@@ -24,7 +25,8 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 3. Code Analysis
 4. Project References, only when non-OpenSpec references are detected
 5. Project Context
-6. Handoff Context
+6. Subagent Orchestration, only when separately authorized
+7. Handoff Context
 
 `Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`.
 
@@ -33,6 +35,8 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is created or replaced. The CLI separates inventory from judgment: `inspect` returns a bounded repository inventory and fingerprint, while `init` and `sync` require a schemaVersion 1 Agent analysis whose facts and rules cite current project-relative evidence. The CLI validates paths, freshness, managed boundaries, and the 200-line limit. It does not infer project stage, create tasks, download missing references, or load full manuals and schematics.
 
 Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
+
+Implicit Sol Advisor delegation is fail-closed and project-specific. It is enabled only when both the managed `AGENTS.md` instruction and schema v1 `.agent/authorizations.json` contain the exact positive authorization. A missing file means off; `remove` deletes the file rather than writing `false`. Initialization and synchronization validate but never infer or recreate authorization, and they do not require Sol Advisor to be installed.
 
 Handoff matching builds an in-memory BM25 corpus from schema v3 index entries on each query; it never stores term frequencies or reads Markdown bodies during normal indexed matching. Exact IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules always rank above lexical results. Optional aliases are bounded bilingual retrieval phrases generated from task evidence, are excluded from handoff identity, and are never rendered as translated body content or complete Hook metadata. BM25 requires at least two useful terms, minimum term coverage and score quality, and returns close reliable leaders together instead of selecting an arbitrary record.
 
@@ -79,6 +83,8 @@ node dist/cli/main.js inspect --project D:\path\to\project
 $analysisJson | node dist/cli/main.js init --project D:\path\to\project --input -
 $analysisJson | node dist/cli/main.js sync --project D:\path\to\project --input -
 node dist/cli/main.js status --project D:\path\to\project
+node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation enable
+node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation remove
 node dist/cli/main.js match --project D:\path\to\project --prompt "continue W001"
 node dist/cli/main.js handoff-index --project D:\path\to\project --action verify
 node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuild

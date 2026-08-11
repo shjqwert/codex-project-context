@@ -48,6 +48,7 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
 
   for (const path of [
     "schemas/context.schema.json",
+    "schemas/authorizations.schema.json",
     "schemas/project-analysis.schema.json",
     "schemas/handoff-index.schema.json",
     "schemas/plan-document.schema.json",
@@ -69,6 +70,13 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.ok(contextSchema.required.includes("analysis"));
   assert.equal("context7" in contextSchema.properties.capabilities.properties, false);
   assert.equal("markitdown" in contextSchema.properties.capabilities.properties, false);
+  const authorizationSchema = JSON.parse(await readFile("schemas/authorizations.schema.json", "utf8"));
+  assert.equal(authorizationSchema.properties.schemaVersion.const, 1);
+  assert.equal(
+    authorizationSchema.properties.authorizations.properties.solAdvisor.properties.implicitDelegation.const,
+    true,
+  );
+  assert.equal(authorizationSchema.properties.authorizations.additionalProperties, false);
 
   const initSkill = await readFile("skills/project-init/SKILL.md", "utf8");
   assert.match(initSkill, /inspect --project/);
@@ -80,6 +88,8 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.match(initSkill, /MarkItDown/);
   assert.match(initSkill, /session-local/);
   assert.match(initSkill, /do not bulk-convert/);
+  assert.match(initSkill, /authorization --project/);
+  assert.match(initSkill, /default off/);
   const syncSkill = await readFile("skills/project-sync/SKILL.md", "utf8");
   assert.match(syncSkill, /inspect --project/);
   assert.match(syncSkill, /--input -/);
@@ -88,6 +98,7 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.match(syncSkill, /Context7/);
   assert.match(syncSkill, /MarkItDown/);
   assert.match(syncSkill, /session-local/);
+  assert.match(syncSkill, /must not create, remove, or rewrite `.agent\/authorizations\.json`/);
 
   const discoveryContract = await readFile("skills/project-init/references/project-discovery.md", "utf8");
   assert.match(discoveryContract, /Context7 and MarkItDown are optional session tools/);

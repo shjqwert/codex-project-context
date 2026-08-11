@@ -20,6 +20,32 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(initializedOutput.ok, true);
   assert.ok(initializedOutput.profile);
   assert.equal(typeof initializedOutput.resourceCount, "number");
+  assert.equal(initializedOutput.solAdvisorImplicitDelegation, false);
+
+  const enabledAuthorization = runCli([
+    "authorization",
+    "--project",
+    project,
+    "--sol-advisor-implicit-delegation",
+    "enable",
+  ]);
+  assert.equal(enabledAuthorization.status, 0, enabledAuthorization.stderr);
+  assert.equal(JSON.parse(enabledAuthorization.stdout).solAdvisorImplicitDelegation, true);
+  assert.equal(
+    JSON.parse(await readFile(join(project, ".agent", "authorizations.json"), "utf8"))
+      .authorizations.solAdvisor.implicitDelegation,
+    true,
+  );
+
+  const removedAuthorization = runCli([
+    "authorization",
+    "--project",
+    project,
+    "--sol-advisor-implicit-delegation",
+    "remove",
+  ]);
+  assert.equal(removedAuthorization.status, 0, removedAuthorization.stderr);
+  assert.equal(JSON.parse(removedAuthorization.stdout).solAdvisorImplicitDelegation, false);
 
   const handoffInput = JSON.stringify({
     title: "Router verification",
@@ -50,6 +76,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   const status = runCli(["status", "--project", project]);
   assert.equal(status.status, 0, status.stderr);
   assert.equal(JSON.parse(status.stdout).handoffCount, 1);
+  assert.equal(JSON.parse(status.stdout).solAdvisorImplicitDelegation, false);
 
   const matched = runCli(["match", "--project", project, "--prompt", "Continue src/router.ts"]);
   assert.equal(matched.status, 0, matched.stderr);

@@ -14,7 +14,12 @@ import {
   transitionProjectPlan,
 } from "../application/plan-msg.js";
 import { inspectProject } from "../application/project-discovery.js";
-import { getProjectStatus, initializeProject, synchronizeProject } from "../application/project-context.js";
+import {
+  configureSolAdvisorImplicitDelegation,
+  getProjectStatus,
+  initializeProject,
+  synchronizeProject,
+} from "../application/project-context.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
 const VERSION = "0.4.1";
@@ -47,6 +52,14 @@ async function main(): Promise<void> {
     case "status":
       writeJson(await getProjectStatus(project));
       break;
+    case "authorization": {
+      const action = requiredOption(options, "sol-advisor-implicit-delegation");
+      if (action !== "enable" && action !== "remove") {
+        throw new Error("--sol-advisor-implicit-delegation must be enable or remove.");
+      }
+      writeJson(await configureSolAdvisorImplicitDelegation(project, action));
+      break;
+    }
     case "match": {
       const prompt = requiredOption(options, "prompt");
       const rawLimit = option(options, "limit");
@@ -167,6 +180,7 @@ Usage:
   codex-project-context init [--project PATH] --input FILE|-
   codex-project-context sync [--project PATH] --input FILE|-
   codex-project-context status [--project PATH]
+  codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|remove
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-
   codex-project-context handoff-index [--project PATH] --action verify|rebuild

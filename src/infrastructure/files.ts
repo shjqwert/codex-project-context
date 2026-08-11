@@ -57,6 +57,10 @@ export async function writeJsonAtomic(path: string, value: unknown): Promise<voi
   await writeTextAtomic(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+export async function removeFileIfPresent(path: string): Promise<void> {
+  await rm(path, { force: true });
+}
+
 export async function findProjectRoot(startDirectory: string): Promise<string | undefined> {
   let current = resolve(startDirectory);
 
@@ -76,4 +80,3 @@ export async function findProjectRoot(startDirectory: string): Promise<string | 
 function isMissingFile(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
-

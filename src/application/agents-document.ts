@@ -3,7 +3,14 @@ import type { ProjectAnalysisLine, ProjectContext, ProjectResource } from "../ty
 export const MANAGED_START = "<!-- PROJECT_CONTEXT_START -->";
 export const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
 
-export function renderManagedAgentsSection(context: ProjectContext): string {
+export interface ManagedAgentsOptions {
+  solAdvisorImplicitDelegation?: boolean;
+}
+
+export function renderManagedAgentsSection(
+  context: ProjectContext,
+  options: ManagedAgentsOptions = {},
+): string {
   const analysis = context.analysis;
   if (analysis === undefined) {
     throw new Error("Project context does not contain Agent-authored analysis; run project-sync with a current analysis input.");
@@ -42,6 +49,7 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
     "- `.agent/planMsg.md`: confirmed project-level plans and key decisions, created only when needed.",
     ...handoffContextEntries,
     "",
+    ...renderSolAdvisorAuthorization(options.solAdvisorImplicitDelegation === true),
     "## Handoff Context",
     "",
     "- Create a handoff only when coherent work must continue in another task; skip routine questions and one-off small changes.",
@@ -56,6 +64,11 @@ export function renderManagedAgentsSection(context: ProjectContext): string {
 }
 
 export function upsertManagedAgentsSection(current: string, managed: string): string {
+  const startCount = countOccurrences(current, MANAGED_START);
+  const endCount = countOccurrences(current, MANAGED_END);
+  if (startCount > 1 || endCount > 1) {
+    throw new Error("AGENTS.md contains multiple project-context managed sections.");
+  }
   const start = current.indexOf(MANAGED_START);
   const end = current.indexOf(MANAGED_END);
   if ((start >= 0) !== (end >= 0) || (start >= 0 && end < start)) {
@@ -68,6 +81,73 @@ export function upsertManagedAgentsSection(current: string, managed: string): st
   if (current.length === 0) return `${managed}\n`;
   const separator = current.endsWith("\n\n") ? "" : current.endsWith("\n") ? "\n" : "\n\n";
   return `${current}${separator}${managed}\n`;
+}
+
+export function updateManagedSolAdvisorAuthorization(current: string, enabled: boolean): string {
+  const startCount = countOccurrences(current, MANAGED_START);
+  const endCount = countOccurrences(current, MANAGED_END);
+  if (startCount > 1 || endCount > 1) {
+    throw new Error("AGENTS.md contains multiple project-context managed sections.");
+  }
+  const start = current.indexOf(MANAGED_START);
+  const end = current.indexOf(MANAGED_END);
+  if (start < 0 || end < start || endCount !== 1) {
+    throw new Error("Legacy project context requires one complete project-context managed section; run project-sync with a current analysis input.");
+  }
+
+  const after = end + MANAGED_END.length;
+  const lineBreak = current.includes("\r\n") ? "\r\n" : "\n";
+  let managed = current.slice(start, after);
+  const heading = "## Subagent Orchestration";
+  const headingCount = countOccurrences(managed, heading);
+  if (headingCount > 1) {
+    throw new Error("AGENTS.md contains multiple Subagent Orchestration sections.");
+  }
+  const headingIndex = managed.indexOf(heading);
+  if (headingIndex >= 0) {
+    const nextHeading = managed.indexOf(`${lineBreak}## `, headingIndex + heading.length);
+    if (nextHeading < 0) {
+      throw new Error("AGENTS.md Subagent Orchestration section has no following managed heading.");
+    }
+    managed = `${managed.slice(0, headingIndex)}${managed.slice(nextHeading + lineBreak.length)}`;
+  }
+
+  if (enabled) {
+    const insertionHeading = "## Handoff Context";
+    const insertionIndex = managed.indexOf(insertionHeading);
+    if (insertionIndex < 0) {
+      throw new Error("Legacy project-context managed section has no Handoff Context heading; run project-sync with a current analysis input.");
+    }
+    const authorization = renderSolAdvisorAuthorization(true).join(lineBreak);
+    managed = `${managed.slice(0, insertionIndex)}${authorization}${lineBreak}${managed.slice(insertionIndex)}`;
+  }
+
+  return `${current.slice(0, start)}${managed}${current.slice(after)}`;
+}
+
+function renderSolAdvisorAuthorization(enabled: boolean): string[] {
+  if (!enabled) return [];
+  return [
+    "## Subagent Orchestration",
+    "",
+    "- This project authorizes implicit Sol Advisor delegation only while `.agent/authorizations.json` contains schema v1 with `authorizations.solAdvisor.implicitDelegation` exactly `true`.",
+    "- Before implicit delegation, require both this managed instruction and the exact authorization value; do not infer consent from plugin availability, task shape, or either source alone.",
+    "- Follow the installed Sol Advisor Skill for bounded role selection: keep complex implementation and final ownership in the primary session, prefer zero or one child, use at most two concurrent independent read-only children, keep writes serial, and prohibit descendants.",
+    "- An explicit user request to use Sol Advisor may proceed without this implicit authorization; an explicit instruction not to delegate always overrides it.",
+    "- If Sol Advisor or a required role is unavailable, continue in the primary session without substitution and without blocking ordinary project work.",
+    "",
+  ];
+}
+
+function countOccurrences(content: string, value: string): number {
+  let count = 0;
+  let offset = 0;
+  while (true) {
+    const index = content.indexOf(value, offset);
+    if (index < 0) return count;
+    count += 1;
+    offset = index + value.length;
+  }
 }
 
 export function countDocumentLines(content: string): number {

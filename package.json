@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "pretest": "npm run build",
-    "test": "node --test tests/bm25.test.mjs tests/cli.test.mjs tests/hooks.test.mjs tests/matcher.test.mjs tests/plan-msg.test.mjs tests/plugin-shape.test.mjs tests/project-context.test.mjs",
+    "test": "node --test tests/authorization.test.mjs tests/bm25.test.mjs tests/cli.test.mjs tests/hooks.test.mjs tests/matcher.test.mjs tests/plan-msg.test.mjs tests/plugin-shape.test.mjs tests/project-context.test.mjs",
     "prepackage:local": "npm run build",
     "package:local": "node scripts/prepare-local-marketplace.mjs"
   },

@@ -8,6 +8,7 @@ import type {
   ProjectProfile,
   ProjectResource,
   ProjectResourceKind,
+  SolAdvisorImplicitDelegationAction,
 } from "../types.js";
 import {
   assertDirectory,
@@ -28,9 +29,16 @@ import { EMPTY_HANDOFF_INDEX, validateHandoffIndex } from "./handoff-index.js";
 import {
   countDocumentLines,
   renderManagedAgentsSection,
+  updateManagedSolAdvisorAuthorization,
   upsertManagedAgentsSection,
 } from "./agents-document.js";
 import { inspectProject } from "./project-discovery.js";
+import {
+  PROJECT_AUTHORIZATIONS_PATH,
+  readProjectAuthorizations,
+  removeProjectAuthorizations,
+  writeSolAdvisorImplicitDelegationAuthorization,
+} from "./project-authorizations.js";
 
 export interface ProjectUpdateResult {
   ok: true;
@@ -44,6 +52,16 @@ export interface ProjectUpdateResult {
   resourceCount: number;
   inventoryFingerprint: string;
   advisories: ProjectAdvisory[];
+  solAdvisorImplicitDelegation: boolean;
+}
+
+export interface ProjectAuthorizationResult {
+  ok: true;
+  action: "enabled" | "removed";
+  projectRoot: string;
+  authorizationPath: string;
+  agentsPath: string;
+  solAdvisorImplicitDelegation: boolean;
 }
 
 export async function initializeProject(
@@ -56,6 +74,7 @@ export async function initializeProject(
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const stored = await readJsonIfPresent<unknown>(contextPath);
     const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
+    const authorizations = await readProjectAuthorizations(projectRoot);
     const inventory = await inspectProject(projectRoot);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
     const context = buildContext(existing, inventory, analysis);
@@ -70,7 +89,8 @@ export async function initializeProject(
     if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
     }
-    const agentsPath = await updateManagedAgentsSection(projectRoot, context);
+    const solAdvisorImplicitDelegation = authorizations !== undefined;
+    const agentsPath = await updateManagedAgentsSection(projectRoot, context, solAdvisorImplicitDelegation);
 
     return {
       ok: true,
@@ -84,6 +104,7 @@ export async function initializeProject(
       resourceCount: context.resources?.length ?? 0,
       inventoryFingerprint: inventory.fingerprint,
       advisories: analysis.advisories,
+      solAdvisorImplicitDelegation,
     };
   });
 }
@@ -96,6 +117,7 @@ export async function synchronizeProject(
   return withProjectWriteLock(projectRoot, async () => {
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const existing = await readProjectContext(projectRoot);
+    const authorizations = await readProjectAuthorizations(projectRoot);
     const inventory = await inspectProject(projectRoot);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
     const context = buildContext(existing, inventory, analysis);
@@ -110,7 +132,8 @@ export async function synchronizeProject(
     if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
     }
-    const agentsPath = await updateManagedAgentsSection(projectRoot, context);
+    const solAdvisorImplicitDelegation = authorizations !== undefined;
+    const agentsPath = await updateManagedAgentsSection(projectRoot, context, solAdvisorImplicitDelegation);
 
     return {
       ok: true,
@@ -124,6 +147,7 @@ export async function synchronizeProject(
       resourceCount: context.resources?.length ?? 0,
       inventoryFingerprint: inventory.fingerprint,
       advisories: analysis.advisories,
+      solAdvisorImplicitDelegation,
     };
   });
 }
@@ -132,6 +156,7 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
   const projectRoot = await requireProjectRoot(projectDirectory);
   const contextPath = resolve(projectRoot, ".agent", "context.json");
   const context = await readProjectContext(projectRoot);
+  const authorizations = await readProjectAuthorizations(projectRoot);
   const index = validateHandoffIndex(await readJson<unknown>(resolve(projectRoot, context.handoffIndex)));
 
   return {
@@ -139,8 +164,41 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
     plugin: "codex-project-context",
     projectRoot,
     context,
+    authorizations: authorizations ?? null,
+    solAdvisorImplicitDelegation: authorizations !== undefined,
     handoffCount: index.entries.length,
   };
+}
+
+export async function configureSolAdvisorImplicitDelegation(
+  projectDirectory: string,
+  action: SolAdvisorImplicitDelegationAction,
+): Promise<ProjectAuthorizationResult> {
+  const projectRoot = await requireProjectRoot(projectDirectory);
+  return withProjectWriteLock(projectRoot, async () => {
+    const context = await readProjectContext(projectRoot);
+    await readProjectAuthorizations(projectRoot);
+    const enabled = action === "enable";
+    const preparedAgents = await prepareManagedAgentsSection(projectRoot, context, enabled);
+    const authorizationPath = resolve(projectRoot, PROJECT_AUTHORIZATIONS_PATH);
+
+    if (enabled) {
+      await writeSolAdvisorImplicitDelegationAuthorization(projectRoot);
+      await writeTextAtomic(preparedAgents.agentsPath, preparedAgents.next);
+    } else {
+      await writeTextAtomic(preparedAgents.agentsPath, preparedAgents.next);
+      await removeProjectAuthorizations(projectRoot);
+    }
+
+    return {
+      ok: true,
+      action: enabled ? "enabled" : "removed",
+      projectRoot,
+      authorizationPath,
+      agentsPath: preparedAgents.agentsPath,
+      solAdvisorImplicitDelegation: enabled,
+    };
+  });
 }
 
 export async function requireProjectRoot(startDirectory: string): Promise<string> {
@@ -294,15 +352,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function updateManagedAgentsSection(
   projectRoot: string,
   context: ProjectContext,
+  solAdvisorImplicitDelegation: boolean,
 ): Promise<string> {
+  const prepared = await prepareManagedAgentsSection(
+    projectRoot,
+    context,
+    solAdvisorImplicitDelegation,
+  );
+  await writeTextAtomic(prepared.agentsPath, prepared.next);
+  return prepared.agentsPath;
+}
+
+async function prepareManagedAgentsSection(
+  projectRoot: string,
+  context: ProjectContext,
+  solAdvisorImplicitDelegation: boolean,
+): Promise<{ agentsPath: string; next: string }> {
   const agentsPath = resolve(projectRoot, context.agentsFile);
   const current = (await readTextIfPresent(agentsPath)) ?? "";
-  const managed = renderManagedAgentsSection(context);
+  if (context.analysis === undefined) {
+    return {
+      agentsPath,
+      next: updateManagedSolAdvisorAuthorization(current, solAdvisorImplicitDelegation),
+    };
+  }
+  const managed = renderManagedAgentsSection(context, { solAdvisorImplicitDelegation });
   const managedLineCount = countDocumentLines(managed);
   if (managedLineCount > 200) {
     throw new Error(`Generated AGENTS.md managed section must contain at most 200 lines; received ${managedLineCount}.`);
   }
   const next = upsertManagedAgentsSection(current, managed);
-  await writeTextAtomic(agentsPath, next);
-  return agentsPath;
+  return { agentsPath, next };
 }

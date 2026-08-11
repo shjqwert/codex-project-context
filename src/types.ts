@@ -83,6 +83,17 @@ export interface ProjectContext {
   analysis?: ProjectAnalysisDraft;
 }
 
+export interface ProjectAuthorizations {
+  schemaVersion: 1;
+  authorizations: {
+    solAdvisor: {
+      implicitDelegation: true;
+    };
+  };
+}
+
+export type SolAdvisorImplicitDelegationAction = "enable" | "remove";
+
 export interface HandoffSections {
   objective: string;
   currentState: string;

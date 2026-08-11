@@ -13,7 +13,8 @@ Synchronize only an already initialized project. Never use this Skill as an impl
 2. Resolve the project root by locating `.agent/context.json` upward from the confirmed workspace.
 3. Record the current `AGENTS.md` content outside the plugin-managed boundary.
 4. Record the current context and handoff index schema versions and entry count.
-5. Run `inspect` and compare its fingerprint with the stored context:
+5. Record whether `.agent/authorizations.json` exists and, when present, require schema v1 with `authorizations.solAdvisor.implicitDelegation` exactly `true` before any synchronization write.
+6. Run `inspect` and compare its fingerprint with the stored context:
 
 ```text
 node <plugin-root>/dist/cli/main.js inspect --project <absolute-project-root>
@@ -37,6 +38,8 @@ Synchronization may update only:
 - a missing `.agent/handoff/index.json` only when no handoff records exist; handoff creation and explicit index repair remain responsible for rebuilding it from current-format Markdown records;
 - content between the project-context managed boundary markers in `AGENTS.md`.
 
+Synchronization must not create, remove, or rewrite `.agent/authorizations.json`. It preserves the current valid authorization state and renders the Sol Advisor managed instructions only while the separate authorization exists. A malformed authorization stops synchronization before project context or `AGENTS.md` writes. Sol Advisor availability is never probed and never blocks synchronization.
+
 It must not create `.agent/planMsg.md`, modify handoff Markdown files, or replace user-authored `AGENTS.md` content.
 
 If records exist but the index is missing or inconsistent, stop synchronization and use the explicit `handoff-index --action verify|rebuild` workflow; do not repair it implicitly during sync.
@@ -52,3 +55,4 @@ If records exist but the index is missing or inconsistent, stop synchronization 
 7. Report additions, removals, and classification changes separately.
 8. Confirm OpenSpec-owned paths are not rendered in `Project References`, broad Development, Specification, and Completion sections remain absent, and the context section names remain present.
 9. Report `remind-user` advisories.
+10. Confirm the authorization file is byte-identical before and after sync, the managed Sol Advisor section appears exactly once only when enabled, and an absent authorization remains absent.
