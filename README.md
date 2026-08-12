@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and explicit project-level delegation authorization across tasks. Version `0.4.1` is a functional-completeness candidate for local evaluation; it is not a public release.
+`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and explicit project-level delegation authorization across tasks. Version `0.4.2` is a functional-completeness candidate for local evaluation; it is not a public release.
 
 ## Capabilities
 
@@ -36,7 +36,7 @@ Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is c
 
 Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
 
-Implicit Sol Advisor delegation is fail-closed and project-specific. It is enabled only when both the managed `AGENTS.md` instruction and schema v1 `.agent/authorizations.json` contain the exact positive authorization. A missing file means off; `remove` deletes the file rather than writing `false`. Initialization and synchronization validate but never infer or recreate authorization, and they do not require Sol Advisor to be installed.
+Implicit Sol Advisor delegation is fail-closed and project-specific. It is enabled only when both the managed `AGENTS.md` instruction and schema v1 `.agent/authorizations.json` contain the exact positive authorization. A missing file means off; `remove` deletes the file rather than writing `false`. Initialization and synchronization validate but never infer or recreate authorization, and they do not require Sol Advisor to be installed. The managed instruction distinguishes a user-owned task transport wrapper from a functional child, prevents the primary from duplicating child-owned work during execution, bounds normal evidence intake to two decisive locators, preserves full diff and check verification for mechanical edits, and permits two concurrent read-only children only when their decisions, source scopes, and failure classes are mutually exclusive.
 
 Handoff matching builds an in-memory BM25 corpus from schema v3 index entries on each query; it never stores term frequencies or reads Markdown bodies during normal indexed matching. Exact IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules always rank above lexical results. Optional aliases are bounded bilingual retrieval phrases generated from task evidence, are excluded from handoff identity, and are never rendered as translated body content or complete Hook metadata. BM25 requires at least two useful terms, minimum term coverage and score quality, and returns close reliable leaders together instead of selecting an arbitrary record.
 

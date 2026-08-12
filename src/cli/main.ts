@@ -22,7 +22,7 @@ import {
 } from "../application/project-context.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.4.1";
+const VERSION = "0.4.2";
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

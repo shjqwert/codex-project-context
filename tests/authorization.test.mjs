@@ -49,6 +49,13 @@ test("enable, sync, and remove preserve authorization and user AGENTS bytes", as
   assert.equal(enabledAgents.slice(0, enabledAgents.indexOf("<!-- PROJECT_CONTEXT_START -->")), prefix);
   assert.match(enabledAgents, /## Subagent Orchestration/);
   assert.match(enabledAgents, /authorizations\.solAdvisor\.implicitDelegation` exactly `true/);
+  assert.match(enabledAgents, /transport wrapper does not count as a Sol Advisor functional child/);
+  assert.match(enabledAgents, /do not inspect interim child output/);
+  assert.match(enabledAgents, /verify at most two decision-changing locators/);
+  assert.match(enabledAgents, /inspect the full diff and run its specified check/);
+  assert.match(enabledAgents, /one targeted correction for an incomplete result/);
+  assert.match(enabledAgents, /mutually exclusive decisions, source scopes, and failure classes/);
+  assert.doesNotMatch(enabledAgents, /two or more files.*Mechanical Editor/);
   assert.equal(enabledAgents.match(/## Subagent Orchestration/g)?.length, 1);
 
   await configureSolAdvisorImplicitDelegation(project, "enable");
