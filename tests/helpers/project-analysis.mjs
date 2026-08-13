@@ -34,14 +34,14 @@ export async function buildTestProjectAnalysis(project) {
     codeAnalysis: [
       {
         text: "Use CodeGraph for module relationships, call paths, and impact analysis when it is available.",
-        evidencePaths: ["."],
+        evidencePaths: inventory.capabilities.codegraph ? [".codegraph"] : ["."],
       },
       {
         text: "Use Serena for symbol lookup, reference analysis, local reading, and precise modification when it is available.",
-        evidencePaths: ["."],
+        evidencePaths: inventory.capabilities.serena ? [".serena"] : ["."],
       },
       {
-        text: "If either tool is unavailable, continue with the project's normal tools; do not block the task or initialize tools automatically.",
+        text: "If either tool is unavailable after project initialization, continue with the project's normal tools without blocking the task.",
         evidencePaths: ["."],
       },
     ],
@@ -59,8 +59,8 @@ export async function buildTestProjectAnalysis(project) {
   };
 }
 
-export async function initializeAnalyzedProject(project) {
-  return initializeProject(project, await buildTestProjectAnalysis(project));
+export async function initializeAnalyzedProject(project, options) {
+  return initializeProject(project, await buildTestProjectAnalysis(project), options);
 }
 
 export async function synchronizeAnalyzedProject(project) {

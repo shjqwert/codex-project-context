@@ -64,9 +64,14 @@ export interface ProjectAuthorizationResult {
   solAdvisorImplicitDelegation: boolean;
 }
 
+export interface ProjectInitializationOptions {
+  solAdvisorImplicitDelegation?: boolean;
+}
+
 export async function initializeProject(
   projectDirectory: string,
   rawAnalysis: unknown,
+  options: ProjectInitializationOptions = {},
 ): Promise<ProjectUpdateResult> {
   const projectRoot = resolve(projectDirectory);
   await assertDirectory(projectRoot);
@@ -74,8 +79,9 @@ export async function initializeProject(
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const stored = await readJsonIfPresent<unknown>(contextPath);
     const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
-    const authorizations = await readProjectAuthorizations(projectRoot);
+    await readProjectAuthorizations(projectRoot);
     const inventory = await inspectProject(projectRoot);
+    requireCompleteInventory(inventory);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
     const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
@@ -85,12 +91,23 @@ export async function initializeProject(
     if (!indexExists && await pathExists(resolve(projectRoot, ".agent", "handoff", "records"))) {
       throw new Error("Handoff index is missing while records exist; rebuild the index before initialization.");
     }
+    const solAdvisorImplicitDelegation = options.solAdvisorImplicitDelegation !== false;
+    const preparedAgents = await prepareManagedAgentsSection(
+      projectRoot,
+      context,
+      solAdvisorImplicitDelegation,
+    );
+
     await writeJsonAtomic(contextPath, context);
     if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
     }
-    const solAdvisorImplicitDelegation = authorizations !== undefined;
-    const agentsPath = await updateManagedAgentsSection(projectRoot, context, solAdvisorImplicitDelegation);
+    if (solAdvisorImplicitDelegation) {
+      await writeSolAdvisorImplicitDelegationAuthorization(projectRoot);
+    } else {
+      await removeProjectAuthorizations(projectRoot);
+    }
+    await writeTextAtomic(preparedAgents.agentsPath, preparedAgents.next);
 
     return {
       ok: true,
@@ -98,7 +115,7 @@ export async function initializeProject(
       projectRoot,
       contextPath,
       handoffIndexPath: indexPath,
-      agentsPath,
+      agentsPath: preparedAgents.agentsPath,
       capabilities: context.capabilities,
       profile: context.profile!,
       resourceCount: context.resources?.length ?? 0,
@@ -119,6 +136,7 @@ export async function synchronizeProject(
     const existing = await readProjectContext(projectRoot);
     const authorizations = await readProjectAuthorizations(projectRoot);
     const inventory = await inspectProject(projectRoot);
+    requireCompleteInventory(inventory);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
     const context = buildContext(existing, inventory, analysis);
     const indexPath = resolve(projectRoot, context.handoffIndex);
@@ -150,6 +168,13 @@ export async function synchronizeProject(
       solAdvisorImplicitDelegation,
     };
   });
+}
+
+function requireCompleteInventory(inventory: ProjectInventory): void {
+  if (!inventory.scan.truncated) return;
+  throw new Error(
+    `Project inventory is incomplete: ${inventory.scan.truncationReasons.join(", ")}.`,
+  );
 }
 
 export async function getProjectStatus(projectDirectory: string): Promise<Record<string, unknown>> {

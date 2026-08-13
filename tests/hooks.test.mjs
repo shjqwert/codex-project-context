@@ -260,6 +260,8 @@ test("UserPromptSubmit retrieves bilingual aliases without emitting alias lists 
 
 test("UserPromptSubmit remains read-only when matching from a missing index", async () => {
   const project = await makeTempDirectory("codex-project-context-missing-index-hook-");
+  const stateDirectory = await makeTempDirectory("codex-project-context-missing-index-hook-state-");
+  const diagnosticPath = join(stateDirectory, "errors.jsonl");
   await initializeProject(project);
   await createHandoff(project, handoffInput("HSS shutdown", "hss", "stopSession", "missing-index"));
   const indexPath = join(project, ".agent", "handoff", "index.json");
@@ -270,8 +272,11 @@ test("UserPromptSubmit remains read-only when matching from a missing index", as
     cwd: project,
     hook_event_name: "UserPromptSubmit",
     prompt: "Continue hss stopSession",
-  });
+  }, diagnosticPath, stateDirectory);
   assert.equal(result.status, 0, result.stderr);
+  if (result.stdout === "") {
+    assert.fail(`Hook failed open unexpectedly: ${await readFile(diagnosticPath, "utf8")}`);
+  }
   assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext, /W001/);
   await assert.rejects(access(indexPath), /ENOENT/);
 });

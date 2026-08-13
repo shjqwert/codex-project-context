@@ -14,6 +14,7 @@ import {
   transitionProjectPlan,
 } from "../application/plan-msg.js";
 import { inspectProject } from "../application/project-discovery.js";
+import { prepareProjectIndexes } from "../application/project-indexes.js";
 import {
   configureSolAdvisorImplicitDelegation,
   getProjectStatus,
@@ -22,7 +23,8 @@ import {
 } from "../application/project-context.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "0.4.2";
+const VERSION = "0.5.0";
+const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -39,9 +41,14 @@ async function main(): Promise<void> {
     case "inspect":
       writeJson({ ok: true, projectRoot: project, inventory: await inspectProject(project) });
       break;
+    case "prepare-indexes":
+      writeJson(await prepareProjectIndexes(project));
+      break;
     case "init": {
       const input = await readJsonInput<ProjectAnalysisDraft>(requiredOption(options, "input"));
-      writeJson(await initializeProject(project, input));
+      writeJson(await initializeProject(project, input, {
+        solAdvisorImplicitDelegation: !hasFlag(options, "no-sol-advisor-implicit-delegation"),
+      }));
       break;
     }
     case "sync": {
@@ -132,11 +139,15 @@ function parseOptions(tokens: string[]): Map<string, string[]> {
     if (token === undefined || !token.startsWith("--")) {
       throw new Error(`Unexpected argument: ${token ?? ""}`);
     }
+    const name = token.slice(2);
+    if (VALUELESS_OPTIONS.has(name)) {
+      options.set(name, [...(options.get(name) ?? []), "true"]);
+      continue;
+    }
     const value = tokens[index + 1];
     if (value === undefined || value.startsWith("--")) {
       throw new Error(`Missing value for ${token}`);
     }
-    const name = token.slice(2);
     options.set(name, [...(options.get(name) ?? []), value]);
     index += 1;
   }
@@ -153,6 +164,10 @@ function requiredOption(options: Map<string, string[]>, name: string): string {
     throw new Error(`Missing required option --${name}.`);
   }
   return value;
+}
+
+function hasFlag(options: Map<string, string[]>, name: string): boolean {
+  return options.has(name);
 }
 
 async function readJsonInput<T>(inputPath: string): Promise<T> {
@@ -177,7 +192,8 @@ function helpText(): string {
 
 Usage:
   codex-project-context inspect [--project PATH]
-  codex-project-context init [--project PATH] --input FILE|-
+  codex-project-context prepare-indexes [--project PATH]
+  codex-project-context init [--project PATH] --input FILE|- [--no-sol-advisor-implicit-delegation]
   codex-project-context sync [--project PATH] --input FILE|-
   codex-project-context status [--project PATH]
   codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|remove

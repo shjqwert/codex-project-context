@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -10,6 +10,13 @@ const cli = resolve("dist", "cli", "main.js");
 
 test("CLI initializes, records, reports, and matches project context", async () => {
   const project = await makeTempDirectory("codex-project-context-cli-");
+  await mkdir(join(project, ".codegraph"));
+  await mkdir(join(project, ".serena"));
+  await writeFile(join(project, ".serena", "project.yml"), "language_servers:\n- typescript\n", "utf8");
+  const preparedIndexes = runCli(["prepare-indexes", "--project", project]);
+  assert.equal(preparedIndexes.status, 0, preparedIndexes.stderr);
+  assert.equal(JSON.parse(preparedIndexes.stdout).codegraph.status, "existing");
+  assert.equal(JSON.parse(preparedIndexes.stdout).serena.status, "existing");
   const inspected = runCli(["inspect", "--project", project]);
   assert.equal(inspected.status, 0, inspected.stderr);
   assert.match(JSON.parse(inspected.stdout).inventory.fingerprint, /^sha256:[a-f0-9]{64}$/u);
@@ -20,7 +27,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(initializedOutput.ok, true);
   assert.ok(initializedOutput.profile);
   assert.equal(typeof initializedOutput.resourceCount, "number");
-  assert.equal(initializedOutput.solAdvisorImplicitDelegation, false);
+  assert.equal(initializedOutput.solAdvisorImplicitDelegation, true);
 
   const enabledAuthorization = runCli([
     "authorization",
@@ -146,6 +153,22 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(listedPlans.status, 0, listedPlans.stderr);
   assert.equal(JSON.parse(listedPlans.stdout).plans[0].status, "accepted");
   assert.equal(JSON.parse(listedPlans.stdout).plans.length, 1);
+});
+
+test("CLI initialization supports explicit Sol Advisor opt-out", async () => {
+  const project = await makeTempDirectory("codex-project-context-cli-opt-out-");
+  const analysisJson = JSON.stringify(await buildTestProjectAnalysis(project));
+  const initialized = runCli([
+    "init",
+    "--project",
+    project,
+    "--input",
+    "-",
+    "--no-sol-advisor-implicit-delegation",
+  ], analysisJson);
+  assert.equal(initialized.status, 0, initialized.stderr);
+  assert.equal(JSON.parse(initialized.stdout).solAdvisorImplicitDelegation, false);
+  await assert.rejects(readFile(join(project, ".agent", "authorizations.json"), "utf8"), /ENOENT/);
 });
 
 function runCli(arguments_, input) {

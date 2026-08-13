@@ -14,16 +14,32 @@ import {
 
 const authorizationRelativePath = join(".agent", "authorizations.json");
 
-test("implicit Sol Advisor delegation is absent by default", async () => {
+test("implicit Sol Advisor delegation is enabled by default", async () => {
   const project = await makeTempDirectory("codex-project-context-auth-default-");
   const result = await initializeProject(project);
-  assert.equal(result.solAdvisorImplicitDelegation, false);
-  await assertMissing(join(project, authorizationRelativePath));
-  assert.doesNotMatch(await readFile(join(project, "AGENTS.md"), "utf8"), /Subagent Orchestration|implicit Sol Advisor delegation/);
+  assert.equal(result.solAdvisorImplicitDelegation, true);
+  assert.equal(
+    JSON.parse(await readFile(join(project, authorizationRelativePath), "utf8"))
+      .authorizations.solAdvisor.implicitDelegation,
+    true,
+  );
+  assert.match(await readFile(join(project, "AGENTS.md"), "utf8"), /Subagent Orchestration/);
 
   const status = await getProjectStatus(project);
-  assert.equal(status.solAdvisorImplicitDelegation, false);
-  assert.equal(status.authorizations, null);
+  assert.equal(status.solAdvisorImplicitDelegation, true);
+  assert.equal(status.authorizations.authorizations.solAdvisor.implicitDelegation, true);
+});
+
+test("explicit initialization opt-out keeps implicit Sol Advisor delegation disabled", async () => {
+  const project = await makeTempDirectory("codex-project-context-auth-opt-out-");
+  const result = await initializeProject(project, { solAdvisorImplicitDelegation: false });
+  assert.equal(result.solAdvisorImplicitDelegation, false);
+  await assertMissing(join(project, authorizationRelativePath));
+  assert.doesNotMatch(await readFile(join(project, "AGENTS.md"), "utf8"), /Subagent Orchestration/);
+
+  await synchronizeProject(project);
+  await assertMissing(join(project, authorizationRelativePath));
+  assert.doesNotMatch(await readFile(join(project, "AGENTS.md"), "utf8"), /Subagent Orchestration/);
 });
 
 test("enable, sync, and remove preserve authorization and user AGENTS bytes", async () => {
@@ -78,7 +94,7 @@ test("enable, sync, and remove preserve authorization and user AGENTS bytes", as
 
 test("legacy schema v1 project can enable and remove authorization without rewriting its managed context", async () => {
   const project = await makeTempDirectory("codex-project-context-auth-legacy-");
-  await initializeProject(project);
+  await initializeProject(project, { solAdvisorImplicitDelegation: false });
   const contextPath = join(project, ".agent", "context.json");
   const agentsPath = join(project, "AGENTS.md");
   const context = JSON.parse(await readFile(contextPath, "utf8"));
@@ -128,7 +144,7 @@ test("invalid authorization fails closed before synchronization writes", async (
 
 test("multiple managed markers reject enable without partial authorization", async () => {
   const project = await makeTempDirectory("codex-project-context-auth-markers-");
-  await initializeProject(project);
+  await initializeProject(project, { solAdvisorImplicitDelegation: false });
   const agentsPath = join(project, "AGENTS.md");
   const agents = await readFile(agentsPath, "utf8");
   await writeFile(agentsPath, `${agents}\n${agents}`, "utf8");

@@ -29,4 +29,4 @@ Invocation policy:
 
 - `project-init` and `project-sync` are explicit-only.
 - `project-handoff` and `project-plan-msg` may be selected implicitly when their semantic admission rules are satisfied.
-- No Skill may initialize or upgrade optional tools unless separately requested.
+- `project-init` may create missing CodeGraph and Serena project indexes through the bounded preparation command; no Skill installs or upgrades optional tools.

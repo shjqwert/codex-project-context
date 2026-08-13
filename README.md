@@ -1,12 +1,12 @@
 # Codex Project Context
 
-`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and explicit project-level delegation authorization across tasks. Version `0.4.2` is a functional-completeness candidate for local evaluation; it is not a public release.
+`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation authorization across tasks. Version `0.5.0` is a functional-completeness candidate for local evaluation; it is not a public release.
 
 ## Capabilities
 
-- Explicit `$codex-project-context:project-init` inventories the confirmed repository, directs the Agent to analyze it with available CodeGraph, Serena, configuration, code, and documentation evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
+- Explicit `$codex-project-context:project-init` creates missing CodeGraph and Serena project indexes through their already-installed CLIs, inventories the confirmed repository, directs the Agent to analyze current evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
 - Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
-- Project initialization asks once whether to authorize implicit Sol Advisor delegation. The default is off; explicit enablement is stored separately in `.agent/authorizations.json`, reflected inside the managed `AGENTS.md` section, and can be removed without changing durable project context.
+- Project initialization enables implicit Sol Advisor delegation by default. An explicit initialization opt-out keeps it disabled; the enabled state is stored separately in `.agent/authorizations.json`, reflected inside the managed `AGENTS.md` section, and can later be removed without changing durable project context.
 - Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
@@ -14,7 +14,7 @@
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
 - Evidence-based bilingual aliases let Chinese phrases retrieve English handoffs without duplicating translated titles, summaries, or bodies; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
 
-The plugin does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. It never initializes or upgrades optional tools automatically, and it does not persist session-local Context7 or MarkItDown availability as a project capability.
+The plugin does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. During project initialization it may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
 
 ## Generated Project Context
 
@@ -36,7 +36,7 @@ Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is c
 
 Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
 
-Implicit Sol Advisor delegation is fail-closed and project-specific. It is enabled only when both the managed `AGENTS.md` instruction and schema v1 `.agent/authorizations.json` contain the exact positive authorization. A missing file means off; `remove` deletes the file rather than writing `false`. Initialization and synchronization validate but never infer or recreate authorization, and they do not require Sol Advisor to be installed. The managed instruction distinguishes a user-owned task transport wrapper from a functional child, prevents the primary from duplicating child-owned work during execution, bounds normal evidence intake to two decisive locators, preserves full diff and check verification for mechanical edits, and permits two concurrent read-only children only when their decisions, source scopes, and failure classes are mutually exclusive.
+Implicit Sol Advisor delegation remains fail-closed and project-specific at runtime. Initialization creates both required positive signals by default unless explicitly opted out; afterward synchronization preserves rather than recreates the current state. A missing authorization file means off, and `remove` deletes the file rather than writing `false`. Neither workflow requires Sol Advisor to be installed. The managed instruction distinguishes a user-owned task transport wrapper from a functional child, prevents the primary from duplicating child-owned work during execution, bounds normal evidence intake to two decisive locators, preserves full diff and check verification for mechanical edits, and permits two concurrent read-only children only when their decisions, source scopes, and failure classes are mutually exclusive.
 
 Handoff matching builds an in-memory BM25 corpus from schema v3 index entries on each query; it never stores term frequencies or reads Markdown bodies during normal indexed matching. Exact IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules always rank above lexical results. Optional aliases are bounded bilingual retrieval phrases generated from task evidence, are excluded from handoff identity, and are never rendered as translated body content or complete Hook metadata. BM25 requires at least two useful terms, minimum term coverage and score quality, and returns close reliable leaders together instead of selecting an arbitrary record.
 
@@ -79,8 +79,10 @@ Hook failures remain fail-open and append bounded diagnostics without prompt con
 ## CLI
 
 ```powershell
+node dist/cli/main.js prepare-indexes --project D:\path\to\project
 node dist/cli/main.js inspect --project D:\path\to\project
 $analysisJson | node dist/cli/main.js init --project D:\path\to\project --input -
+$analysisJson | node dist/cli/main.js init --project D:\path\to\project --input - --no-sol-advisor-implicit-delegation
 $analysisJson | node dist/cli/main.js sync --project D:\path\to\project --input -
 node dist/cli/main.js status --project D:\path\to\project
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation enable
@@ -91,5 +93,5 @@ node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuil
 node dist/cli/main.js plan --project D:\path\to\project --action list
 ```
 
-Initialization, synchronization, handoff creation, and plan creation accept UTF-8 JSON from a file or standard input. The bundled Skills write generated JSON directly to standard input so they do not create intermediate files. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
+`prepare-indexes` creates only missing CodeGraph and Serena project indexes and reports unavailable or failed tools without installing or upgrading them. Initialization, synchronization, handoff creation, and plan creation accept UTF-8 JSON from a file or standard input. The bundled Skills write generated JSON directly to standard input so they do not create intermediate files. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
 The handoff index commands verify or rebuild the schema v3 cache from immutable Markdown records. Rebuild rejects section metadata that does not exactly match the rendered Markdown body.

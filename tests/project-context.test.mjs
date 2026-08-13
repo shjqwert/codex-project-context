@@ -172,6 +172,7 @@ test("initialization requires routing for detected analysis tools", async () => 
   const project = await makeTempDirectory("codex-project-context-tool-routing-");
   await mkdir(join(project, ".codegraph"));
   await mkdir(join(project, ".serena"));
+  await writeFile(join(project, ".serena", "project.yml"), "language_servers:\n- typescript\n", "utf8");
 
   const missingSerena = await buildTestProjectAnalysis(project);
   missingSerena.codeAnalysis.find(({ text }) => text.includes("CodeGraph")).evidencePaths = [".codegraph"];
@@ -193,6 +194,7 @@ test("initialization requires routing for detected analysis tools", async () => 
 test("Serena cache changes do not stale the repository inventory", async () => {
   const project = await makeTempDirectory("codex-project-context-serena-cache-");
   await mkdir(join(project, ".serena", "cache"), { recursive: true });
+  await writeFile(join(project, ".serena", "project.yml"), "language_servers:\n- typescript\n", "utf8");
   const cachePath = join(project, ".serena", "cache", "symbols.json");
   await writeFile(cachePath, "{\"revision\":1}\n", "utf8");
 
@@ -205,4 +207,50 @@ test("Serena cache changes do not stale the repository inventory", async () => {
   assert.equal(after.fingerprint, before.fingerprint);
   assert.ok(after.paths.includes(".serena"));
   assert.ok(after.paths.every((path) => !path.startsWith(".serena/")));
+});
+
+test("inventory covers deeply nested embedded sources and ignores temporary metadata", async () => {
+  const project = await makeTempDirectory("codex-project-context-deep-embedded-");
+  const sourceDirectory = join(
+    project,
+    "Appl",
+    "Sdk",
+    "drivers",
+    "src",
+    "platform",
+    "device",
+    "generated",
+  );
+  const sourcePath = join(sourceDirectory, "Device_Register.c");
+  await mkdir(sourceDirectory, { recursive: true });
+  await writeFile(sourcePath, "const unsigned Device_Register = 1u;\n", "utf8");
+  await mkdir(join(project, "tmp", "legacy", ".metadata", "plugins"), { recursive: true });
+  await writeFile(join(project, "tmp", "legacy", ".metadata", "plugins", "noise.c"), "noise\n", "utf8");
+
+  const before = await inspectProject(project);
+  assert.equal(before.scan.maxDepth, 12);
+  assert.equal(before.scan.entryLimit, 50_000);
+  assert.equal(before.scan.truncated, false);
+  assert.ok(before.scan.observedMaxDepth >= 7);
+  assert.ok(before.paths.includes("Appl/Sdk/drivers/src/platform/device/generated/Device_Register.c"));
+  assert.ok(before.paths.every((path) => !path.startsWith("tmp/")));
+
+  await writeFile(sourcePath, "const unsigned Device_Register = 2u;\n", "utf8");
+  const after = await inspectProject(project);
+  assert.notEqual(after.fingerprint, before.fingerprint);
+});
+
+test("initialization rejects an inventory truncated by the depth limit", async () => {
+  const project = await makeTempDirectory("codex-project-context-depth-limit-");
+  let directory = project;
+  for (let index = 0; index < 14; index += 1) {
+    directory = join(directory, `level-${index}`);
+  }
+  await mkdir(directory, { recursive: true });
+  await writeFile(join(directory, "deep.c"), "void deep(void) {}\n", "utf8");
+
+  const inventory = await inspectProject(project);
+  assert.equal(inventory.scan.truncated, true);
+  assert.ok(inventory.scan.truncationReasons.includes("depth-limit"));
+  await assert.rejects(initializeProject(project), /Project inventory is incomplete: depth-limit/);
 });

@@ -64,10 +64,20 @@ export interface ProjectInventory {
   schemaVersion: 1;
   projectRoot: ".";
   fingerprint: string;
+  scan: ProjectInventoryScan;
   capabilities: ProjectCapabilities;
   profile: ProjectProfile;
   resources: ProjectResource[];
   paths: string[];
+}
+
+export interface ProjectInventoryScan {
+  maxDepth: number;
+  entryLimit: number;
+  entriesSeen: number;
+  observedMaxDepth: number;
+  truncated: boolean;
+  truncationReasons: Array<"depth-limit" | "entry-limit">;
 }
 
 export interface ProjectContext {

@@ -8,15 +8,16 @@ import type {
   ProjectResource,
   ProjectResourceKind,
 } from "../types.js";
-import { assertDirectory, readJsonIfPresent } from "../infrastructure/files.js";
+import { assertDirectory, pathExists, readJsonIfPresent } from "../infrastructure/files.js";
 
-const MAX_DEPTH = 3;
-const MAX_ENTRIES = 5_000;
+const MAX_DEPTH = 12;
+const MAX_ENTRIES = 50_000;
 const IGNORED_DIRECTORIES = new Set([
   ".agent",
   ".codegraph",
   ".git",
   ".local-marketplace",
+  ".metadata",
   ".pytest_cache",
   ".serena",
   ".turbo",
@@ -27,6 +28,7 @@ const IGNORED_DIRECTORIES = new Set([
   "node_modules",
   "out",
   "target",
+  "tmp",
   "vendor",
 ]);
 
@@ -34,6 +36,9 @@ interface ProjectSnapshot {
   files: string[];
   directories: string[];
   fileSignatures: Array<[path: string, size: number, modifiedAt: number]>;
+  entriesSeen: number;
+  observedMaxDepth: number;
+  truncationReasons: Set<"depth-limit" | "entry-limit">;
 }
 
 const CAPABILITY_DIRECTORIES = new Set([".codegraph", ".serena"]);
@@ -71,7 +76,15 @@ export async function inspectProject(projectRoot: string): Promise<ProjectInvent
     specificationDirectories: detectSpecificationDirectories(snapshot.directories),
   };
   const resources = detectResources(snapshot);
-  const capabilities = detectCapabilities(snapshot);
+  const capabilities = await detectCapabilities(projectRoot, snapshot);
+  const scan = {
+    maxDepth: MAX_DEPTH,
+    entryLimit: MAX_ENTRIES,
+    entriesSeen: snapshot.entriesSeen,
+    observedMaxDepth: snapshot.observedMaxDepth,
+    truncated: snapshot.truncationReasons.size > 0,
+    truncationReasons: [...snapshot.truncationReasons].sort(),
+  };
   const paths = [...new Set([...snapshot.directories, ...snapshot.files])].sort();
   const fingerprintPaths = paths.filter((path) => path.toLocaleLowerCase() !== "agents.md");
   const fileSignatures = snapshot.fileSignatures.filter(
@@ -82,6 +95,12 @@ export async function inspectProject(projectRoot: string): Promise<ProjectInvent
       capabilities,
       profile,
       resources,
+      scan: {
+        maxDepth: scan.maxDepth,
+        entryLimit: scan.entryLimit,
+        truncated: scan.truncated,
+        truncationReasons: scan.truncationReasons,
+      },
       paths: fingerprintPaths,
       fileSignatures,
     }))
@@ -90,6 +109,7 @@ export async function inspectProject(projectRoot: string): Promise<ProjectInvent
     schemaVersion: 1,
     projectRoot: ".",
     fingerprint,
+    scan,
     capabilities,
     profile,
     resources,
@@ -102,9 +122,14 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
   const directories: string[] = [];
   const fileSignatures: Array<[string, number, number]> = [];
   let entriesSeen = 0;
+  let observedMaxDepth = 0;
+  const truncationReasons = new Set<"depth-limit" | "entry-limit">();
 
   const visit = async (absoluteDirectory: string, depth: number): Promise<void> => {
-    if (entriesSeen >= MAX_ENTRIES) return;
+    if (entriesSeen >= MAX_ENTRIES) {
+      truncationReasons.add("entry-limit");
+      return;
+    }
     let entries;
     try {
       entries = await readdir(absoluteDirectory, { withFileTypes: true });
@@ -114,10 +139,14 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
     entries.sort((left, right) => left.name.localeCompare(right.name));
 
     for (const entry of entries) {
-      if (entriesSeen >= MAX_ENTRIES) break;
+      if (entriesSeen >= MAX_ENTRIES) {
+        truncationReasons.add("entry-limit");
+        break;
+      }
       entriesSeen += 1;
       const absolute = resolve(absoluteDirectory, entry.name);
       const projectPath = normalizePath(relative(projectRoot, absolute));
+      observedMaxDepth = Math.max(observedMaxDepth, projectPath.split("/").length - 1);
       if (entry.isDirectory()) {
         const lowerName = entry.name.toLocaleLowerCase();
         if (IGNORED_DIRECTORIES.has(lowerName)) {
@@ -127,6 +156,8 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
         directories.push(projectPath);
         if (depth < MAX_DEPTH) {
           await visit(absolute, depth + 1);
+        } else {
+          truncationReasons.add("depth-limit");
         }
       } else if (entry.isFile()) {
         files.push(projectPath);
@@ -141,7 +172,14 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
   };
 
   await visit(projectRoot, 0);
-  return { files, directories, fileSignatures };
+  return {
+    files,
+    directories,
+    fileSignatures,
+    entriesSeen,
+    observedMaxDepth,
+    truncationReasons,
+  };
 }
 
 async function readPackageJson(
@@ -250,7 +288,10 @@ function detectResources(snapshot: ProjectSnapshot): ProjectResource[] {
     .slice(0, 24);
 }
 
-function detectCapabilities(snapshot: ProjectSnapshot): ProjectCapabilities {
+async function detectCapabilities(
+  projectRoot: string,
+  snapshot: ProjectSnapshot,
+): Promise<ProjectCapabilities> {
   const roots = new Set(
     snapshot.directories
       .filter((path) => !path.includes("/"))
@@ -258,7 +299,7 @@ function detectCapabilities(snapshot: ProjectSnapshot): ProjectCapabilities {
   );
   return {
     codegraph: roots.has(".codegraph"),
-    serena: roots.has(".serena"),
+    serena: roots.has(".serena") && await pathExists(resolve(projectRoot, ".serena", "project.yml")),
     openspec: roots.has("openspec") || roots.has(".openspec"),
   };
 }

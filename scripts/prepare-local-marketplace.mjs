@@ -15,7 +15,16 @@ if (!pluginTarget.startsWith(expectedPrefix)) {
 await rm(pluginTarget, { recursive: true, force: true });
 await mkdir(pluginTarget, { recursive: true });
 
-for (const path of [".codex-plugin", "dist", "hooks", "schemas", "skills", "package.json", "README.md"]) {
+for (const path of [
+  ".codex-plugin",
+  "dist",
+  "hooks",
+  "schemas",
+  "skills",
+  "CHANGELOG.zh-CN.md",
+  "package.json",
+  "README.md",
+]) {
   await cp(resolve(repositoryRoot, path), resolve(pluginTarget, path), { recursive: true });
 }
 
