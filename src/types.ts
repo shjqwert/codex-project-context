@@ -102,6 +102,114 @@ export interface ProjectAuthorizations {
   };
 }
 
+export type NotebookLmProjectMode = "schematic" | "manual" | "disabled";
+export type NotebookLmNotebookScope = "project" | "public";
+export type NotebookLmComponentCategory =
+  | "mcu"
+  | "driver"
+  | "power"
+  | "communication"
+  | "sensor"
+  | "mos"
+  | "other";
+export type NotebookLmDocumentType =
+  | "datasheet"
+  | "reference-manual"
+  | "errata"
+  | "application-note"
+  | "hardware-design-guide"
+  | "other";
+export type NotebookLmSourceStatus =
+  | "ready"
+  | "processing"
+  | "error"
+  | "missing"
+  | "unverified";
+
+export interface NotebookLmNotebookBinding {
+  scope: NotebookLmNotebookScope;
+  id: string;
+  title: string;
+}
+
+export interface NotebookLmSourceBinding {
+  notebookId: string;
+  sourceId: string;
+  title: string;
+  documentType: NotebookLmDocumentType;
+  status: NotebookLmSourceStatus;
+  version?: string;
+}
+
+export interface NotebookLmComponentBinding {
+  refdes: string;
+  partNumber: string;
+  category: NotebookLmComponentCategory;
+  page: number;
+  confidence: "high" | "medium" | "low";
+  package?: string;
+  sources: NotebookLmSourceBinding[];
+}
+
+export interface NotebookLmExperienceNoteBinding {
+  notebookId: string;
+  noteId: string;
+  title: string;
+  subject: string;
+  status: "verified" | "provisional";
+}
+
+export interface NotebookLmProjectIndex {
+  schemaVersion: 1;
+  mode: NotebookLmProjectMode;
+  notebooks: NotebookLmNotebookBinding[];
+  components: NotebookLmComponentBinding[];
+  notes: NotebookLmExperienceNoteBinding[];
+  advisories: string[];
+  schematic?: {
+    path: string;
+    sha256: string;
+  };
+  lastRefreshedAt?: string;
+}
+
+export type NotebookLmLibraryCategory = "mcu" | "driver" | "mos" | "other-ic";
+export type NotebookLmLibraryFileStatus =
+  | "pending"
+  | "ready"
+  | "failed"
+  | "ambiguous"
+  | "duplicate"
+  | "superseded";
+
+export interface NotebookLmLibraryManifestEntry {
+  path: string;
+  sha256: string;
+  size: number;
+  modifiedAt: string;
+  category: NotebookLmLibraryCategory;
+  documentType: NotebookLmDocumentType;
+  partNumbers: string[];
+  confidence: "high" | "medium" | "low";
+  status: NotebookLmLibraryFileStatus;
+  manufacturer?: string;
+  documentNumber?: string;
+  revision?: string;
+  publishedAt?: string;
+  sourceId?: string;
+  sourceTitle?: string;
+  lastAttemptAt?: string;
+}
+
+export interface NotebookLmLibraryManifest {
+  schemaVersion: 1;
+  publicNotebook: {
+    id: string;
+    title: string;
+  };
+  files: NotebookLmLibraryManifestEntry[];
+}
+
 export type SolAdvisorImplicitDelegationAction = "enable" | "remove";
 
 export interface HandoffSections {

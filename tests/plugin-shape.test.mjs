@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("plugin manifest, hooks, schemas, and skills expose the functional-completeness contract", async () => {
+test("plugin manifest, hooks, schemas, and skills expose the release contract", async () => {
   const manifest = JSON.parse(await readFile(".codex-plugin/plugin.json", "utf8"));
   const packageMetadata = JSON.parse(await readFile("package.json", "utf8"));
   const cliSource = await readFile("src/cli/main.ts", "utf8");
@@ -16,7 +16,7 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.ok(hooks.hooks.SessionStart);
   assert.ok(hooks.hooks.UserPromptSubmit);
 
-  for (const skill of ["project-init", "project-sync", "project-handoff", "project-plan-msg"]) {
+  for (const skill of ["project-init", "project-sync", "project-handoff", "project-plan-msg", "notebooklm-reference"]) {
     const content = await readFile(`skills/${skill}/SKILL.md`, "utf8");
     assert.match(content, new RegExp(`name: ${skill}`));
     const metadata = await readFile(`skills/${skill}/agents/openai.yaml`, "utf8");
@@ -31,6 +31,14 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
     const metadata = await readFile(`skills/${skill}/agents/openai.yaml`, "utf8");
     assert.match(metadata, /allow_implicit_invocation: true/);
   }
+  const notebookLmMetadata = await readFile("skills/notebooklm-reference/agents/openai.yaml", "utf8");
+  assert.match(notebookLmMetadata, /value: "notebooklm"/);
+  assert.match(notebookLmMetadata, /allow_implicit_invocation: true/);
+  const notebookLmSkill = await readFile("skills/notebooklm-reference/SKILL.md", "utf8");
+  for (const operation of ["status", "search", "refresh", "upload", "save-experience"]) {
+    assert.match(notebookLmSkill, new RegExp(`\\b${operation}\\b`));
+  }
+  assert.match(notebookLmSkill, /explicit user intent/);
   const handoffSkill = await readFile("skills/project-handoff/SKILL.md", "utf8");
   assert.match(handoffSkill, /2-6 concise retrieval aliases/);
   assert.match(handoffSkill, /at least one natural Chinese phrase and one natural English phrase/);
@@ -42,6 +50,9 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
     "skills/project-handoff/references/handoff-format.md",
     "skills/project-handoff/references/examples.md",
     "skills/project-plan-msg/references/plan-msg-format.md",
+    "skills/notebooklm-reference/references/project-integration.md",
+    "skills/notebooklm-reference/references/library-upload.md",
+    "skills/notebooklm-reference/references/retrieval-and-experience.md",
   ]) {
     assert.ok((await readFile(path, "utf8")).trim().length > 0);
   }
@@ -52,6 +63,8 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
     "schemas/project-analysis.schema.json",
     "schemas/handoff-index.schema.json",
     "schemas/plan-document.schema.json",
+    "schemas/notebooklm-index.schema.json",
+    "schemas/notebooklm-library-manifest.schema.json",
   ]) {
     const schema = JSON.parse(await readFile(path, "utf8"));
     assert.match(schema.$schema, /json-schema/);
@@ -102,6 +115,8 @@ test("plugin manifest, hooks, schemas, and skills expose the functional-complete
   assert.match(syncSkill, /MarkItDown/);
   assert.match(syncSkill, /session-local/);
   assert.match(syncSkill, /must not create, remove, or rewrite `.agent\/authorizations\.json`/);
+  assert.match(syncSkill, /Do not refresh NotebookLM sources during ordinary sync/);
+  assert.match(syncSkill, /SHA-256 changes/);
 
   const discoveryContract = await readFile("skills/project-init/references/project-discovery.md", "utf8");
   assert.match(discoveryContract, /prepare-indexes/);

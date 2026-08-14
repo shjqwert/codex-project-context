@@ -1,5 +1,6 @@
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import type {
+  NotebookLmProjectIndex,
   ProjectAdvisory,
   ProjectAnalysisDraft,
   ProjectCapabilities,
@@ -17,6 +18,7 @@ import {
   readJson,
   readJsonIfPresent,
   readTextIfPresent,
+  removeFileIfPresent,
   writeJsonAtomic,
   writeTextAtomic,
 } from "../infrastructure/files.js";
@@ -30,6 +32,7 @@ import {
   countDocumentLines,
   renderManagedAgentsSection,
   updateManagedSolAdvisorAuthorization,
+  updateManagedNotebookLmEntry,
   upsertManagedAgentsSection,
 } from "./agents-document.js";
 import { inspectProject } from "./project-discovery.js";
@@ -39,6 +42,15 @@ import {
   removeProjectAuthorizations,
   writeSolAdvisorImplicitDelegationAuthorization,
 } from "./project-authorizations.js";
+import {
+  NOTEBOOKLM_INDEX_PATH,
+  ensureNotebookLmIndexExcluded,
+  readNotebookLmIndexStatus,
+  requireValidNotebookLmIndexStatus,
+  restoreNotebookLmIndexExclusion,
+  validateNotebookLmProjectIndex,
+  writeNotebookLmProjectIndex,
+} from "./notebooklm-index.js";
 
 export interface ProjectUpdateResult {
   ok: true;
@@ -64,6 +76,19 @@ export interface ProjectAuthorizationResult {
   solAdvisorImplicitDelegation: boolean;
 }
 
+export interface NotebookLmProjectConfigurationResult {
+  ok: true;
+  action: "configured";
+  projectRoot: string;
+  indexPath: string;
+  agentsPath: string;
+  state: "enabled" | "disabled";
+  mode: NotebookLmProjectIndex["mode"];
+  notebookCount: number;
+  componentCount: number;
+  noteCount: number;
+}
+
 export interface ProjectInitializationOptions {
   solAdvisorImplicitDelegation?: boolean;
 }
@@ -80,6 +105,8 @@ export async function initializeProject(
     const stored = await readJsonIfPresent<unknown>(contextPath);
     const existing = stored === undefined ? undefined : validateStoredContext(projectRoot, stored);
     await readProjectAuthorizations(projectRoot);
+    const notebookLmStatus = await requireValidNotebookLmIndexStatus(projectRoot);
+    requireCurrentNotebookLmSchematic(notebookLmStatus);
     const inventory = await inspectProject(projectRoot);
     requireCompleteInventory(inventory);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
@@ -96,6 +123,7 @@ export async function initializeProject(
       projectRoot,
       context,
       solAdvisorImplicitDelegation,
+      notebookLmStatus.state === "enabled",
     );
 
     await writeJsonAtomic(contextPath, context);
@@ -135,6 +163,8 @@ export async function synchronizeProject(
     const contextPath = resolve(projectRoot, ".agent", "context.json");
     const existing = await readProjectContext(projectRoot);
     const authorizations = await readProjectAuthorizations(projectRoot);
+    const notebookLmStatus = await requireValidNotebookLmIndexStatus(projectRoot);
+    requireCurrentNotebookLmSchematic(notebookLmStatus);
     const inventory = await inspectProject(projectRoot);
     requireCompleteInventory(inventory);
     const analysis = await validateProjectAnalysisDraft(projectRoot, inventory, rawAnalysis);
@@ -151,7 +181,12 @@ export async function synchronizeProject(
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
     }
     const solAdvisorImplicitDelegation = authorizations !== undefined;
-    const agentsPath = await updateManagedAgentsSection(projectRoot, context, solAdvisorImplicitDelegation);
+    const agentsPath = await updateManagedAgentsSection(
+      projectRoot,
+      context,
+      solAdvisorImplicitDelegation,
+      notebookLmStatus.state === "enabled",
+    );
 
     return {
       ok: true,
@@ -182,6 +217,7 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
   const contextPath = resolve(projectRoot, ".agent", "context.json");
   const context = await readProjectContext(projectRoot);
   const authorizations = await readProjectAuthorizations(projectRoot);
+  const notebookLm = await requireValidNotebookLmIndexStatus(projectRoot);
   const index = validateHandoffIndex(await readJson<unknown>(resolve(projectRoot, context.handoffIndex)));
 
   return {
@@ -192,6 +228,7 @@ export async function getProjectStatus(projectDirectory: string): Promise<Record
     authorizations: authorizations ?? null,
     solAdvisorImplicitDelegation: authorizations !== undefined,
     handoffCount: index.entries.length,
+    notebookLm: summarizeNotebookLmStatus(notebookLm),
   };
 }
 
@@ -203,8 +240,14 @@ export async function configureSolAdvisorImplicitDelegation(
   return withProjectWriteLock(projectRoot, async () => {
     const context = await readProjectContext(projectRoot);
     await readProjectAuthorizations(projectRoot);
+    const notebookLmStatus = await requireValidNotebookLmIndexStatus(projectRoot);
     const enabled = action === "enable";
-    const preparedAgents = await prepareManagedAgentsSection(projectRoot, context, enabled);
+    const preparedAgents = await prepareManagedAgentsSection(
+      projectRoot,
+      context,
+      enabled,
+      notebookLmStatus.state === "enabled",
+    );
     const authorizationPath = resolve(projectRoot, PROJECT_AUTHORIZATIONS_PATH);
 
     if (enabled) {
@@ -222,6 +265,61 @@ export async function configureSolAdvisorImplicitDelegation(
       authorizationPath,
       agentsPath: preparedAgents.agentsPath,
       solAdvisorImplicitDelegation: enabled,
+    };
+  });
+}
+
+export async function getProjectNotebookLmIndexStatus(
+  projectDirectory: string,
+): Promise<Record<string, unknown>> {
+  const projectRoot = await requireProjectRoot(projectDirectory);
+  const status = await readNotebookLmIndexStatus(projectRoot);
+  return { ok: status.state !== "invalid", projectRoot, ...summarizeNotebookLmStatus(status) };
+}
+
+export async function configureProjectNotebookLmIndex(
+  projectDirectory: string,
+  rawIndex: unknown,
+): Promise<NotebookLmProjectConfigurationResult> {
+  const projectRoot = await requireProjectRoot(projectDirectory);
+  return withProjectWriteLock(projectRoot, async () => {
+    const currentStatus = await requireValidNotebookLmIndexStatus(projectRoot);
+    const index = await validateNotebookLmProjectIndex(projectRoot, rawIndex, { verifySchematicHash: true });
+    const context = await readProjectContext(projectRoot);
+    const authorizations = await readProjectAuthorizations(projectRoot);
+    const preparedAgents = await prepareManagedAgentsSection(
+      projectRoot,
+      context,
+      authorizations !== undefined,
+      index.mode !== "disabled",
+    );
+    const indexPath = resolve(projectRoot, NOTEBOOKLM_INDEX_PATH);
+    const previousIndex = currentStatus.state === "unconfigured"
+      ? undefined
+      : await readTextIfPresent(indexPath);
+
+    const exclusion = await ensureNotebookLmIndexExcluded(projectRoot);
+    try {
+      await writeNotebookLmProjectIndex(projectRoot, index);
+      await writeTextAtomic(preparedAgents.agentsPath, preparedAgents.next);
+    } catch (error) {
+      if (previousIndex === undefined) await removeFileIfPresent(indexPath);
+      else await writeTextAtomic(indexPath, previousIndex);
+      await restoreNotebookLmIndexExclusion(exclusion);
+      throw error;
+    }
+
+    return {
+      ok: true,
+      action: "configured",
+      projectRoot,
+      indexPath,
+      agentsPath: preparedAgents.agentsPath,
+      state: index.mode === "disabled" ? "disabled" : "enabled",
+      mode: index.mode,
+      notebookCount: index.notebooks.length,
+      componentCount: index.components.length,
+      noteCount: index.notes.length,
     };
   });
 }
@@ -378,11 +476,13 @@ async function updateManagedAgentsSection(
   projectRoot: string,
   context: ProjectContext,
   solAdvisorImplicitDelegation: boolean,
+  notebooklmEnabled: boolean,
 ): Promise<string> {
   const prepared = await prepareManagedAgentsSection(
     projectRoot,
     context,
     solAdvisorImplicitDelegation,
+    notebooklmEnabled,
   );
   await writeTextAtomic(prepared.agentsPath, prepared.next);
   return prepared.agentsPath;
@@ -392,20 +492,59 @@ async function prepareManagedAgentsSection(
   projectRoot: string,
   context: ProjectContext,
   solAdvisorImplicitDelegation: boolean,
+  notebooklmEnabled: boolean,
 ): Promise<{ agentsPath: string; next: string }> {
   const agentsPath = resolve(projectRoot, context.agentsFile);
   const current = (await readTextIfPresent(agentsPath)) ?? "";
   if (context.analysis === undefined) {
     return {
       agentsPath,
-      next: updateManagedSolAdvisorAuthorization(current, solAdvisorImplicitDelegation),
+      next: updateManagedNotebookLmEntry(
+        updateManagedSolAdvisorAuthorization(current, solAdvisorImplicitDelegation),
+        notebooklmEnabled,
+      ),
     };
   }
-  const managed = renderManagedAgentsSection(context, { solAdvisorImplicitDelegation });
+  const managed = renderManagedAgentsSection(context, {
+    solAdvisorImplicitDelegation,
+    notebooklmEnabled,
+  });
   const managedLineCount = countDocumentLines(managed);
   if (managedLineCount > 200) {
     throw new Error(`Generated AGENTS.md managed section must contain at most 200 lines; received ${managedLineCount}.`);
   }
   const next = upsertManagedAgentsSection(current, managed);
   return { agentsPath, next };
+}
+
+function summarizeNotebookLmStatus(status: Awaited<ReturnType<typeof readNotebookLmIndexStatus>>): Record<string, unknown> {
+  return {
+    state: status.state,
+    path: status.path,
+    mode: status.mode,
+    notebookCount: status.notebookCount,
+    componentCount: status.componentCount,
+    noteCount: status.noteCount,
+    notebooks: status.index?.notebooks.map(({ scope, id, title }) => ({ scope, id, title })) ?? [],
+    schematic: status.index?.schematic === undefined
+      ? null
+      : {
+          path: status.index.schematic.path,
+          sha256: status.index.schematic.sha256,
+          currentSha256: status.currentSchematicSha256,
+          changed: status.schematicChanged === true,
+        },
+    lastRefreshedAt: status.index?.lastRefreshedAt ?? null,
+    advisories: status.index?.advisories ?? [],
+    ...(status.error === undefined ? {} : { error: status.error }),
+  };
+}
+
+function requireCurrentNotebookLmSchematic(
+  status: Awaited<ReturnType<typeof readNotebookLmIndexStatus>>,
+): void {
+  if (status.schematicChanged !== true) return;
+  throw new Error(
+    "NotebookLM schematic PDF changed; re-extract components and configure notebooklm-index before init or sync.",
+  );
 }

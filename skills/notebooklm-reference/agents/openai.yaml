@@ -1,0 +1,11 @@
+interface:
+  display_name: "NotebookLM Reference"
+  short_description: "Search and maintain NotebookLM project references."
+  default_prompt: "Use $notebooklm-reference to search, refresh, upload, or maintain NotebookLM reference knowledge."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "notebooklm"
+      description: "Search and maintain NotebookLM notebooks, sources, and notes."
+policy:
+  allow_implicit_invocation: true

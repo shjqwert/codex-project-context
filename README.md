@@ -1,11 +1,12 @@
 # Codex Project Context
 
-`codex-project-context` is a local Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation authorization across tasks. Version `0.5.0` is a functional-completeness candidate for local evaluation; it is not a public release.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, project-level delegation authorization, and NotebookLM-backed PDF reference knowledge. Version `1.0.0` is the first stable release of this integration.
 
 ## Capabilities
 
 - Explicit `$codex-project-context:project-init` creates missing CodeGraph and Serena project indexes through their already-installed CLIs, inventories the confirmed repository, directs the Agent to analyze current evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
 - Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
+- `$codex-project-context:notebooklm-reference` provides source-scoped search, manual refresh, explicit PDF upload, connection status, and verified/provisional experience Notes. It can also upload a standalone embedded PDF library without requiring a project.
 - Project initialization enables implicit Sol Advisor delegation by default. An explicit initialization opt-out keeps it disabled; the enabled state is stored separately in `.agent/authorizations.json`, reflected inside the managed `AGENTS.md` section, and can later be removed without changing durable project context.
 - Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
@@ -14,7 +15,7 @@
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
 - Evidence-based bilingual aliases let Chinese phrases retrieve English handoffs without duplicating translated titles, summaries, or bodies; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
 
-The plugin does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. During project initialization it may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
+Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. NotebookLM operations require a configured `notebooklm` MCP; disabled and unconfigured projects continue without it. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
 
 ## Generated Project Context
 
@@ -30,7 +31,7 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 
 `Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`.
 
-`Project Context` contains only the context, plan, and handoff entry points that apply. `Handoff Context` keeps stable relevance and evidence boundaries while using up to three project-specific, evidence-backed routing lines; it does not use a project-type template or expose Hook and schema internals.
+`Project Context` contains only the context, plan, and handoff entry points that apply, plus one NotebookLM index line when enabled. Notebook/source/component details stay in local `.agent/notebooklm-index.json`; `disabled` and `unconfigured` add no line. `Handoff Context` keeps stable relevance and evidence boundaries while using up to three project-specific, evidence-backed routing lines; it does not use a project-type template or expose Hook and schema internals.
 
 Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is created or replaced. The CLI separates inventory from judgment: `inspect` returns a bounded repository inventory and fingerprint, while `init` and `sync` require a schemaVersion 1 Agent analysis whose facts and rules cite current project-relative evidence. The CLI validates paths, freshness, managed boundaries, and the 200-line limit. It does not infer project stage, create tasks, download missing references, or load full manuals and schematics.
 
@@ -85,6 +86,10 @@ $analysisJson | node dist/cli/main.js init --project D:\path\to\project --input 
 $analysisJson | node dist/cli/main.js init --project D:\path\to\project --input - --no-sol-advisor-implicit-delegation
 $analysisJson | node dist/cli/main.js sync --project D:\path\to\project --input -
 node dist/cli/main.js status --project D:\path\to\project
+node dist/cli/main.js notebooklm-index --project D:\path\to\project --action status
+$notebookLmIndexJson | node dist/cli/main.js notebooklm-index --project D:\path\to\project --action configure --input -
+node dist/cli/main.js notebooklm-library --root D:\path\to\pdf-library --action inspect
+$manifestJson | node dist/cli/main.js notebooklm-library --root D:\path\to\pdf-library --action update --input -
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation enable
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation remove
 node dist/cli/main.js match --project D:\path\to\project --prompt "continue W001"

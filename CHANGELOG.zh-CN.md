@@ -1,5 +1,19 @@
 # 中文变更日志
 
+## 1.0.0（2026-08-15）
+
+### 新增
+
+- 新增 `notebooklm-reference` Skill，支持状态检查、限定 Source 检索、手动刷新、显式上传和经验 Note。
+- 新增 schema v1 `.agent/notebooklm-index.json` 与 `notebooklm-index` CLI，保持 `.agent/context.json` schema v2 不变。
+- 新增独立 PDF 资料库扫描、SHA-256 增量清单和 `notebooklm-library` CLI。
+
+### 调整
+
+- `project-init` 与 `project-sync` 增加一次性 NotebookLM 模式选择和连接/认证恢复流程。
+- NotebookLM 启用时 `AGENTS.md` 仅增加一行索引入口；来源刷新保持手动触发。
+- PDF 原理图变化只触发器件重提取，不自动刷新 NotebookLM 来源。
+
 ## 0.5.0（2026-08-13）
 
 ### 新增
