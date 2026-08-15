@@ -1,6 +1,6 @@
 # Project Knowledge Context
 
-This context defines the language used to connect durable project guidance with external NotebookLM knowledge.
+This archived experimental context defines the language used by the explicit-only NotebookLM reference Skill. It is not part of core project initialization, synchronization, status, authorization, or generated guidance.
 
 ## Language
 
@@ -9,7 +9,7 @@ The project-local map that records which external knowledge is relevant to the p
 _Avoid_: PDF index, manual list
 
 **Unconfigured State（未配置状态）**:
-The absence of `.agent/notebooklm-index.json`; init or the first upgraded sync must ask once before persisting schematic, manual, or disabled mode.
+The absence of `.agent/notebooklm-index.json`; only an explicit experimental configuration request may ask whether to persist schematic, manual, or disabled mode.
 _Avoid_: disabled, missing mode
 
 **Schematic Anchor（原理图锚点）**:

@@ -13,9 +13,8 @@ Initialize only the project the user named or the confirmed current workspace. N
 2. Read [agents-structure.md](references/agents-structure.md) before validating the generated `AGENTS.md`.
 3. Resolve the plugin root as two directories above this `SKILL.md`.
 4. Record whether `AGENTS.md`, `.agent/context.json`, `.agent/handoff/index.json`, `.codegraph/`, and `.serena/project.yml` already exist.
-5. Read [NotebookLM project integration](../notebooklm-reference/references/project-integration.md). If `.agent/notebooklm-index.json` is absent, ask once whether to use `schematic`, `manual`, or `disabled`; a discovered PDF only makes `schematic` the recommendation. If an index exists, require valid status before any initialization write. For an enabled choice, verify the NotebookLM MCP and authentication before continuing; pause for recovery unless the user explicitly skips or disables NotebookLM.
-6. If `AGENTS.md` exists, preserve a copy or hash of content outside the plugin-managed boundary.
-7. Prepare only missing project indexes before inventory inspection:
+5. If `AGENTS.md` exists, preserve a copy or hash of content outside the plugin-managed boundary.
+6. Prepare only missing project indexes before inventory inspection:
 
 ```text
 node <plugin-root>/dist/cli/main.js prepare-indexes --project <absolute-project-root>
@@ -25,7 +24,7 @@ The command runs `codegraph init <project>` only when `.codegraph/` is missing a
 
 CodeGraph and Serena maintain their indexes automatically during normal MCP use after this one-time preparation. Do not add periodic refresh work, bind refresh to `project-sync`, or use a Hook for index maintenance. Follow a tool's explicit stale or pending warning and use its documented manual recovery only when needed.
 
-8. Run:
+7. Run:
 
 ```text
 node <plugin-root>/dist/cli/main.js inspect --project <absolute-project-root>
@@ -43,7 +42,7 @@ Use MarkItDown when available only to convert a selected project-local document 
 
 Prepare the analysis as UTF-8 JSON in memory without creating an input file. Match [project-discovery.md](references/project-discovery.md) and `<plugin-root>/schemas/project-analysis.schema.json`. Every generated project fact or rule must cite at least one current project-relative evidence path. Use `.` only for a fact grounded in the confirmed project root rather than a specific file.
 
-Do not read entire manuals, binaries, or large references. The only schematic-content exception is one user-selected PDF handled through the NotebookLM project integration workflow; read only pages needed for component identity and never upload it as an init side effect. Do not infer project stage, create tasks, create plans, download missing documents, or fabricate external references. Put relevant missing inputs in `advisories` for the user instead of writing them as established rules.
+Do not read entire manuals, schematics, binaries, or large references during initialization. Do not invoke experimental document-retrieval Skills or MCPs. Do not infer project stage, create tasks, create plans, download missing documents, or fabricate external references. Put relevant missing inputs in `advisories` for the user instead of writing them as established rules.
 
 ## Initialize
 
@@ -65,8 +64,6 @@ The command may:
 - render the Agent-authored project sections and fixed context-routing contract into `AGENTS.md`;
 - create schema v1 `.agent/authorizations.json` and the managed Sol Advisor authorization section by default, or keep both absent when the explicit opt-out flag is present.
 
-After the project exists, persist the confirmed NotebookLM choice with `notebooklm-index --action configure --input -`. In schematic mode bind the selected PDF path/hash and extracted component identities; in manual mode bind notebooks without a schematic; in disabled mode persist no further prompts. Ordinary init never uploads or refreshes NotebookLM sources.
-
 The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dependencies, or hardware tooling; the bounded `prepare-indexes` command is the only initial-index exception and already ran before inspection. It must not create `.agent/planMsg.md`. It does not probe for or require the Sol Advisor plugin; unavailable orchestration falls back to the primary session. The separate `authorization` command remains available for a later explicit enable or removal without rerunning initialization.
 
 ## Verify
@@ -81,6 +78,5 @@ The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, G
 8. Confirm Code Analysis reflects detected repository analysis capabilities without persisting session-local tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses evidence-backed, relevance-based reads without a fixed record count.
 9. Report `remind-user` advisories without turning them into confirmed project facts.
 10. Confirm `.agent/authorizations.json` exists by default with `authorizations.solAdvisor.implicitDelegation` exactly `true` and the managed authorization text appears once. With an explicit opt-out, confirm that the file and managed section are both absent. Repeat initialization with the same choice and require byte-stable output.
-11. Confirm NotebookLM mode matches the user's choice, an enabled mode contributes exactly one index entry under `Project Context`, and disabled/unconfigured contributes none.
 
 Stop and report the exact validation failure instead of claiming initialization succeeded.

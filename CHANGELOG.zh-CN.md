@@ -1,5 +1,18 @@
 # 中文变更日志
 
+## 1.0.1（2026-08-15）
+
+### 调整
+
+- 将 NotebookLM 能力改名为显式调用的 `notebooklm-reference-experimental` Skill，并禁止隐式触发。
+- `project-init`、`project-sync`、`status` 和授权流程不再读取、校验或渲染 NotebookLM 状态。
+- 保留实验 CLI、schema 与现有本地数据格式，NotebookLM 故障仅影响显式实验操作。
+
+### 兼容性
+
+- 下一次正常初始化或同步会清理旧管理段中的 NotebookLM 入口，但不会删除索引、上传清单、PDF 或远端 Notebook 数据。
+- 不修改 `v1.0.0` 标签和 Git 历史。
+
 ## 1.0.0（2026-08-15）
 
 ### 新增

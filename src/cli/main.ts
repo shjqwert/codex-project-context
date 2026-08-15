@@ -16,20 +16,22 @@ import {
 import { inspectProject } from "../application/project-discovery.js";
 import { prepareProjectIndexes } from "../application/project-indexes.js";
 import {
-  configureProjectNotebookLmIndex,
   configureSolAdvisorImplicitDelegation,
-  getProjectNotebookLmIndexStatus,
   getProjectStatus,
   initializeProject,
   synchronizeProject,
 } from "../application/project-context.js";
+import {
+  configureProjectNotebookLmIndex,
+  getProjectNotebookLmIndexStatus,
+} from "../application/notebooklm-project.js";
 import {
   inspectNotebookLmLibrary,
   updateNotebookLmLibraryManifest,
 } from "../application/notebooklm-library.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
 
 await main().catch((error: unknown) => {

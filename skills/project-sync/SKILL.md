@@ -14,8 +14,7 @@ Synchronize only an already initialized project. Never use this Skill as an impl
 3. Record the current `AGENTS.md` content outside the plugin-managed boundary.
 4. Record the current context and handoff index schema versions and entry count.
 5. Record whether `.agent/authorizations.json` exists and, when present, require schema v1 with `authorizations.solAdvisor.implicitDelegation` exactly `true` before any synchronization write.
-6. Read [NotebookLM project integration](../notebooklm-reference/references/project-integration.md) and run `notebooklm-index --action status`. An invalid index stops sync before writes. Ask once when it is `unconfigured`, then persist `schematic`, `manual`, or `disabled`; `disabled` is not asked again. For enabled mode, verify MCP/authentication and pause for recovery unless the user explicitly skips NotebookLM for this run.
-7. Run `inspect` and compare its fingerprint with the stored context:
+6. Run `inspect` and compare its fingerprint with the stored context:
 
 ```text
 node <plugin-root>/dist/cli/main.js inspect --project <absolute-project-root>
@@ -38,11 +37,10 @@ Synchronization may update only:
 - `.agent/context.json` inventory fingerprint, analysis, evidence, references, and advisories;
 - a missing `.agent/handoff/index.json` only when no handoff records exist; handoff creation and explicit index repair remain responsible for rebuilding it from current-format Markdown records;
 - content between the project-context managed boundary markers in `AGENTS.md`.
-- `.agent/notebooklm-index.json` only through its dedicated validated configure command after an explicit initial choice, explicit refresh, experience save, or changed schematic hash.
 
 Synchronization must not create, remove, or rewrite `.agent/authorizations.json`. It preserves the current valid authorization state and renders the Sol Advisor managed instructions only while the separate authorization exists. A malformed authorization stops synchronization before project context or `AGENTS.md` writes. Sol Advisor availability is never probed and never blocks synchronization.
 
-Do not refresh NotebookLM sources during ordinary sync and do not use a TTL. Re-extract schematic components only when the selected PDF SHA-256 changes. A source refresh is a separate explicit `$notebooklm-reference refresh` operation.
+Do not invoke experimental document-retrieval Skills or MCPs during synchronization. Their state, availability, and failures are outside the synchronization boundary.
 
 It must not create `.agent/planMsg.md`, modify handoff Markdown files, or replace user-authored `AGENTS.md` content.
 
@@ -60,4 +58,3 @@ If records exist but the index is missing or inconsistent, stop synchronization 
 8. Confirm OpenSpec-owned paths are not rendered in `Project References`, broad Development, Specification, and Completion sections remain absent, and the context section names remain present.
 9. Report `remind-user` advisories.
 10. Confirm the authorization file is byte-identical before and after sync, the managed Sol Advisor section appears exactly once only when enabled, and an absent authorization remains absent.
-11. Confirm the NotebookLM index mode is preserved, disabled remains silent, and the conditional `AGENTS.md` entry appears once only for enabled mode.

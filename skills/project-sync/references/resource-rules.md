@@ -6,7 +6,6 @@ Allowed updates:
 
 - detected profile, capabilities, inventory fingerprint, Agent analysis, evidence paths, references, and advisories in `.agent/context.json`;
 - plugin-managed `AGENTS.md` content;
-- validated NotebookLM bindings only through the dedicated NotebookLM index command and only for an explicit operation or changed selected schematic hash;
 - creation of a missing empty schema v3 handoff index only when no records exist; synchronization never rewrites Markdown records.
 
 Forbidden updates:
@@ -21,6 +20,6 @@ Preserve analysis lines while their evidence remains valid. Remove or revise a l
 
 Do not infer project stage, create tasks or plans, download missing references, or fabricate external facts. Return relevant missing inputs as advisories. Repeated synchronization with the same inventory and analysis must be byte-identical.
 
-NotebookLM source inventory has no TTL and is never refreshed by ordinary synchronization. Project/public corpus scope and document category are separate. Standalone PDF library upload is outside project-sync.
+Experimental document-retrieval state, source inventory, and standalone PDF library upload are outside project-sync.
 
 Reject unsupported handoff index schemas. Do not migrate or rewrite earlier handoff formats.

@@ -1,6 +1,6 @@
 # Standalone PDF library upload
 
-Invoke as `$notebooklm-reference upload <PDF root>`. The root may be on another computer and does not need `.agent`, a project, or a schematic.
+Invoke as `$notebooklm-reference-experimental upload <PDF root>`. The root may be on another computer and does not need `.agent`, a project, or a schematic.
 
 ## Inspect and classify
 

@@ -5,9 +5,13 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import {
+  configureSolAdvisorImplicitDelegation,
+  getProjectStatus,
+} from "../dist/application/project-context.js";
+import {
   configureProjectNotebookLmIndex,
   getProjectNotebookLmIndexStatus,
-} from "../dist/application/project-context.js";
+} from "../dist/application/notebooklm-project.js";
 import {
   inspectNotebookLmLibrary,
   updateNotebookLmLibraryManifest,
@@ -48,7 +52,7 @@ test("NotebookLM index distinguishes unconfigured, disabled, enabled, and invali
   await configureProjectNotebookLmIndex(project, manual);
   const firstAgents = await readFile(join(project, "AGENTS.md"), "utf8");
   const firstIndex = await readFile(join(project, ".agent", "notebooklm-index.json"), "utf8");
-  assert.equal(firstAgents.split(agentsEntry).length - 1, 1);
+  assert.equal(firstAgents.includes(agentsEntry), false);
   assert.equal((await readNotebookLmIndexStatus(project)).state, "enabled");
   const enabledStatus = await getProjectNotebookLmIndexStatus(project);
   assert.deepEqual(enabledStatus.notebooks, manual.notebooks);
@@ -65,23 +69,36 @@ test("NotebookLM index distinguishes unconfigured, disabled, enabled, and invali
   assert.equal(await readFile(join(project, "AGENTS.md"), "utf8"), firstAgents);
   assert.equal(await readFile(join(project, ".agent", "notebooklm-index.json"), "utf8"), firstIndex);
 
-  await writeFile(
-    join(project, ".agent", "notebooklm-index.json"),
-    JSON.stringify({ schemaVersion: 1, notebooks: [], components: [], notes: [], advisories: [] }),
-    "utf8",
-  );
-  const beforeAgents = await readFile(join(project, "AGENTS.md"), "utf8");
-  const beforeContext = await readFile(join(project, ".agent", "context.json"), "utf8");
+  const malformedIndex = JSON.stringify({
+    schemaVersion: 1,
+    notebooks: [],
+    components: [],
+    notes: [],
+    advisories: [],
+  });
+  await writeFile(join(project, ".agent", "notebooklm-index.json"), malformedIndex, "utf8");
+  const legacyAgents = `# User guidance\n\n${firstAgents.replace(
+    "- `.agent/handoff/`: cross-task handoff index and records.",
+    `- \`.agent/handoff/\`: cross-task handoff index and records.\n${agentsEntry}`,
+  )}\n\nUser tail\n`;
+  await writeFile(join(project, "AGENTS.md"), legacyAgents, "utf8");
   const invalid = await getProjectNotebookLmIndexStatus(project);
   assert.equal(invalid.state, "invalid");
   assert.match(invalid.error, /mode/);
-  await assert.rejects(synchronizeAnalyzedProject(project), /Invalid NotebookLM project index/);
-  await assert.rejects(initializeAnalyzedProject(project), /Invalid NotebookLM project index/);
-  assert.equal(await readFile(join(project, "AGENTS.md"), "utf8"), beforeAgents);
-  assert.equal(await readFile(join(project, ".agent", "context.json"), "utf8"), beforeContext);
+  await synchronizeAnalyzedProject(project);
+  await initializeAnalyzedProject(project);
+  await configureSolAdvisorImplicitDelegation(project, "remove");
+  await configureSolAdvisorImplicitDelegation(project, "enable");
+  const coreStatus = await getProjectStatus(project);
+  assert.equal("notebookLm" in coreStatus, false);
+  assert.equal(await readFile(join(project, ".agent", "notebooklm-index.json"), "utf8"), malformedIndex);
+  const migratedAgents = await readFile(join(project, "AGENTS.md"), "utf8");
+  assert.equal(migratedAgents.includes(agentsEntry), false);
+  assert.match(migratedAgents, /^# User guidance/u);
+  assert.match(migratedAgents, /User tail\n$/u);
 });
 
-test("schematic hash drift blocks sync until components are re-extracted and reconfigured", async () => {
+test("schematic hash drift is isolated from core sync", async () => {
   const project = await makeTempDirectory("codex-notebooklm-drift-");
   await writeFile(join(project, "board.pdf"), "revision-1", "utf8");
   await initializeAnalyzedProject(project);
@@ -98,9 +115,8 @@ test("schematic hash drift blocks sync until components are re-extracted and rec
   assert.equal(changed.state, "enabled");
   assert.equal(changed.schematic.changed, true);
   assert.equal(changed.schematic.currentSha256, sha256("revision-2"));
-  const beforeContext = await readFile(join(project, ".agent", "context.json"), "utf8");
-  await assert.rejects(synchronizeAnalyzedProject(project), /schematic PDF changed/);
-  assert.equal(await readFile(join(project, ".agent", "context.json"), "utf8"), beforeContext);
+  await synchronizeAnalyzedProject(project);
+  assert.equal((await getProjectNotebookLmIndexStatus(project)).schematic.changed, true);
   await assert.rejects(
     configureProjectNotebookLmIndex(project, first),
     /sha256 does not match/,

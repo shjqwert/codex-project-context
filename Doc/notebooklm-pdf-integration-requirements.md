@@ -1,6 +1,8 @@
 # NotebookLM PDF 知识集成需求（V1）
 
-状态：可实施基线
+> 状态：已由 1.0.1 隔离方案取代。本文保留为实验功能的历史需求，不再约束 `project-init`、`project-sync`、`status`、授权流程或生成的 `AGENTS.md`。当前入口为显式调用的 `$notebooklm-reference-experimental`。
+
+状态：历史基线（已隔离）
 范围：PDF 原理图、NotebookLM 文档检索及当前已确认的协作场景
 
 ## 1. 目标

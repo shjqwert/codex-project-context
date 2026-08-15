@@ -6,6 +6,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   const manifest = JSON.parse(await readFile(".codex-plugin/plugin.json", "utf8"));
   const packageMetadata = JSON.parse(await readFile("package.json", "utf8"));
   const cliSource = await readFile("src/cli/main.ts", "utf8");
+  const projectContextSource = await readFile("src/application/project-context.ts", "utf8");
   assert.equal(manifest.name, "codex-project-context");
   assert.equal(manifest.version.split("+")[0], packageMetadata.version);
   assert.match(cliSource, new RegExp(`const VERSION = "${packageMetadata.version.replaceAll(".", "\\.")}"`));
@@ -16,7 +17,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.ok(hooks.hooks.SessionStart);
   assert.ok(hooks.hooks.UserPromptSubmit);
 
-  for (const skill of ["project-init", "project-sync", "project-handoff", "project-plan-msg", "notebooklm-reference"]) {
+  for (const skill of ["project-init", "project-sync", "project-handoff", "project-plan-msg", "notebooklm-reference-experimental"]) {
     const content = await readFile(`skills/${skill}/SKILL.md`, "utf8");
     assert.match(content, new RegExp(`name: ${skill}`));
     const metadata = await readFile(`skills/${skill}/agents/openai.yaml`, "utf8");
@@ -31,14 +32,16 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
     const metadata = await readFile(`skills/${skill}/agents/openai.yaml`, "utf8");
     assert.match(metadata, /allow_implicit_invocation: true/);
   }
-  const notebookLmMetadata = await readFile("skills/notebooklm-reference/agents/openai.yaml", "utf8");
+  const notebookLmMetadata = await readFile("skills/notebooklm-reference-experimental/agents/openai.yaml", "utf8");
   assert.match(notebookLmMetadata, /value: "notebooklm"/);
-  assert.match(notebookLmMetadata, /allow_implicit_invocation: true/);
-  const notebookLmSkill = await readFile("skills/notebooklm-reference/SKILL.md", "utf8");
+  assert.match(notebookLmMetadata, /allow_implicit_invocation: false/);
+  const notebookLmSkill = await readFile("skills/notebooklm-reference-experimental/SKILL.md", "utf8");
   for (const operation of ["status", "search", "refresh", "upload", "save-experience"]) {
     assert.match(notebookLmSkill, new RegExp(`\\b${operation}\\b`));
   }
-  assert.match(notebookLmSkill, /explicit user intent/);
+  assert.match(notebookLmSkill, /explicitly invokes|explicitly requests/);
+  assert.match(notebookLmSkill, /never invoke it from project-init, project-sync/);
+  await assert.rejects(readFile("skills/notebooklm-reference/SKILL.md", "utf8"), /ENOENT/);
   const handoffSkill = await readFile("skills/project-handoff/SKILL.md", "utf8");
   assert.match(handoffSkill, /2-6 concise retrieval aliases/);
   assert.match(handoffSkill, /at least one natural Chinese phrase and one natural English phrase/);
@@ -50,9 +53,9 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
     "skills/project-handoff/references/handoff-format.md",
     "skills/project-handoff/references/examples.md",
     "skills/project-plan-msg/references/plan-msg-format.md",
-    "skills/notebooklm-reference/references/project-integration.md",
-    "skills/notebooklm-reference/references/library-upload.md",
-    "skills/notebooklm-reference/references/retrieval-and-experience.md",
+    "skills/notebooklm-reference-experimental/references/project-integration.md",
+    "skills/notebooklm-reference-experimental/references/library-upload.md",
+    "skills/notebooklm-reference-experimental/references/retrieval-and-experience.md",
   ]) {
     assert.ok((await readFile(path, "utf8")).trim().length > 0);
   }
@@ -115,8 +118,9 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(syncSkill, /MarkItDown/);
   assert.match(syncSkill, /session-local/);
   assert.match(syncSkill, /must not create, remove, or rewrite `.agent\/authorizations\.json`/);
-  assert.match(syncSkill, /Do not refresh NotebookLM sources during ordinary sync/);
-  assert.match(syncSkill, /SHA-256 changes/);
+  assert.doesNotMatch(initSkill, /NotebookLM|notebooklm/u);
+  assert.doesNotMatch(syncSkill, /NotebookLM|notebooklm/u);
+  assert.doesNotMatch(projectContextSource, /notebooklm|NotebookLm|NotebookLM/u);
 
   const discoveryContract = await readFile("skills/project-init/references/project-discovery.md", "utf8");
   assert.match(discoveryContract, /prepare-indexes/);

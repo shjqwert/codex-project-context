@@ -5,10 +5,9 @@ export const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
 
 export interface ManagedAgentsOptions {
   solAdvisorImplicitDelegation?: boolean;
-  notebooklmEnabled?: boolean;
 }
 
-export const NOTEBOOKLM_AGENTS_ENTRY =
+const LEGACY_NOTEBOOKLM_AGENTS_ENTRY =
   "- `.agent/notebooklm-index.json`: NotebookLM reference bindings and document-retrieval state.";
 
 export function renderManagedAgentsSection(
@@ -52,7 +51,6 @@ export function renderManagedAgentsSection(
     "- `.agent/context.json`: stable project metadata and context configuration.",
     "- `.agent/planMsg.md`: confirmed project-level plans and key decisions, created only when needed.",
     ...handoffContextEntries,
-    ...(options.notebooklmEnabled === true ? [NOTEBOOKLM_AGENTS_ENTRY] : []),
     "",
     ...renderSolAdvisorAuthorization(options.solAdvisorImplicitDelegation === true),
     "## Handoff Context",
@@ -130,7 +128,7 @@ export function updateManagedSolAdvisorAuthorization(current: string, enabled: b
   return `${current.slice(0, start)}${managed}${current.slice(after)}`;
 }
 
-export function updateManagedNotebookLmEntry(current: string, enabled: boolean): string {
+export function removeLegacyExperimentalIndexEntry(current: string): string {
   const start = current.indexOf(MANAGED_START);
   const end = current.indexOf(MANAGED_END);
   if (start < 0 || end < start || countOccurrences(current, MANAGED_START) !== 1 || countOccurrences(current, MANAGED_END) !== 1) {
@@ -139,17 +137,8 @@ export function updateManagedNotebookLmEntry(current: string, enabled: boolean):
   const after = end + MANAGED_END.length;
   const lineBreak = current.includes("\r\n") ? "\r\n" : "\n";
   let managed = current.slice(start, after);
-  const entryPattern = new RegExp(`(?:\\r?\\n)?${escapeRegExp(NOTEBOOKLM_AGENTS_ENTRY)}(?:\\r?\\n)?`, "gu");
+  const entryPattern = new RegExp(`(?:\\r?\\n)?${escapeRegExp(LEGACY_NOTEBOOKLM_AGENTS_ENTRY)}(?:\\r?\\n)?`, "gu");
   managed = managed.replace(entryPattern, lineBreak);
-  if (enabled) {
-    const heading = "## Project Context";
-    const headingIndex = managed.indexOf(heading);
-    const nextHeading = headingIndex < 0 ? -1 : managed.indexOf(`${lineBreak}## `, headingIndex + heading.length);
-    if (headingIndex < 0 || nextHeading < 0) {
-      throw new Error("Legacy project-context managed section has no complete Project Context section; run project-sync with a current analysis input.");
-    }
-    managed = `${managed.slice(0, nextHeading).trimEnd()}${lineBreak}${NOTEBOOKLM_AGENTS_ENTRY}${lineBreak}${lineBreak}${managed.slice(nextHeading + lineBreak.length)}`;
-  }
   return `${current.slice(0, start)}${managed}${current.slice(after)}`;
 }
 

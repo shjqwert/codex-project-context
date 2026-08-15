@@ -22,7 +22,7 @@ Do not collect or publish package-manager, build, test, lint, type-check, or for
 
 - Scan names and metadata to a bounded depth.
 - Ignore dependency caches, build output, generated output, VCS internals, and prior agent metadata.
-- Do not read manual, datasheet, binary, or large reference contents during initialization. Read one user-selected PDF schematic only through the NotebookLM integration workflow and only to extract bounded component identity.
+- Do not read manual, datasheet, schematic, binary, or large reference contents during initialization. Experimental document-retrieval workflows are outside project initialization.
 - Cap stored resources so generated context remains concise.
 - Normalize durable paths to project-relative forward-slash form.
 
@@ -56,5 +56,3 @@ Detection is routing evidence only. A detected directory does not prove its cont
 ## Missing Inputs
 
 For an embedded repository, an absent manual or schematic may become a `missing-reference` advisory when current code or configuration proves the input is relevant. Do not fabricate or download the missing artifact. Do not block unrelated initialization. Do not infer project stage or create tasks or plans.
-
-NotebookLM project/public corpus scope and MCU/Driver/MOS/Other document classification are independent dimensions. Keep source IDs and component bindings in `.agent/notebooklm-index.json`, not in analysis references or `AGENTS.md` prose.

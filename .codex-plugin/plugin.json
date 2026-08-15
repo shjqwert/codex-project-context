@@ -1,6 +1,6 @@
 {
   "name": "codex-project-context",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Initialize and route durable project context across Codex tasks.",
   "author": {
     "name": "Local developer"
@@ -9,14 +9,13 @@
   "keywords": [
     "codex",
     "project-context",
-    "handoff",
-    "notebooklm"
+    "handoff"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Project Context",
     "shortDescription": "Keep project context usable across Codex tasks.",
-    "longDescription": "Inventory repository evidence, persist Agent-authored managed AGENTS guidance, preserve evidence-based handoffs, route relevant history, validate durable project-level plans, and bind NotebookLM PDF reference knowledge.",
+    "longDescription": "Inventory repository evidence, persist Agent-authored managed AGENTS guidance, preserve evidence-based handoffs, route relevant history, and validate durable project-level plans.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [
@@ -27,8 +26,7 @@
       "Explicitly inspect, analyze, and initialize this project for cross-task context.",
       "Explicitly inspect and synchronize this project's Agent-authored context.",
       "Create an evidence-based handoff for this task.",
-      "Record or transition a durable project-level plan.",
-      "Use NotebookLM to retrieve, refresh, upload, or save embedded PDF reference knowledge."
+      "Record or transition a durable project-level plan."
     ]
   }
 }

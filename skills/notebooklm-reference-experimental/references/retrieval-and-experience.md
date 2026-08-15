@@ -1,4 +1,4 @@
-# Retrieval, conflicts, and experience
+# Experimental retrieval, conflicts, and experience
 
 ## Search
 
