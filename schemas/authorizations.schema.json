@@ -10,14 +10,12 @@
     "authorizations": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["solAdvisor"],
       "properties": {
         "solAdvisor": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["implicitDelegation"],
           "properties": {
-            "implicitDelegation": { "const": true }
+            "implicitDelegation": { "type": "boolean" }
           }
         }
       }

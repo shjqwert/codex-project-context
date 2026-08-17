@@ -13,7 +13,7 @@ Synchronize only an already initialized project. Never use this Skill as an impl
 2. Resolve the project root by locating `.agent/context.json` upward from the confirmed workspace.
 3. Record the current `AGENTS.md` content outside the plugin-managed boundary.
 4. Record the current context and handoff index schema versions and entry count.
-5. Record whether `.agent/authorizations.json` exists and, when present, require schema v1 with `authorizations.solAdvisor.implicitDelegation` exactly `true` before any synchronization write.
+5. Record the current Sol Advisor policy: a missing authorization inherits global eligibility, schema-v1 `implicitDelegation: true` explicitly allows, and `false` disables. Reject malformed or unreadable policy before any synchronization write.
 6. Run `inspect` and compare its fingerprint with the stored context:
 
 ```text
@@ -38,7 +38,7 @@ Synchronization may update only:
 - a missing `.agent/handoff/index.json` only when no handoff records exist; handoff creation and explicit index repair remain responsible for rebuilding it from current-format Markdown records;
 - content between the project-context managed boundary markers in `AGENTS.md`.
 
-Synchronization must not create, remove, or rewrite `.agent/authorizations.json`. It preserves the current valid authorization state and renders the Sol Advisor managed instructions only while the separate authorization exists. A malformed authorization stops synchronization before project context or `AGENTS.md` writes. Sol Advisor availability is never probed and never blocks synchronization.
+Synchronization preserves a current valid authorization byte-for-byte and always renders the minimal Sol Advisor integration section. One compatibility exception applies: when an initialized legacy project has neither an authorization file nor the new integration marker, synchronization writes `implicitDelegation: false` so its previous disabled behavior does not silently become enabled. A malformed authorization stops synchronization before project context or `AGENTS.md` writes. Sol Advisor availability is never probed and never blocks synchronization.
 
 Do not invoke experimental document-retrieval Skills or MCPs during synchronization. Their state, availability, and failures are outside the synchronization boundary.
 
@@ -57,4 +57,4 @@ If records exist but the index is missing or inconsistent, stop synchronization 
 7. Report additions, removals, and classification changes separately.
 8. Confirm OpenSpec-owned paths are not rendered in `Project References`, broad Development, Specification, and Completion sections remain absent, and the context section names remain present.
 9. Report `remind-user` advisories.
-10. Confirm the authorization file is byte-identical before and after sync, the managed Sol Advisor section appears exactly once only when enabled, and an absent authorization remains absent.
+10. Confirm the managed Sol Advisor integration section appears exactly once. Require a current valid authorization to remain byte-identical; require an inherited project to keep the file absent; allow only the documented one-time legacy missing-to-`false` migration.

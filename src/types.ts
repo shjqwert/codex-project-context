@@ -96,11 +96,13 @@ export interface ProjectContext {
 export interface ProjectAuthorizations {
   schemaVersion: 1;
   authorizations: {
-    solAdvisor: {
-      implicitDelegation: true;
+    solAdvisor?: {
+      implicitDelegation?: boolean;
     };
   };
 }
+
+export type SolAdvisorDelegationPolicy = "inherit" | "allow" | "deny";
 
 export type NotebookLmProjectMode = "schematic" | "manual" | "disabled";
 export type NotebookLmNotebookScope = "project" | "public";
@@ -210,7 +212,11 @@ export interface NotebookLmLibraryManifest {
   files: NotebookLmLibraryManifestEntry[];
 }
 
-export type SolAdvisorImplicitDelegationAction = "enable" | "remove";
+export type SolAdvisorImplicitDelegationAction =
+  | "enable"
+  | "disable"
+  | "inherit"
+  | "remove";
 
 export interface HandoffSections {
   objective: string;

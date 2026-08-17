@@ -89,8 +89,8 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   const authorizationSchema = JSON.parse(await readFile("schemas/authorizations.schema.json", "utf8"));
   assert.equal(authorizationSchema.properties.schemaVersion.const, 1);
   assert.equal(
-    authorizationSchema.properties.authorizations.properties.solAdvisor.properties.implicitDelegation.const,
-    true,
+    authorizationSchema.properties.authorizations.properties.solAdvisor.properties.implicitDelegation.type,
+    "boolean",
   );
   assert.equal(authorizationSchema.properties.authorizations.additionalProperties, false);
 
@@ -105,7 +105,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(initSkill, /MarkItDown/);
   assert.match(initSkill, /session-local/);
   assert.match(initSkill, /do not bulk-convert/);
-  assert.match(initSkill, /enabled by default/);
+  assert.match(initSkill, /inherit global Sol Advisor eligibility by default/);
   assert.match(initSkill, /--no-sol-advisor-implicit-delegation/);
   assert.match(initSkill, /never install or upgrade optional tools/);
   assert.match(initSkill, /maintain their indexes automatically/);
@@ -117,7 +117,8 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(syncSkill, /Context7/);
   assert.match(syncSkill, /MarkItDown/);
   assert.match(syncSkill, /session-local/);
-  assert.match(syncSkill, /must not create, remove, or rewrite `.agent\/authorizations\.json`/);
+  assert.match(syncSkill, /one-time legacy missing-to-`false` migration/);
+  assert.match(syncSkill, /preserves a current valid authorization byte-for-byte/);
   assert.doesNotMatch(initSkill, /NotebookLM|notebooklm/u);
   assert.doesNotMatch(syncSkill, /NotebookLM|notebooklm/u);
   assert.doesNotMatch(projectContextSource, /notebooklm|NotebookLm|NotebookLM/u);

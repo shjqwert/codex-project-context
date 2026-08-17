@@ -1,11 +1,19 @@
-import type { ProjectAnalysisLine, ProjectContext, ProjectResource } from "../types.js";
+import type {
+  ProjectAnalysisLine,
+  ProjectContext,
+  ProjectResource,
+  SolAdvisorDelegationPolicy,
+} from "../types.js";
 
 export const MANAGED_START = "<!-- PROJECT_CONTEXT_START -->";
 export const MANAGED_END = "<!-- PROJECT_CONTEXT_END -->";
 
 export interface ManagedAgentsOptions {
-  solAdvisorImplicitDelegation?: boolean;
+  solAdvisorDelegationPolicy?: SolAdvisorDelegationPolicy;
 }
+
+const SOL_ADVISOR_INTEGRATION_HEADING = "## Sol Advisor Integration";
+const LEGACY_SOL_ADVISOR_HEADING = "## Subagent Orchestration";
 
 const LEGACY_NOTEBOOKLM_AGENTS_ENTRY =
   "- `.agent/notebooklm-index.json`: NotebookLM reference bindings and document-retrieval state.";
@@ -52,7 +60,7 @@ export function renderManagedAgentsSection(
     "- `.agent/planMsg.md`: confirmed project-level plans and key decisions, created only when needed.",
     ...handoffContextEntries,
     "",
-    ...renderSolAdvisorAuthorization(options.solAdvisorImplicitDelegation === true),
+    ...renderSolAdvisorIntegration(options.solAdvisorDelegationPolicy ?? "inherit"),
     "## Handoff Context",
     "",
     "- Create a handoff only when coherent work must continue in another task; skip routine questions and one-off small changes.",
@@ -86,7 +94,17 @@ export function upsertManagedAgentsSection(current: string, managed: string): st
   return `${current}${separator}${managed}\n`;
 }
 
-export function updateManagedSolAdvisorAuthorization(current: string, enabled: boolean): string {
+export function hasManagedSolAdvisorIntegration(current: string): boolean {
+  const start = current.indexOf(MANAGED_START);
+  const end = current.indexOf(MANAGED_END);
+  if (start < 0 || end < start) return false;
+  return current.slice(start, end).includes(SOL_ADVISOR_INTEGRATION_HEADING);
+}
+
+export function updateManagedSolAdvisorIntegration(
+  current: string,
+  policy: SolAdvisorDelegationPolicy,
+): string {
   const startCount = countOccurrences(current, MANAGED_START);
   const endCount = countOccurrences(current, MANAGED_END);
   if (startCount > 1 || endCount > 1) {
@@ -101,29 +119,28 @@ export function updateManagedSolAdvisorAuthorization(current: string, enabled: b
   const after = end + MANAGED_END.length;
   const lineBreak = current.includes("\r\n") ? "\r\n" : "\n";
   let managed = current.slice(start, after);
-  const heading = "## Subagent Orchestration";
-  const headingCount = countOccurrences(managed, heading);
-  if (headingCount > 1) {
-    throw new Error("AGENTS.md contains multiple Subagent Orchestration sections.");
-  }
-  const headingIndex = managed.indexOf(heading);
-  if (headingIndex >= 0) {
-    const nextHeading = managed.indexOf(`${lineBreak}## `, headingIndex + heading.length);
-    if (nextHeading < 0) {
-      throw new Error("AGENTS.md Subagent Orchestration section has no following managed heading.");
+  for (const heading of [LEGACY_SOL_ADVISOR_HEADING, SOL_ADVISOR_INTEGRATION_HEADING]) {
+    const headingCount = countOccurrences(managed, heading);
+    if (headingCount > 1) {
+      throw new Error(`AGENTS.md contains multiple ${heading.slice(3)} sections.`);
     }
-    managed = `${managed.slice(0, headingIndex)}${managed.slice(nextHeading + lineBreak.length)}`;
+    const headingIndex = managed.indexOf(heading);
+    if (headingIndex >= 0) {
+      const nextHeading = managed.indexOf(`${lineBreak}## `, headingIndex + heading.length);
+      if (nextHeading < 0) {
+        throw new Error(`AGENTS.md ${heading.slice(3)} section has no following managed heading.`);
+      }
+      managed = `${managed.slice(0, headingIndex)}${managed.slice(nextHeading + lineBreak.length)}`;
+    }
   }
 
-  if (enabled) {
-    const insertionHeading = "## Handoff Context";
-    const insertionIndex = managed.indexOf(insertionHeading);
-    if (insertionIndex < 0) {
-      throw new Error("Legacy project-context managed section has no Handoff Context heading; run project-sync with a current analysis input.");
-    }
-    const authorization = renderSolAdvisorAuthorization(true).join(lineBreak);
-    managed = `${managed.slice(0, insertionIndex)}${authorization}${lineBreak}${managed.slice(insertionIndex)}`;
+  const insertionHeading = "## Handoff Context";
+  const insertionIndex = managed.indexOf(insertionHeading);
+  if (insertionIndex < 0) {
+    throw new Error("Legacy project-context managed section has no Handoff Context heading; run project-sync with a current analysis input.");
   }
+  const integration = renderSolAdvisorIntegration(policy).join(lineBreak);
+  managed = `${managed.slice(0, insertionIndex)}${integration}${lineBreak}${managed.slice(insertionIndex)}`;
 
   return `${current.slice(0, start)}${managed}${current.slice(after)}`;
 }
@@ -142,20 +159,19 @@ export function removeLegacyExperimentalIndexEntry(current: string): string {
   return `${current.slice(0, start)}${managed}${current.slice(after)}`;
 }
 
-function renderSolAdvisorAuthorization(enabled: boolean): string[] {
-  if (!enabled) return [];
+function renderSolAdvisorIntegration(policy: SolAdvisorDelegationPolicy): string[] {
+  const policyLine = policy === "allow"
+    ? "- This project explicitly allows implicit Sol Advisor delegation, subject to the installed Skill's quality and benefit gates."
+    : policy === "deny"
+      ? "- This project disables implicit Sol Advisor delegation; do not create a Sol Advisor child unless the current user explicitly requests it."
+      : "- This project inherits global Sol Advisor eligibility, subject to the installed Skill's quality and benefit gates.";
   return [
-    "## Subagent Orchestration",
+    SOL_ADVISOR_INTEGRATION_HEADING,
     "",
-    "- This project authorizes implicit Sol Advisor delegation only while `.agent/authorizations.json` contains schema v1 with `authorizations.solAdvisor.implicitDelegation` exactly `true`.",
-    "- Before implicit delegation, require both this managed instruction and the exact authorization value; do not infer consent from plugin availability, task shape, or either source alone.",
-    "- Follow the installed Sol Advisor Skill for bounded role selection: keep complex implementation and final ownership in the primary session, prefer zero or one child, use at most two concurrent independent read-only children, keep writes serial, and prohibit descendants.",
-    "- A user-owned task's transport wrapper does not count as a Sol Advisor functional child; when the Skill selects a role, the task remains responsible for creating that role.",
-    "- After dispatch, do not inspect interim child output or search, read, test, or analyze the child-owned question or source scope; wait for the ordinary native final response before intake.",
-    "- For a complete usable result, verify at most two decision-changing locators without repeating the investigation; after a Mechanical Editor result, inspect the full diff and run its specified check.",
-    "- Use one targeted correction for an incomplete result, then fall back to the primary session; fall back immediately for a blocked or unusable result.",
-    "- Two concurrent read-only children require mutually exclusive decisions, source scopes, and failure classes; overlapping evidence, shared files, or answer dependencies must remain serial.",
-    "- An explicit user request to use Sol Advisor may proceed without this implicit authorization; an explicit instruction not to delegate always overrides it.",
+    policyLine,
+    "- Policy comes from schema-v1 `.agent/authorizations.json`: a missing file or key inherits the global default, `true` allows, and `false` disables implicit delegation.",
+    "- Invalid or unreadable policy fails closed to primary-only work; explicit current-user instructions override project defaults.",
+    "- Sol Advisor may read this policy but must not modify `AGENTS.md` or any `.agent` context, authorization, plan, or handoff file.",
     "- If Sol Advisor or a required role is unavailable, continue in the primary session without substitution and without blocking ordinary project work.",
     "",
   ];

@@ -46,7 +46,7 @@ Do not read entire manuals, schematics, binaries, or large references during ini
 
 ## Initialize
 
-Implicit Sol Advisor delegation is enabled by default for a newly initialized project. Only when the user explicitly says not to enable Sol Advisor or implicit subagents for this initialization, pass the opt-out flag below. Do not turn an unrelated instruction into an opt-out.
+Newly initialized projects inherit global Sol Advisor eligibility by default and do not create a redundant authorization override. Only when the user explicitly says not to enable Sol Advisor or implicit subagents for this initialization, pass the opt-out flag below. Do not turn an unrelated instruction into an opt-out.
 
 Submit the Agent-authored analysis to the validation and persistence CLI:
 
@@ -62,9 +62,10 @@ The command may:
 - create or refresh the schema v2 `.agent/context.json`;
 - create a missing schema v3 handoff index;
 - render the Agent-authored project sections and fixed context-routing contract into `AGENTS.md`;
-- create schema v1 `.agent/authorizations.json` and the managed Sol Advisor authorization section by default, or keep both absent when the explicit opt-out flag is present.
+- render one minimal Sol Advisor integration section in the project-managed `AGENTS.md` boundary;
+- keep `.agent/authorizations.json` absent for inherited policy, or write schema v1 `implicitDelegation: false` for an explicit initialization opt-out.
 
-The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dependencies, or hardware tooling; the bounded `prepare-indexes` command is the only initial-index exception and already ran before inspection. It must not create `.agent/planMsg.md`. It does not probe for or require the Sol Advisor plugin; unavailable orchestration falls back to the primary session. The separate `authorization` command remains available for a later explicit enable or removal without rerunning initialization.
+The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, Git, dependencies, or hardware tooling; the bounded `prepare-indexes` command is the only initial-index exception and already ran before inspection. It must not create `.agent/planMsg.md` or write user-level Codex instructions. It does not probe for or require the Sol Advisor plugin; unavailable orchestration falls back to the primary session. The separate `authorization` command remains available for a later explicit enable, disable, or return to inherited policy without rerunning initialization.
 
 ## Verify
 
@@ -77,6 +78,6 @@ The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, G
 7. Confirm `Project Overview` contains only facts supported by the analysis, and `Build and Verification` contains only relevant authorization guidance.
 8. Confirm Code Analysis reflects detected repository analysis capabilities without persisting session-local tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses evidence-backed, relevance-based reads without a fixed record count.
 9. Report `remind-user` advisories without turning them into confirmed project facts.
-10. Confirm `.agent/authorizations.json` exists by default with `authorizations.solAdvisor.implicitDelegation` exactly `true` and the managed authorization text appears once. With an explicit opt-out, confirm that the file and managed section are both absent. Repeat initialization with the same choice and require byte-stable output.
+10. Confirm the Sol Advisor integration section appears exactly once. For default inherited policy, confirm `.agent/authorizations.json` is absent; for explicit opt-out, confirm it contains `authorizations.solAdvisor.implicitDelegation` exactly `false`. Repeat initialization with the same choice and require byte-stable output.
 
 Stop and report the exact validation failure instead of claiming initialization succeeded.

@@ -27,6 +27,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   assert.equal(initializedOutput.ok, true);
   assert.ok(initializedOutput.profile);
   assert.equal(typeof initializedOutput.resourceCount, "number");
+  assert.equal(initializedOutput.solAdvisorDelegationPolicy, "inherit");
   assert.equal(initializedOutput.solAdvisorImplicitDelegation, true);
 
   const enabledAuthorization = runCli([
@@ -44,15 +45,16 @@ test("CLI initializes, records, reports, and matches project context", async () 
     true,
   );
 
-  const removedAuthorization = runCli([
+  const disabledAuthorization = runCli([
     "authorization",
     "--project",
     project,
     "--sol-advisor-implicit-delegation",
-    "remove",
+    "disable",
   ]);
-  assert.equal(removedAuthorization.status, 0, removedAuthorization.stderr);
-  assert.equal(JSON.parse(removedAuthorization.stdout).solAdvisorImplicitDelegation, false);
+  assert.equal(disabledAuthorization.status, 0, disabledAuthorization.stderr);
+  assert.equal(JSON.parse(disabledAuthorization.stdout).solAdvisorDelegationPolicy, "deny");
+  assert.equal(JSON.parse(disabledAuthorization.stdout).solAdvisorImplicitDelegation, false);
 
   const handoffInput = JSON.stringify({
     title: "Router verification",
@@ -83,6 +85,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
   const status = runCli(["status", "--project", project]);
   assert.equal(status.status, 0, status.stderr);
   assert.equal(JSON.parse(status.stdout).handoffCount, 1);
+  assert.equal(JSON.parse(status.stdout).solAdvisorDelegationPolicy, "deny");
   assert.equal(JSON.parse(status.stdout).solAdvisorImplicitDelegation, false);
 
   const matched = runCli(["match", "--project", project, "--prompt", "Continue src/router.ts"]);
@@ -167,8 +170,13 @@ test("CLI initialization supports explicit Sol Advisor opt-out", async () => {
     "--no-sol-advisor-implicit-delegation",
   ], analysisJson);
   assert.equal(initialized.status, 0, initialized.stderr);
+  assert.equal(JSON.parse(initialized.stdout).solAdvisorDelegationPolicy, "deny");
   assert.equal(JSON.parse(initialized.stdout).solAdvisorImplicitDelegation, false);
-  await assert.rejects(readFile(join(project, ".agent", "authorizations.json"), "utf8"), /ENOENT/);
+  assert.equal(
+    JSON.parse(await readFile(join(project, ".agent", "authorizations.json"), "utf8"))
+      .authorizations.solAdvisor.implicitDelegation,
+    false,
+  );
 });
 
 function runCli(arguments_, input) {

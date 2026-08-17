@@ -25,6 +25,7 @@ Use current code, configuration, specifications, and observed test output as evi
 ## Project References
 
 - documentation: `README.md` — User-facing capabilities, installation, packaging, Hook trust, and CLI usage.
+- documentation: `CHANGELOG.zh-CN.md` — Versioned project change notes and compatibility context.
 - documentation: `skills/project-init/references` — Project discovery and generated AGENTS structure contracts used by initialization and synchronization.
 - documentation: `skills/project-handoff/references` — Handoff record, index, aliases, grouping, deduplication, and retrieval contracts.
 - test: `tests` — Automated verification for CLI, Hooks, matching, project context, plans, schemas, and plugin shape.

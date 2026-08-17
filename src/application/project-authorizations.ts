@@ -18,13 +18,14 @@ export async function readProjectAuthorizations(
 
 export async function writeSolAdvisorImplicitDelegationAuthorization(
   projectRoot: string,
+  enabled: boolean,
 ): Promise<string> {
   const path = resolve(projectRoot, PROJECT_AUTHORIZATIONS_PATH);
   const value: ProjectAuthorizations = {
     schemaVersion: 1,
     authorizations: {
       solAdvisor: {
-        implicitDelegation: true,
+        implicitDelegation: enabled,
       },
     },
   };
@@ -48,6 +49,9 @@ export function validateProjectAuthorizations(value: unknown): ProjectAuthorizat
     throw new Error("Project authorizations.authorizations must be an object.");
   }
   assertOnlyKeys(value.authorizations, ["solAdvisor"], "project authorizations.authorizations");
+  if (value.authorizations.solAdvisor === undefined) {
+    return { schemaVersion: 1, authorizations: {} };
+  }
   if (!isRecord(value.authorizations.solAdvisor)) {
     throw new Error("Project authorizations.solAdvisor must be an object.");
   }
@@ -56,14 +60,17 @@ export function validateProjectAuthorizations(value: unknown): ProjectAuthorizat
     ["implicitDelegation"],
     "project authorizations.solAdvisor",
   );
-  if (value.authorizations.solAdvisor.implicitDelegation !== true) {
-    throw new Error("Project authorizations.solAdvisor.implicitDelegation must be true.");
+  if (value.authorizations.solAdvisor.implicitDelegation === undefined) {
+    return { schemaVersion: 1, authorizations: { solAdvisor: {} } };
+  }
+  if (typeof value.authorizations.solAdvisor.implicitDelegation !== "boolean") {
+    throw new Error("Project authorizations.solAdvisor.implicitDelegation must be boolean.");
   }
   return {
     schemaVersion: 1,
     authorizations: {
       solAdvisor: {
-        implicitDelegation: true,
+        implicitDelegation: value.authorizations.solAdvisor.implicitDelegation,
       },
     },
   };

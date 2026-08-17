@@ -31,7 +31,7 @@ import {
 } from "../application/notebooklm-library.js";
 import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.0.1";
+const VERSION = "1.1.0";
 const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
 
 await main().catch((error: unknown) => {
@@ -54,9 +54,13 @@ async function main(): Promise<void> {
       break;
     case "init": {
       const input = await readJsonInput<ProjectAnalysisDraft>(requiredOption(options, "input"));
-      writeJson(await initializeProject(project, input, {
-        solAdvisorImplicitDelegation: !hasFlag(options, "no-sol-advisor-implicit-delegation"),
-      }));
+      writeJson(await initializeProject(
+        project,
+        input,
+        hasFlag(options, "no-sol-advisor-implicit-delegation")
+          ? { solAdvisorImplicitDelegation: false }
+          : {},
+      ));
       break;
     }
     case "sync": {
@@ -94,8 +98,13 @@ async function main(): Promise<void> {
     }
     case "authorization": {
       const action = requiredOption(options, "sol-advisor-implicit-delegation");
-      if (action !== "enable" && action !== "remove") {
-        throw new Error("--sol-advisor-implicit-delegation must be enable or remove.");
+      if (
+        action !== "enable"
+        && action !== "disable"
+        && action !== "inherit"
+        && action !== "remove"
+      ) {
+        throw new Error("--sol-advisor-implicit-delegation must be enable, disable, or inherit.");
       }
       writeJson(await configureSolAdvisorImplicitDelegation(project, action));
       break;
@@ -233,7 +242,7 @@ Usage:
   codex-project-context notebooklm-index [--project PATH] --action configure --input FILE|-
   codex-project-context notebooklm-library --root PATH --action inspect
   codex-project-context notebooklm-library --root PATH --action update --input FILE|-
-  codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|remove
+  codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|disable|inherit
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-
   codex-project-context handoff-index [--project PATH] --action verify|rebuild

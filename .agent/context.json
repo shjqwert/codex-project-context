@@ -16,8 +16,8 @@
       "TypeScript"
     ],
     "languages": [
-      "Python",
-      "TypeScript"
+      "TypeScript",
+      "Python"
     ],
     "sourceDirectories": [
       "src"
@@ -35,6 +35,11 @@
     },
     {
       "kind": "documentation",
+      "path": "CHANGELOG.zh-CN.md",
+      "purpose": "Versioned project change notes and compatibility context."
+    },
+    {
+      "kind": "documentation",
       "path": "skills/project-init/references",
       "purpose": "Project discovery and generated AGENTS structure contracts used by initialization and synchronization."
     },
@@ -49,10 +54,10 @@
       "purpose": "Automated verification for CLI, Hooks, matching, project context, plans, schemas, and plugin shape."
     }
   ],
-  "inventoryFingerprint": "sha256:89113188e55d827d2c164ebf77480373bb0548d15cf40e5e21e3fd64d700e0ed",
+  "inventoryFingerprint": "sha256:9b68eef15a6e55c6043bbb13e6ae1e746249ba403f650ea61db986854dad35ca",
   "analysis": {
     "schemaVersion": 1,
-    "inventoryFingerprint": "sha256:89113188e55d827d2c164ebf77480373bb0548d15cf40e5e21e3fd64d700e0ed",
+    "inventoryFingerprint": "sha256:9b68eef15a6e55c6043bbb13e6ae1e746249ba403f650ea61db986854dad35ca",
     "overview": [
       {
         "text": "This repository implements the codex-project-context Codex plugin for durable project guidance, project plans, and cross-task handoffs.",
@@ -139,6 +144,14 @@
         "purpose": "User-facing capabilities, installation, packaging, Hook trust, and CLI usage.",
         "evidencePaths": [
           "README.md"
+        ]
+      },
+      {
+        "kind": "documentation",
+        "path": "CHANGELOG.zh-CN.md",
+        "purpose": "Versioned project change notes and compatibility context.",
+        "evidencePaths": [
+          "CHANGELOG.zh-CN.md"
         ]
       },
       {

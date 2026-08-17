@@ -9,7 +9,8 @@ Required sections:
 3. Code Analysis
 4. Project References, only when non-OpenSpec project references are detected
 5. Project Context
-6. Handoff Context
+6. Sol Advisor Integration
+7. Handoff Context
 
 The project-specific content is authored from the validated Agent analysis; it is not selected from project-type templates. The CLI owns only section formatting, context-routing invariants, evidence validation, managed-boundary preservation, and the 200-line limit.
 
@@ -22,6 +23,8 @@ Keep `Code Analysis` concise and evidence-based. Mention CodeGraph or Serena onl
 Omit `Project References` when the analysis selects no non-OpenSpec references. Render category guidance only when the Agent submits it for selected resources. Do not generate `Development Rules`, `Specification Routing`, or `Completion Rules`.
 
 Keep the `Project Context` and `Handoff Context` section roles stable, but render their content from actual project configuration and evidence. `Project Context` names only the context, plan, and handoff entry points that apply. It must not expose experimental integrations, component lists, source IDs, Hook behavior, Skill selection, schema internals, migration rules, or write-boundary implementation details.
+
+Keep `Sol Advisor Integration` minimal: state the effective project policy (`inherit`, explicit allow, or explicit deny), the three-state authorization semantics, fail-closed invalid-state behavior, and ownership boundary. Route details, role prompts, model selection, and result protocols remain in the Sol Advisor Skill rather than the project file.
 
 `Handoff Context` combines four stable boundaries with up to three evidence-backed `handoffGuidance` lines: create records only for coherent cross-task continuation, read every reliably relevant record without a fixed count, do not force unrelated history when no reliable match exists, and keep current project evidence authoritative. Do not mention specifications, bug IDs, hardware, or other routing dimensions unless the analyzed project supports them.
 

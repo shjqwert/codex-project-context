@@ -22,4 +22,6 @@ Do not infer project stage, create tasks or plans, download missing references, 
 
 Experimental document-retrieval state, source inventory, and standalone PDF library upload are outside project-sync.
 
+Preserve valid `.agent/authorizations.json` bytes. A missing file means inherited Sol Advisor eligibility after the new integration marker exists. The only synchronization write allowed to this file is the one-time legacy migration from a previously disabled, marker-free project to explicit `implicitDelegation: false`.
+
 Reject unsupported handoff index schemas. Do not migrate or rewrite earlier handoff formats.
