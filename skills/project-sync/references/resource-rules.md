@@ -6,12 +6,12 @@ Allowed updates:
 
 - detected profile, capabilities, inventory fingerprint, Agent analysis, evidence paths, references, and advisories in `.agent/context.json`;
 - plugin-managed `AGENTS.md` content;
-- creation of a missing empty schema v3 handoff index only when no records exist; synchronization never rewrites Markdown records.
+- creation of a missing empty schema v4 handoff index only when no handoff storage exists; synchronization never rewrites current, history, or schema-v3 Markdown records.
 
 Forbidden updates:
 
 - user-authored `AGENTS.md` content;
-- handoff Markdown records;
+- handoff current, history, and legacy Markdown records;
 - `.agent/planMsg.md`;
 - optional tool installation or configuration;
 - dependency installation, source changes, or Git state.
@@ -24,4 +24,4 @@ Experimental document-retrieval state, source inventory, and standalone PDF libr
 
 Preserve valid `.agent/authorizations.json` bytes. A missing file means inherited Sol Advisor eligibility after the new integration marker exists. The only synchronization write allowed to this file is the one-time legacy migration from a previously disabled, marker-free project to explicit `implicitDelegation: false`.
 
-Reject unsupported handoff index schemas. Do not migrate or rewrite earlier handoff formats.
+Accept schema-v3 handoff indexes as read-only compatibility input and schema v4 as current format. Reject other schemas. Synchronization must not migrate or rewrite handoff formats.

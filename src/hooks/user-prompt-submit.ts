@@ -14,28 +14,28 @@ await runHook("UserPromptSubmit", async () => {
   if (matches.length === 0) return;
   const matchIdentity = JSON.stringify(
     matches
-      .map(({ entry, records }) => ({
-        groupKey: entry.groupKey,
-        recordIds: records.map(({ id }) => id).sort(),
+      .map(({ entry }) => ({
+        workId: entry.workId,
+        revision: entry.revision,
       }))
-      .sort((left, right) => left.groupKey.localeCompare(right.groupKey)),
+      .sort((left, right) => left.workId.localeCompare(right.workId)),
   );
   if (!(await claimPromptInjection(input.session_id, projectRoot, matchIdentity))) return;
 
   const rendered = renderCards(matches, 900);
-  const recordCount = matches.reduce((count, match) => count + match.records.length, 0);
+  const recordCount = matches.length;
 
   writeAdditionalContext(
     "UserPromptSubmit",
     [
-      "[codex-project-context] Potentially relevant handoff records:",
-      `Matched ${matches.length} work group(s) and ${recordCount} record(s).`,
+      "[codex-project-context] Potentially relevant handoff current documents:",
+      `Matched ${matches.length} work item(s) and ${recordCount} current document(s).`,
       ...rendered.cards,
       ...(rendered.truncated
         ? ["Hook routing output was truncated by its character budget. Run the handoff match CLI with the current prompt to retrieve the complete reliable match set."]
         : []),
       `Project root: ${relative(input.cwd, projectRoot) || "."}`,
-      "Read every reliably relevant record listed by the complete match result, then verify its claims against current code and tests.",
+      "Read every reliably relevant current document listed by the complete match result. Read history only for explicit trace, conflict diagnosis, or recovery, then verify claims against current code and tests.",
     ].join("\n\n"),
   );
 });
@@ -48,7 +48,7 @@ function renderCards(
   let used = 0;
   for (const { entry, score, reasons, confidence, records } of matches) {
     const recordLines = records.map((record) =>
-      `${record.id}: ${record.path} [${record.availableSections.join(", ")}]`
+      `${record.workId} revision ${record.revision}: ${record.path} [${record.availableSections.join(", ")}]`
     );
     const card = [
       `${entry.title} (score ${score}, ${confidence})`,

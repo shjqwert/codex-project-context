@@ -44,12 +44,12 @@ test("BM25 field weights favor titles and rare terms over broad summary terms", 
   });
 
   const weighted = rankHandoffsBm25([titleHit, summaryHit], "graceful socket shutdown");
-  assert.equal(weighted.hits[0]?.entry.id, "W001");
+  assert.equal(weighted.hits[0]?.entry.workId, "W001");
   assert.ok((weighted.hits[0]?.rawScore ?? 0) > (weighted.hits[1]?.rawScore ?? 0));
   assert.deepEqual(BM25_FIELD_WEIGHTS, { title: 3, modules: 2, tags: 2, tests: 2, aliases: 2, summary: 1 });
 
   const rare = rankHandoffsBm25([commonHit, rareHit], "router recovery quasar");
-  assert.equal(rare.hits[0]?.entry.id, "W004");
+  assert.equal(rare.hits[0]?.entry.workId, "W004");
   assert.ok((rare.hits[0]?.rawScore ?? 0) > (rare.hits[1]?.rawScore ?? 0));
 });
 
@@ -59,7 +59,7 @@ test("BM25 requires multiple useful terms and keeps close leaders together", () 
   assert.deepEqual(searchHandoffsBm25([first, second], "state"), []);
 
   const tied = searchHandoffsBm25([first, second], "motor thermal recovery");
-  assert.deepEqual(tied.map(({ entry: value }) => value.id).sort(), ["W001", "W002"]);
+  assert.deepEqual(tied.map(({ entry: value }) => value.workId).sort(), ["W001", "W002"]);
 });
 
 test("BM25 retrieves Chinese multi-keyword descriptions", () => {
@@ -75,7 +75,7 @@ test("BM25 retrieves Chinese multi-keyword descriptions", () => {
     modules: ["通信"],
   });
   const hits = searchHandoffsBm25([motor, can], "电机电流过流关闭");
-  assert.equal(hits[0]?.entry.id, "W001");
+  assert.equal(hits[0]?.entry.workId, "W001");
   assert.ok((hits[0]?.matchedTerms.length ?? 0) >= 2);
 });
 
@@ -93,8 +93,8 @@ test("BM25 aliases bridge Chinese and English without changing deterministic rou
     aliases: ["通信超时恢复控制器", "总线接收超时重启", "communication timeout recovery", "bus receive timeout restart"],
   });
 
-  assert.equal(searchHandoffsBm25([motor, can], "电机过流安全重启")?.[0]?.entry.id, "W001");
-  assert.equal(searchHandoffsBm25([motor, can], "motor safety restart")?.[0]?.entry.id, "W001");
+  assert.equal(searchHandoffsBm25([motor, can], "电机过流安全重启")?.[0]?.entry.workId, "W001");
+  assert.equal(searchHandoffsBm25([motor, can], "motor safety restart")?.[0]?.entry.workId, "W001");
   assert.equal(matchHandoffEntries([motor, can], "Inspect src/motor.ts")?.[0]?.score, 90);
   assert.equal(matchHandoffEntries([motor, can], "Inspect restartMotor")?.[0]?.score, 80);
   assert.deepEqual(searchHandoffsBm25([motor, can], "处理"), []);
@@ -113,9 +113,9 @@ test("BM25 indexes module descriptions, tags, and test names", () => {
     title: "Communication supervision",
     summary: "Confirmed bus behavior.",
   });
-  assert.equal(searchHandoffsBm25([routed, unrelated], "motor control supervisor")?.[0]?.entry.id, "W001");
-  assert.equal(searchHandoffsBm25([routed, unrelated], "brownout recovery")?.[0]?.entry.id, "W001");
-  assert.equal(searchHandoffsBm25([routed, unrelated], "cold restart matrix")?.[0]?.entry.id, "W001");
+  assert.equal(searchHandoffsBm25([routed, unrelated], "motor control supervisor")?.[0]?.entry.workId, "W001");
+  assert.equal(searchHandoffsBm25([routed, unrelated], "brownout recovery")?.[0]?.entry.workId, "W001");
+  assert.equal(searchHandoffsBm25([routed, unrelated], "cold restart matrix")?.[0]?.entry.workId, "W001");
 });
 
 test("BM25 failures fall back to deterministic routing", () => {
@@ -124,7 +124,7 @@ test("BM25 failures fall back to deterministic routing", () => {
     throw new Error("synthetic BM25 failure");
   };
   const exact = matchHandoffEntries([deterministic], "Inspect stopSession", failedSearch);
-  assert.equal(exact[0]?.entry.id, "W001");
+  assert.equal(exact[0]?.entry.workId, "W001");
   assert.equal(exact[0]?.score, 80);
   assert.deepEqual(matchHandoffEntries([deterministic], "graceful socket shutdown", failedSearch), []);
 });
@@ -147,7 +147,7 @@ test("BM25 query cost remains bounded for 10, 100, and 1000 lightweight entries"
 
 function entry(id, overrides = {}) {
   return {
-    id,
+    workId: id,
     cycle: "development",
     title: overrides.title ?? `Record ${id}`,
     summary: overrides.summary ?? "Confirmed state.",
@@ -165,7 +165,11 @@ function entry(id, overrides = {}) {
     availableSections: ["objective", "currentState", "remainingWork"],
     groupKey: overrides.groupKey ?? `title:${id.toLowerCase()}`,
     dedupeKey: `sha256:${id.padEnd(64, "0").slice(0, 64).toLowerCase()}`,
-    path: `.agent/handoff/records/development/${id}.md`,
+    currentPath: `.agent/handoff/current/development/${id}.md`,
+    revision: 1,
+    status: "active",
+    legacyRecordIds: [],
     createdAt: overrides.createdAt ?? `2026-01-01T00:00:${id.slice(1).padStart(2, "0")}.000Z`,
+    updatedAt: overrides.createdAt ?? `2026-01-01T00:00:${id.slice(1).padStart(2, "0")}.000Z`,
   };
 }

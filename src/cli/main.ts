@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { stdin } from "node:process";
 import {
   createHandoff,
+  getHandoffHistory,
   matchHandoffs,
   rebuildHandoffIndex,
   verifyHandoffIndex,
@@ -29,9 +30,9 @@ import {
   inspectNotebookLmLibrary,
   updateNotebookLmLibraryManifest,
 } from "../application/notebooklm-library.js";
-import type { HandoffInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
+import type { HandoffWriteInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
 
 await main().catch((error: unknown) => {
@@ -43,6 +44,7 @@ await main().catch((error: unknown) => {
 async function main(): Promise<void> {
   const [command = "help", ...tokens] = process.argv.slice(2);
   const options = parseOptions(tokens);
+  assertAllowedOptions(command, options);
   const project = resolve(option(options, "project") ?? process.cwd());
 
   switch (command) {
@@ -104,7 +106,7 @@ async function main(): Promise<void> {
         && action !== "inherit"
         && action !== "remove"
       ) {
-        throw new Error("--sol-advisor-implicit-delegation must be enable, disable, or inherit.");
+        throw new Error("--sol-advisor-implicit-delegation must be enable, disable, inherit, or remove.");
       }
       writeJson(await configureSolAdvisorImplicitDelegation(project, action));
       break;
@@ -112,18 +114,22 @@ async function main(): Promise<void> {
     case "match": {
       const prompt = requiredOption(options, "prompt");
       const rawLimit = option(options, "limit");
-      const limit = rawLimit === undefined ? undefined : Number.parseInt(rawLimit, 10);
-      if (limit !== undefined && (!Number.isFinite(limit) || limit < 0)) {
-        throw new Error("--limit must be a non-negative integer.");
-      }
+      const limit = rawLimit === undefined ? undefined : parseIntegerOption(rawLimit, "limit", 0);
       const matches = await matchHandoffs(project, prompt, limit);
       writeJson({ ok: true, projectRoot: project, matches });
       break;
     }
     case "handoff": {
       const inputPath = requiredOption(options, "input");
-      const input = await readJsonInput<HandoffInput>(inputPath);
+      const input = await readJsonInput<HandoffWriteInput>(inputPath);
       writeJson(await createHandoff(project, input));
+      break;
+    }
+    case "handoff-history": {
+      const workId = requiredOption(options, "work-id");
+      const rawRevision = option(options, "revision");
+      const revision = rawRevision === undefined ? undefined : parseIntegerOption(rawRevision, "revision", 1);
+      writeJson(await getHandoffHistory(project, workId, revision));
       break;
     }
     case "handoff-index": {
@@ -132,7 +138,7 @@ async function main(): Promise<void> {
         writeJson(await verifyHandoffIndex(project));
       } else if (action === "rebuild") {
         const index = await rebuildHandoffIndex(project);
-        writeJson({ ok: true, action: "rebuilt", projectRoot: project, entryCount: index.entries.length });
+        writeJson({ ok: true, action: "rebuilt", projectRoot: project, workCount: index.entries.length });
       } else {
         throw new Error("--action must be verify or rebuild.");
       }
@@ -212,6 +218,46 @@ function hasFlag(options: Map<string, string[]>, name: string): boolean {
   return options.has(name);
 }
 
+function parseIntegerOption(value: string, name: string, minimum: number): number {
+  if (!/^(?:0|[1-9][0-9]*)$/u.test(value)) {
+    throw new Error(`--${name} must be ${minimum === 0 ? "a non-negative" : "a positive"} integer.`);
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < minimum) {
+    throw new Error(`--${name} must be ${minimum === 0 ? "a non-negative" : "a positive"} integer.`);
+  }
+  return parsed;
+}
+
+function assertAllowedOptions(command: string, options: Map<string, string[]>): void {
+  const allowedByCommand: Record<string, readonly string[]> = {
+    inspect: ["project"],
+    "prepare-indexes": ["project"],
+    init: ["project", "input", "no-sol-advisor-implicit-delegation"],
+    sync: ["project", "input"],
+    status: ["project"],
+    "notebooklm-index": ["project", "action", "input"],
+    "notebooklm-library": ["root", "action", "input"],
+    authorization: ["project", "sol-advisor-implicit-delegation"],
+    match: ["project", "prompt", "limit"],
+    handoff: ["project", "input"],
+    "handoff-history": ["project", "work-id", "revision"],
+    "handoff-index": ["project", "action"],
+    plan: ["project", "action", "input", "id", "status", "reason"],
+    version: [],
+    "--version": [],
+    "-v": [],
+    help: [],
+    "--help": [],
+    "-h": [],
+  };
+  const allowed = allowedByCommand[command];
+  if (allowed === undefined) return;
+  const allowedSet = new Set(allowed);
+  const unknown = [...options.keys()].find((name) => !allowedSet.has(name));
+  if (unknown !== undefined) throw new Error(`Unsupported option for ${command}: --${unknown}.`);
+}
+
 async function readJsonInput<T>(inputPath: string): Promise<T> {
   const text = inputPath === "-" ? await readStandardInput() : await readFile(resolve(inputPath), "utf8");
   return JSON.parse(text) as T;
@@ -242,9 +288,10 @@ Usage:
   codex-project-context notebooklm-index [--project PATH] --action configure --input FILE|-
   codex-project-context notebooklm-library --root PATH --action inspect
   codex-project-context notebooklm-library --root PATH --action update --input FILE|-
-  codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|disable|inherit
+  codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|disable|inherit|remove
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-
+  codex-project-context handoff-history [--project PATH] --work-id W001 [--revision NUMBER]
   codex-project-context handoff-index [--project PATH] --action verify|rebuild
   codex-project-context plan [--project PATH] --action create --input FILE|-
   codex-project-context plan [--project PATH] --action transition --id P001 --status STATUS --reason TEXT

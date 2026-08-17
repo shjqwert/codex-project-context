@@ -62,9 +62,9 @@ export function searchHandoffsBm25(entries: HandoffIndexEntry[], query: string):
   const bestByGroup = new Map<string, Bm25Hit>();
   for (const hit of ranking.hits) {
     if (!isReliableHit(hit)) continue;
-    const current = bestByGroup.get(hit.entry.groupKey);
+    const current = bestByGroup.get(hit.entry.workId);
     if (current === undefined || compareHits(hit, current) < 0) {
-      bestByGroup.set(hit.entry.groupKey, hit);
+      bestByGroup.set(hit.entry.workId, hit);
     }
   }
   const reliable = [...bestByGroup.values()].sort(compareHits);
@@ -187,7 +187,7 @@ function compareHits(left: Bm25Hit, right: Bm25Hit): number {
     right.normalizedScore - left.normalizedScore ||
     right.termCoverage - left.termCoverage ||
     right.entry.createdAt.localeCompare(left.entry.createdAt) ||
-    right.entry.id.localeCompare(left.entry.id);
+    right.entry.workId.localeCompare(left.entry.workId);
 }
 
 function relativeGap(first: number, second: number): number {

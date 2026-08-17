@@ -60,7 +60,7 @@ The command may:
 
 - validate that the inventory fingerprint is current and all cited paths exist inside the project;
 - create or refresh the schema v2 `.agent/context.json`;
-- create a missing schema v3 handoff index;
+- create a missing schema v4 handoff index;
 - render the Agent-authored project sections and fixed context-routing contract into `AGENTS.md`;
 - render one minimal Sol Advisor integration section in the project-managed `AGENTS.md` boundary;
 - keep `.agent/authorizations.json` absent for inherited policy, or write schema v1 `implicitDelegation: false` for an explicit initialization opt-out.

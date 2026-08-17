@@ -263,9 +263,49 @@ export interface HandoffInput {
   tests?: string[];
   tags?: string[];
   aliases?: string[];
+  workId?: string;
+  expectedRevision?: number;
+  status?: HandoffStatus;
+  reopen?: boolean;
+  checkpoint?: boolean;
+  checkpointReason?: string;
 }
 
+export interface HandoffCheckpointInput {
+  workId: string;
+  expectedRevision: number;
+  checkpointOnly: true;
+  checkpointReason: string;
+}
+
+export type HandoffWriteInput = HandoffInput | HandoffCheckpointInput;
+
+export type HandoffStatus = "active" | "blocked" | "completed" | "superseded";
+
 export interface HandoffIndexEntry {
+  workId: string;
+  cycle: string;
+  title: string;
+  summary: string;
+  kind: HandoffKind;
+  routing: HandoffRouting;
+  availableSections: string[];
+  groupKey: string;
+  dedupeKey: string;
+  currentPath: string;
+  revision: number;
+  status: HandoffStatus;
+  legacyRecordIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HandoffIndex {
+  schemaVersion: 4;
+  entries: HandoffIndexEntry[];
+}
+
+export interface LegacyHandoffIndexEntry {
   id: string;
   cycle: string;
   title: string;
@@ -279,13 +319,16 @@ export interface HandoffIndexEntry {
   createdAt: string;
 }
 
-export interface HandoffIndex {
+export interface LegacyHandoffIndex {
   schemaVersion: 3;
-  entries: HandoffIndexEntry[];
+  entries: LegacyHandoffIndexEntry[];
 }
 
+export type StoredHandoffIndex = HandoffIndex | LegacyHandoffIndex;
+
 export interface HandoffRecordReference {
-  id: string;
+  workId: string;
+  revision: number;
   path: string;
   availableSections: string[];
   createdAt: string;

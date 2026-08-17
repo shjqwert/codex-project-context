@@ -96,7 +96,11 @@ test("UserPromptSubmit injects each unchanged match set once per task", async ()
   }, undefined, stateDirectory);
   assert.equal(originalStillSuppressed.stdout, "");
 
-  await createHandoff(project, handoffInput("HSS shutdown follow-up", "hss", "stopSession", "follow-up"));
+  await createHandoff(project, {
+    ...handoffInput("HSS shutdown follow-up", "hss", "stopSession", "follow-up"),
+    workId: "W001",
+    expectedRevision: 1,
+  });
   const changedRecords = runHook("user-prompt-submit.js", {
     session_id: "session-a",
     cwd: project,
@@ -105,7 +109,7 @@ test("UserPromptSubmit injects each unchanged match set once per task", async ()
   }, undefined, stateDirectory);
   const changedContext = JSON.parse(changedRecords.stdout).hookSpecificOutput.additionalContext;
   assert.match(changedContext, /W001/);
-  assert.match(changedContext, /W003/);
+  assert.match(changedContext, /revision 2/);
 
   const newTask = runHook("user-prompt-submit.js", {
     session_id: "session-b",
@@ -113,7 +117,7 @@ test("UserPromptSubmit injects each unchanged match set once per task", async ()
     hook_event_name: "UserPromptSubmit",
     prompt: "Continue hss work",
   }, undefined, stateDirectory);
-  assert.match(JSON.parse(newTask.stdout).hookSpecificOutput.additionalContext, /W003/);
+  assert.match(JSON.parse(newTask.stdout).hookSpecificOutput.additionalContext, /W001 revision 2/);
 
   const compact = runHook("session-start.js", {
     session_id: "session-a",
@@ -128,7 +132,7 @@ test("UserPromptSubmit injects each unchanged match set once per task", async ()
     hook_event_name: "UserPromptSubmit",
     prompt: "Continue hss work",
   }, undefined, stateDirectory);
-  assert.match(JSON.parse(afterCompact.stdout).hookSpecificOutput.additionalContext, /W003/);
+  assert.match(JSON.parse(afterCompact.stdout).hookSpecificOutput.additionalContext, /W001 revision 2/);
 
   const missingSessionFirst = runHook("user-prompt-submit.js", {
     cwd: project,
@@ -183,7 +187,7 @@ test("UserPromptSubmit reports truncation without changing the complete handoff 
 
   assert.equal(result.status, 0, result.stderr);
   const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(context, /Matched 8 work group\(s\) and 8 record\(s\)/);
+  assert.match(context, /Matched 8 work item\(s\) and 8 current document\(s\)/);
   assert.match(context, /Hook routing output was truncated/);
   assert.match(context, /handoff match CLI with the current prompt/);
   assert.equal(after, before);

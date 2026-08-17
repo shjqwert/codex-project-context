@@ -1,18 +1,18 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.1.0` makes this plugin the sole owner of its project-level `AGENTS.md` managed section and `.agent` context files; Sol Advisor consumes those signals without writing them.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.2.0` keeps one revisioned current handoff per objective, stores only Agent-selected milestone snapshots, and reads schema-v3 records without rewriting them.
 
 ## Capabilities
 
 - Explicit `$codex-project-context:project-init` creates missing CodeGraph and Serena project indexes through their already-installed CLIs, inventories the confirmed repository, directs the Agent to analyze current evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
 - Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
 - New projects inherit global Sol Advisor eligibility by default without creating a redundant authorization file. Project policy may explicitly allow (`true`) or disable (`false`) implicit delegation in `.agent/authorizations.json`; the CLI can later restore inherited behavior without changing durable project context.
-- Implicit-capable `$codex-project-context:project-handoff` records evidence for durable continuation and maintains a lightweight schema v3 relevance index.
+- Implicit-capable `$codex-project-context:project-handoff` creates or revision-updates one authoritative current document per objective, with optional immutable milestone checkpoints and a lightweight schema v4 relevance index.
 - Implicit-capable `$codex-project-context:project-plan-msg` records qualifying project-level plans and validates their lifecycle transitions.
 - `SessionStart` injects concise routing context only for initialized projects.
-- `UserPromptSubmit` merges deterministic ID/path/symbol/module routing with a dependency-free TypeScript BM25 ranker over lightweight title, summary, module, tag, test, and bilingual alias fields. It reports when bounded routing output is truncated. Within one task, an unchanged match set is injected only once; a new group or record is injected again, and `clear`/`compact` resets that task-local suppression state.
+- `UserPromptSubmit` merges deterministic ID/path/symbol/module routing with a dependency-free TypeScript BM25 ranker over current title, summary, module, tag, test, and bilingual alias fields. It reports truncation, injects only current documents, and uses `workId + revision` so a changed revision is injected again while unchanged state remains suppressed.
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
-- Evidence-based bilingual aliases let Chinese phrases retrieve English handoffs without duplicating translated titles, summaries, or bodies; an explicit previous-task cue returns the complete most recent coherent group without opening records automatically.
+- Skill-authored handoff prose defaults to Chinese while exact identifiers remain unchanged and bounded bilingual aliases preserve English retrieval. An explicit previous-task cue returns the most recent active or blocked current work before closed work.
 
 Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, MarkItDown, or NotebookLM. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
 
@@ -36,13 +36,13 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 
 Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is created or replaced. The CLI separates inventory from judgment: `inspect` returns a bounded repository inventory and fingerprint, while `init` and `sync` require a schemaVersion 1 Agent analysis whose facts and rules cite current project-relative evidence. The CLI validates paths, freshness, managed boundaries, and the 200-line limit. It does not infer project stage, create tasks, download missing references, or load full manuals and schematics.
 
-Initialization creates `.agent/context.json` and a schema v3 handoff index. New immutable Markdown records are stored under `.agent/handoff/records/<cycle>/` and contain the metadata needed to rebuild a missing index. Unsupported earlier handoff index schemas are rejected rather than migrated. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
+Initialization creates `.agent/context.json` and a schema v4 handoff index. New current documents are stored under `.agent/handoff/current/<cycle>/`; selected full checkpoints use `.agent/handoff/history/<cycle>/<workId>/R<revision>.md`. Schema-v3 records under `.agent/handoff/records/<cycle>/` remain read-only and become chronological virtual revisions until the first explicit update lazily creates current state. `.agent/planMsg.md` is created only when the first qualifying project-level plan is recorded.
 
 Project-level Sol Advisor policy has three states: a missing file/key inherits the global default, `true` explicitly allows, and `false` disables implicit delegation. Invalid or unreadable policy fails closed. `enable`, `disable`, and `inherit` select those states; the legacy `remove` action remains a compatibility alias for `disable` so an old off command cannot accidentally enable delegation under the new default. On the first explicit sync of a legacy initialized project with no authorization and no new integration marker, the plugin writes `false` to preserve its previous disabled behavior. Neither workflow requires Sol Advisor to be installed.
 
 This plugin is the only component that writes the project-managed `AGENTS.md` section, `.agent/context.json`, `.agent/authorizations.json`, `.agent/planMsg.md`, and `.agent/handoff/`. It never writes the user-level `~/.codex/AGENTS.md`. Sol Advisor may read project policy and context but does not modify these files.
 
-Handoff matching builds an in-memory BM25 corpus from schema v3 index entries on each query; it never stores term frequencies or reads Markdown bodies during normal indexed matching. Exact IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules always rank above lexical results. Optional aliases are bounded bilingual retrieval phrases generated from task evidence, are excluded from handoff identity, and are never rendered as translated body content or complete Hook metadata. BM25 requires at least two useful terms, minimum term coverage and score quality, and returns close reliable leaders together instead of selecting an arbitrary record.
+Handoff matching builds an in-memory BM25 corpus from schema v4 current entries on each query; it never stores term frequencies, searches history globally, or reads Markdown bodies during normal indexed matching. Exact current and legacy IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules rank above lexical results. Optional aliases are bounded bilingual retrieval phrases excluded from state identity and complete Hook metadata. Natural-language ties prioritize active and blocked work over completed and superseded work.
 
 ## Development
 
@@ -92,7 +92,11 @@ node dist/cli/main.js status --project D:\path\to\project
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation enable
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation disable
 node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation inherit
+node dist/cli/main.js authorization --project D:\path\to\project --sol-advisor-implicit-delegation remove
 node dist/cli/main.js match --project D:\path\to\project --prompt "continue W001"
+$handoffJson | node dist/cli/main.js handoff --project D:\path\to\project --input -
+node dist/cli/main.js handoff-history --project D:\path\to\project --work-id W001
+node dist/cli/main.js handoff-history --project D:\path\to\project --work-id W001 --revision 2
 node dist/cli/main.js handoff-index --project D:\path\to\project --action verify
 node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuild
 node dist/cli/main.js plan --project D:\path\to\project --action list
@@ -108,4 +112,4 @@ $manifestJson | node dist/cli/main.js notebooklm-library --root D:\path\to\pdf-l
 ```
 
 `prepare-indexes` creates only missing CodeGraph and Serena project indexes and reports unavailable or failed tools without installing or upgrading them. Initialization, synchronization, handoff creation, and plan creation accept UTF-8 JSON from a file or standard input. The bundled Skills write generated JSON directly to standard input so they do not create intermediate files. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.
-The handoff index commands verify or rebuild the schema v3 cache from immutable Markdown records. Rebuild rejects section metadata that does not exactly match the rendered Markdown body.
+The handoff index commands verify or rebuild the schema v4 current-state cache. Rebuild rejects invalid current metadata and headings, isolates corrupt history from normal current matching, and preserves all schema-v3 records unchanged.

@@ -1,72 +1,97 @@
 ---
 name: project-handoff
-description: Create an evidence-based cross-task handoff and update its lightweight relevance index when coherent work must continue in another Codex task or window. May be selected implicitly when durable continuation context is needed; do not trigger for routine questions, trivial edits, or mechanical session shutdown.
+description: Create or revision-update an evidence-based current handoff for coherent work that continues in another Codex task or window, with optional milestone checkpoints and lightweight current-state retrieval. May be selected implicitly; do not trigger for routine questions, trivial edits, or mechanical shutdown.
 ---
 
 # Project Handoff
 
-Create a handoff from current-task evidence, not from reconstructed conversation guesses. Never bind handoff creation mechanically to `SessionEnd`.
+Maintain one authoritative current Markdown document per coherent objective. Use current-task evidence, never reconstructed conversation guesses, and never bind handoff writes mechanically to `SessionEnd`.
 
 ## Decide Whether to Record
 
-Create a record when at least one condition holds:
+Create or update a work item when verified implementation, diagnosis, constraints, failed approaches, or incomplete verification would otherwise need rediscovery in another task. Skip routine questions, trivial edits, unsupported summaries, and accepted specifications with no continuation risk.
 
-- work on a coherent feature, module, or bug continues in another task;
-- verified implementation or diagnosis would otherwise need to be rediscovered;
-- constraints, failed approaches, or incomplete verification materially affect continuation;
-- the user asks to preserve or hand off context.
+## Resolve Work Identity
 
-Skip routine questions, trivial edits, duplicated information with no new evidence, and work fully represented by an accepted specification without continuation risk.
+Read the reliable current matches and compare their `sections.objective` with the present objective.
 
-## Collect Evidence
+- One reliable objective match: update that explicit `workId`.
+- No reliable objective match: create a new work item without `workId`.
+- Multiple candidates or an unclear objective boundary: ask the user and do not write.
+- A changed file, symbol, or title does not by itself create a new objective.
+- A replacement objective creates a new work item. Mark the old item `superseded` first only when evidence confirms replacement.
 
-Read [handoff-format.md](references/handoff-format.md) for field rules. Read [examples.md](references/examples.md) when diagnosis quality, duplicate grouping, or evidence boundaries are uncertain.
+Never let the CLI infer a mutable write target from `groupKey`, title similarity, or a broad module.
 
-Use only facts supported by the current task, source, tests, logs, project references, or accepted specifications. Root-cause claims require evidence. If root cause remains uncertain, omit `sections.bugDiagnosis` and record the uncertainty only when it affects continuation.
+## Prepare Evidence
 
-## Record
+Read [handoff-format.md](references/handoff-format.md) completely. Read [examples.md](references/examples.md) when diagnosis, objective identity, checkpoint judgment, or migration behavior is uncertain.
 
-1. Prepare a UTF-8 JSON value in memory with `title`, `summary`, one supported `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
-2. Generate 2-6 concise retrieval aliases from confirmed task concepts: include at least one natural Chinese phrase and one natural English phrase. Use phrases a future user could search for; do not translate identifiers, duplicate the title or summary, or use broad filler such as `功能`, `模块`, `代码`, `问题`, or `处理`.
-3. Add the aliases, only supported routing metadata, and non-empty conditional sections.
-4. Resolve the plugin root as two directories above this `SKILL.md`.
-5. Run:
+Use Chinese by default for `title`, `summary`, and every prose section. Keep paths, symbols, IDs, test names, protocol terms, and other exact identifiers unchanged. Generate 2-6 concise retrieval aliases with at least one natural Chinese phrase and one natural English phrase. Aliases are search metadata and must not duplicate the title or summary.
+
+Root-cause claims require evidence. When a cause remains uncertain, omit `sections.bugDiagnosis` and record only material uncertainty under `sections.risks`.
+
+## Create or Update
+
+1. Prepare one complete UTF-8 JSON value in memory with `title`, `summary`, `kind`, and the required `objective`, `currentState`, and `remainingWork` sections.
+2. Add bounded routing metadata, bilingual aliases, supported optional sections, and one status: `active`, `blocked`, `completed`, or `superseded`.
+3. For an update, read the current document first and include its explicit `workId` and `expectedRevision`. Submit a complete replacement state, not a patch or an automatic field merge.
+4. Updating a `completed` or `superseded` item requires `reopen: true` and `status: "active"`.
+5. Judge semantically whether the new state is a key milestone. When it is, add `checkpoint: true` and a concise `checkpointReason`. The reason is returned by the CLI but is not persisted in Markdown. Ordinary progress is not a checkpoint.
+6. Resolve the plugin root as two directories above this `SKILL.md`, then run:
 
 ```text
 node <plugin-root>/dist/cli/main.js handoff --project <absolute-project-root> --input -
 ```
 
-6. Write the prepared JSON directly to the command's standard input. Do not create an intermediate JSON file.
+Write JSON directly to standard input. Do not create an intermediate JSON file.
 
-Equivalent normalized inputs are idempotent. The CLI returns the existing handoff ID with
-`deduplicated: true` and must not create another Markdown file or index entry. Project-context
-writes are serialized by a short-lived project lock.
+Equivalent normalized state returns `action: "deduplicated"` without advancing the revision. A stale `expectedRevision` returns a structured conflict and writes nothing. On conflict, reread current, reconstruct one complete version, and retry at most once when the evidence is non-conflicting; ask the user when states contradict.
+
+## Add a Late Checkpoint
+
+To preserve an unchanged current revision that was later recognized as a milestone, submit only:
+
+```json
+{
+  "workId": "W001",
+  "expectedRevision": 3,
+  "checkpointOnly": true,
+  "checkpointReason": "该版本形成了需要保留的关键决策。"
+}
+```
+
+This does not advance the revision and deduplicates an existing checkpoint.
+
+## Read History
+
+Normal matching reads only current documents. Read history only for an explicit trace request, conflict diagnosis, or recovery:
+
+```text
+node <plugin-root>/dist/cli/main.js handoff-history --project <absolute-project-root> --work-id W001
+node <plugin-root>/dist/cli/main.js handoff-history --project <absolute-project-root> --work-id W001 --revision 2
+```
+
+History never participates in global BM25 matching.
 
 ## Verify
 
-1. Require `ok: true`, a project-local output path, and inspect `deduplicated`.
-2. When `deduplicated` is `true`, confirm the returned ID and file already existed and no new record was written.
-3. Inspect a newly created Markdown file for evidence accuracy and unsupported claims.
-4. Confirm `.agent/handoff/index.json` contains the entry, bounded bilingual aliases, routing metadata, available section names, deterministic group key, and dedupe key without copying section bodies.
-5. Confirm passed tests were actually observed in the current task.
-6. Confirm duplicate grouping did not merge unrelated work merely because it shared a broad module.
-7. Confirm the Markdown contains no empty or placeholder sections and can supply the metadata needed to rebuild the index.
-8. Confirm aliases are specific to this work, include both languages, and do not repeat titles, summaries, paths, identifiers, or broad filler terms.
-
-Report the handoff ID and path. Keep current code, tests, and accepted specifications authoritative over historical records.
+1. Require a successful `created`, `updated`, `deduplicated`, or `checkpointed` action, or handle `conflict` without claiming a write.
+2. Confirm the index entry has the expected `workId`, revision, status, current path, bilingual aliases, routing metadata, available sections, group key, and dedupe key.
+3. Inspect a created or updated current Markdown file for accurate Chinese prose, exact identifiers, supported headings, and no empty or placeholder sections.
+4. For a checkpoint, confirm the immutable full snapshot exists under `.agent/handoff/history/<cycle>/<workId>/R<revision>.md` and contains the post-update state.
+5. Confirm passed tests only when their output was observed in the current task.
+6. Keep current code, tests, accepted specifications, and the current handoff authoritative over history.
 
 ## Repair the Index
 
-When the index is missing, suspected stale, or inconsistent, verify before rebuilding:
+The schema v4 index is a rebuildable current-state cache. Valid current Markdown is authoritative. Access may repair a stale index under the project lock after an interrupted write. A corrupt current stops that work item's injection and update; never overwrite it automatically from history. A corrupt history snapshot does not block current matching.
+
+Verify or explicitly rebuild with:
 
 ```text
 node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-root> --action verify
-```
-
-If verification fails because the cache differs from valid Markdown fact records, rebuild it explicitly:
-
-```text
 node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-root> --action rebuild
 ```
 
-Rebuild only from current-format records. Reject unsupported headings, missing core sections, placeholder content, or disagreement between `available_sections` and actual Markdown sections; never overwrite records to make an index pass.
+Schema-v3 records remain read-only and are not moved or rewritten. The first explicit update lazily creates a schema-v4 current document; the oldest legacy ID becomes `workId`, other legacy IDs remain exact aliases, and legacy records map to chronological virtual revisions.

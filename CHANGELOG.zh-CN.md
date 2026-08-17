@@ -1,5 +1,48 @@
 # 中文变更日志
 
+## 1.2.0（2026-08-17）
+
+### Handoff 当前态模型
+
+- 将“每次交接创建一条不可变记录”调整为“每个核心目标维护一个稳定 `workId` 和一份 current 文档”；真实状态变化递增 revision，等价输入保持幂等。
+- 新 current 路径为 `.agent/handoff/current/<cycle>/<workId>-<initial-slug>.md`；标题变化不引起路径重命名。
+- 增加 `active`、`blocked`、`completed`、`superseded` 四种状态；关闭态只有在显式 `reopen: true` 且目标状态为 `active` 时才能继续更新。
+- 更新必须提供 `workId + expectedRevision` 并提交完整状态；陈旧窗口收到结构化 `conflict`，不会覆盖较新 revision。
+
+### 关键里程碑历史
+
+- Agent 语义判断关键里程碑后，可将更新后的完整状态保存到 `.agent/handoff/history/<cycle>/<workId>/R<revision>.md`。
+- 增加不递增 revision 的独立 checkpoint 操作；同 revision 快照自动去重，历史默认永久保留。
+- `checkpointReason` 只在命令结果中返回，不写入 Markdown；普通进度更新不创建历史文件。
+- 新增 `handoff-history` CLI，按明确 `workId` 和可选 revision 读取历史；历史不加入全局 BM25 或默认 Hook 上下文。
+
+### 检索、Hook 与中文内容
+
+- schema v4 索引改为“一个工作一条 current 项”，current Markdown 是权威来源，索引仍是可重建缓存。
+- Hook 注入身份改为 `workId + revision`：未变化的 current 在同一 Codex 任务中继续抑制，新 revision 可重新注入。
+- 自然语言排序优先 `active/blocked`，精确 ID、旧记录 ID、路径、符号和模块匹配不受状态影响。
+- `project-handoff` Skill 默认使用中文生成标题、摘要和正文；路径、符号、测试名与其他技术标识符保持原样，aliases 继续同时覆盖中文和英文。
+
+### 兼容与恢复
+
+- schema-v3 Markdown 和索引保持只读兼容，不自动移动、翻译或重写旧记录。
+- 同组旧记录按创建时间映射为虚拟 revisions，最早 ID 成为稳定 `workId`，其他旧 ID 保留精确检索能力；首次显式更新才惰性生成 v4 current。
+- 未引入事务清单。current 已写而索引尚未更新时，后续访问可在项目锁内从有效 current 修复索引和缺失的已声明 checkpoint。
+- current 损坏时停止该工作的自动注入与更新，禁止从 history 静默覆盖；单个 history 损坏只影响历史查询和严格验证。
+
+### 接口与版本
+
+- `handoff` 正常结果保持紧凑，返回 action、workId、revision、status、deduplicated，以及按需返回的 snapshotPath/checkpointReason。
+- `handoff-index verify/rebuild` 改为报告工作、current、history 和旧记录数量。
+- 包、CLI 和插件清单版本统一升级为 `1.2.0`。
+
+### 验证与独立复核
+
+- TypeScript 目标构建通过；完整 `npm test` 通过 74/74。
+- 新增并观察通过的回归面包括：并发等价新建、并发陈旧 revision 冲突、关闭态显式重开、更新后完整 checkpoint、独立 checkpoint 去重、v3 惰性迁移、缺失 legacy 事实拒绝迁移、current/index 中断恢复、损坏 current 防覆盖、损坏 history 隔离、history 词项不进入默认匹配、Hook 新 revision 重注入、未知 CLI 选项拒绝和严格整数解析。
+- Sol Advisor 状态/迁移审查最初发现“损坏 current 可被覆盖”和“缺失 legacy 文件仍可迁移”两项高风险问题；修复后原复现与聚焦测试均通过，复核结论为 PASS。
+- Sol Advisor CLI/发布审查最初发现未知选项静默忽略、浮点参数被截断、`authorization remove` 文档缺失和 history 测试缺口；修复后构建、CLI、matcher 与原复现均通过，复核结论为 PASS。
+
 ## 1.1.0（2026-08-16）
 
 ### 调整

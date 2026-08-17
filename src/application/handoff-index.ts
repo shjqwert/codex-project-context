@@ -4,6 +4,10 @@ import type {
   HandoffIndexEntry,
   HandoffKind,
   HandoffRouting,
+  HandoffStatus,
+  LegacyHandoffIndex,
+  LegacyHandoffIndexEntry,
+  StoredHandoffIndex,
 } from "../types.js";
 
 const HANDOFF_KINDS = new Set<HandoffKind>([
@@ -37,18 +41,26 @@ const FORBIDDEN_ALIAS_TERMS = new Set(HANDOFF_ALIAS_FORBIDDEN_TERMS);
 const CJK_ALIAS_TERM = /\p{Script=Han}/u;
 const LATIN_ALIAS_TERM = /\p{Script=Latin}/u;
 
-export const EMPTY_HANDOFF_INDEX: HandoffIndex = { schemaVersion: 3, entries: [] };
+const HANDOFF_STATUSES = new Set<HandoffStatus>(["active", "blocked", "completed", "superseded"]);
 
-export function validateHandoffIndex(value: unknown): HandoffIndex {
-  if (!isRecord(value) || value.schemaVersion !== 3 || !Array.isArray(value.entries)) {
-    throw new Error("Handoff index must use schemaVersion 3.");
+export const EMPTY_HANDOFF_INDEX: HandoffIndex = { schemaVersion: 4, entries: [] };
+
+export function validateHandoffIndex(value: unknown): StoredHandoffIndex {
+  if (!isRecord(value) || !Array.isArray(value.entries)) {
+    throw new Error("Handoff index must use schemaVersion 3 or 4.");
   }
   assertOnlyKeys(value, ["schemaVersion", "entries"], "root");
-  return { schemaVersion: 3, entries: value.entries.map(normalizeEntry) };
+  if (value.schemaVersion === 3) {
+    return { schemaVersion: 3, entries: value.entries.map(normalizeLegacyEntry) };
+  }
+  if (value.schemaVersion === 4) {
+    return { schemaVersion: 4, entries: value.entries.map(normalizeEntry) };
+  }
+  throw new Error("Handoff index must use schemaVersion 3 or 4.");
 }
 
 export function buildHandoffGroupKey(
-  entry: Pick<HandoffIndexEntry, "id" | "routing" | "title">,
+  entry: Pick<HandoffIndexEntry, "workId" | "routing" | "title">,
 ): string {
   const specRef = firstNormalized(entry.routing.specRefs);
   if (specRef !== undefined) return `spec:${specRef}`;
@@ -62,14 +74,15 @@ export function buildHandoffGroupKey(
   if (symbol !== undefined) return `symbol:${symbol}`;
 
   const title = normalizeText(entry.title);
-  return title.length >= 4 ? `title:${title}` : `entry:${entry.id.toLocaleLowerCase()}`;
+  return title.length >= 4 ? `title:${title}` : `entry:${entry.workId.toLocaleLowerCase()}`;
 }
 
 function normalizeEntry(value: unknown): HandoffIndexEntry {
   if (!isRecord(value)) throw new Error("Handoff index entries must be objects.");
   assertOnlyKeys(value, [
-    "id", "cycle", "title", "summary", "kind", "routing", "availableSections",
-    "groupKey", "dedupeKey", "path", "createdAt",
+    "workId", "cycle", "title", "summary", "kind", "routing", "availableSections",
+    "groupKey", "dedupeKey", "currentPath", "revision", "status", "legacyRecordIds",
+    "createdAt", "updatedAt",
   ], "entry");
   const kind = requiredString(value.kind, "kind");
   if (!HANDOFF_KINDS.has(kind as HandoffKind)) {
@@ -78,8 +91,12 @@ function normalizeEntry(value: unknown): HandoffIndexEntry {
   if (!isRecord(value.routing)) throw new Error("Handoff index routing must be an object.");
   assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases"], "routing");
   const routing = normalizeRouting(value.routing);
+  const status = requiredString(value.status, "status");
+  if (!HANDOFF_STATUSES.has(status as HandoffStatus)) {
+    throw new Error(`Unsupported handoff status: ${status}.`);
+  }
   const entry: HandoffIndexEntry = {
-    id: requiredString(value.id, "id"),
+    workId: requiredString(value.workId, "workId"),
     cycle: requiredString(value.cycle, "cycle"),
     title: requiredString(value.title, "title"),
     summary: requiredString(value.summary, "summary"),
@@ -88,23 +105,63 @@ function normalizeEntry(value: unknown): HandoffIndexEntry {
     availableSections: stringArray(value.availableSections, "availableSections"),
     groupKey: requiredString(value.groupKey, "groupKey"),
     dedupeKey: requiredString(value.dedupeKey, "dedupeKey"),
-    path: requiredString(value.path, "path"),
+    currentPath: requiredString(value.currentPath, "currentPath"),
+    revision: requiredPositiveInteger(value.revision, "revision"),
+    status: status as HandoffStatus,
+    legacyRecordIds: stringArray(value.legacyRecordIds, "legacyRecordIds"),
     createdAt: requiredString(value.createdAt, "createdAt"),
+    updatedAt: requiredString(value.updatedAt, "updatedAt"),
   };
-  if (!/^W[0-9]+$/u.test(entry.id)) throw new Error("Handoff index id must use the W<number> form.");
+  if (!/^W[0-9]+$/u.test(entry.workId)) throw new Error("Handoff index workId must use the W<number> form.");
   if (!/^sha256:[a-f0-9]{64}$/u.test(entry.dedupeKey)) {
     throw new Error("Handoff index dedupeKey must be a SHA-256 key.");
   }
   if (entry.availableSections.some((section) => !AVAILABLE_SECTIONS.has(section))) {
     throw new Error("Handoff index availableSections contains an unsupported section.");
   }
-  if (Number.isNaN(Date.parse(entry.createdAt))) throw new Error("Handoff index createdAt must be a date-time.");
-  for (const path of [entry.path, ...entry.routing.files]) {
+  if (Number.isNaN(Date.parse(entry.createdAt)) || Number.isNaN(Date.parse(entry.updatedAt))) {
+    throw new Error("Handoff index timestamps must be date-times.");
+  }
+  if (entry.updatedAt < entry.createdAt) throw new Error("Handoff index updatedAt must not precede createdAt.");
+  for (const path of [entry.currentPath, ...entry.routing.files]) {
     const normalized = path.replaceAll("\\", "/");
     if (isAbsolute(path) || normalized === ".." || normalized.startsWith("../") || normalized.includes("/../")) {
       throw new Error("Handoff index paths must be project-relative.");
     }
   }
+  return entry;
+}
+
+function normalizeLegacyEntry(value: unknown): LegacyHandoffIndexEntry {
+  if (!isRecord(value)) throw new Error("Handoff index entries must be objects.");
+  assertOnlyKeys(value, [
+    "id", "cycle", "title", "summary", "kind", "routing", "availableSections",
+    "groupKey", "dedupeKey", "path", "createdAt",
+  ], "entry");
+  const kind = requiredString(value.kind, "kind");
+  if (!HANDOFF_KINDS.has(kind as HandoffKind)) throw new Error(`Unsupported handoff kind: ${kind}.`);
+  if (!isRecord(value.routing)) throw new Error("Handoff index routing must be an object.");
+  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases"], "routing");
+  const entry: LegacyHandoffIndexEntry = {
+    id: requiredString(value.id, "id"),
+    cycle: requiredString(value.cycle, "cycle"),
+    title: requiredString(value.title, "title"),
+    summary: requiredString(value.summary, "summary"),
+    kind: kind as HandoffKind,
+    routing: normalizeRouting(value.routing),
+    availableSections: stringArray(value.availableSections, "availableSections"),
+    groupKey: requiredString(value.groupKey, "groupKey"),
+    dedupeKey: requiredString(value.dedupeKey, "dedupeKey"),
+    path: requiredString(value.path, "path"),
+    createdAt: requiredString(value.createdAt, "createdAt"),
+  };
+  if (!/^W[0-9]+$/u.test(entry.id)) throw new Error("Handoff index id must use the W<number> form.");
+  if (!/^sha256:[a-f0-9]{64}$/u.test(entry.dedupeKey)) throw new Error("Handoff index dedupeKey must be a SHA-256 key.");
+  if (entry.availableSections.some((section) => !AVAILABLE_SECTIONS.has(section))) {
+    throw new Error("Handoff index availableSections contains an unsupported section.");
+  }
+  if (Number.isNaN(Date.parse(entry.createdAt))) throw new Error("Handoff index createdAt must be a date-time.");
+  for (const path of [entry.path, ...entry.routing.files]) validateRelativePath(path);
   return entry;
 }
 
@@ -179,6 +236,20 @@ function requiredString(value: unknown, field: string): string {
     throw new Error(`Handoff index ${field} must be a non-empty string.`);
   }
   return value.trim();
+}
+
+function requiredPositiveInteger(value: unknown, field: string): number {
+  if (!Number.isInteger(value) || (value as number) < 1) {
+    throw new Error(`Handoff index ${field} must be a positive integer.`);
+  }
+  return value as number;
+}
+
+function validateRelativePath(path: string): void {
+  const normalized = path.replaceAll("\\", "/");
+  if (isAbsolute(path) || normalized === ".." || normalized.startsWith("../") || normalized.includes("/../")) {
+    throw new Error("Handoff index paths must be project-relative.");
+  }
 }
 
 function firstNormalized(values: string[]): string | undefined {
