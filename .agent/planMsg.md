@@ -11,7 +11,7 @@
       "id": "P001",
       "title": "Mutable current handoff with milestone history",
       "summary": "Upgrade handoff storage to one stable work current document with revision-safe updates, selective immutable checkpoints, schema-v3 compatibility, Chinese-first Skill output, focused retrieval, review, release, and local Codex installation.",
-      "status": "in-progress",
+      "status": "completed",
       "successCriteria": [
         "Stable workId current documents support create, update, dedupe, checkpoint, status, reopen, and revision conflicts.",
         "Legacy schema-v3 handoffs remain readable and migrate lazily without rewriting old records.",
@@ -27,7 +27,7 @@
         "No transaction journal; valid current state repairs a stale index on access."
       ],
       "createdAt": "2026-08-17T14:12:29.640Z",
-      "updatedAt": "2026-08-17T14:12:29.796Z",
+      "updatedAt": "2026-08-17T15:13:51.900Z",
       "transitions": [
         {
           "from": null,
@@ -46,6 +46,12 @@
           "to": "in-progress",
           "reason": "User explicitly authorized implementation, review, testing, repair, publication, and local Codex plugin update.",
           "at": "2026-08-17T14:12:29.796Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "Implementation committed and pushed at 5f5643a; TypeScript build and 74/74 tests passed; both Sol Advisor re-reviews passed; local package and installed enabled Codex plugin 1.2.0 with schema v4 and matching Skill hash were verified.",
+          "at": "2026-08-17T15:13:51.900Z"
         }
       ],
       "dedupeKey": "sha256:5e03b51927f49180a88880208348e299942984710b6fb5944ee76af21c455165"
@@ -57,8 +63,8 @@
 
 ## P001 Mutable current handoff with milestone history
 
-- Status: `in-progress`
-- Updated: 2026-08-17T14:12:29.796Z
+- Status: `completed`
+- Updated: 2026-08-17T15:13:51.900Z
 - OpenSpec references: none
 
 Upgrade handoff storage to one stable work current document with revision-safe updates, selective immutable checkpoints, schema-v3 compatibility, Chinese-first Skill output, focused retrieval, review, release, and local Codex installation.
@@ -83,3 +89,4 @@ Upgrade handoff storage to one stable work current document with revision-safe u
 - 2026-08-17T14:12:29.640Z: created -> proposed — Plan recorded.
 - 2026-08-17T14:12:29.720Z: proposed -> accepted — User confirmed the complete design baseline after the grilling decision tree.
 - 2026-08-17T14:12:29.796Z: accepted -> in-progress — User explicitly authorized implementation, review, testing, repair, publication, and local Codex plugin update.
+- 2026-08-17T15:13:51.900Z: in-progress -> completed — Implementation committed and pushed at 5f5643a; TypeScript build and 74/74 tests passed; both Sol Advisor re-reviews passed; local package and installed enabled Codex plugin 1.2.0 with schema v4 and matching Skill hash were verified.
