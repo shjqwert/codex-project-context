@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { prepareProjectIndexes } from "../dist/application/project-indexes.js";
+import { prepareProjectIndexes, resolveExternalCommand } from "../dist/application/project-indexes.js";
 import { makeTempDirectory } from "./helpers/temp-directory.mjs";
 
 test("missing CodeGraph and Serena indexes are created once with detected languages", async () => {
@@ -53,4 +53,29 @@ test("unavailable index tools are reported without installing or upgrading them"
   assert.equal(result.serena.status, "unavailable");
   assert.match(result.codegraph.message, /not available on PATH/);
   assert.match(result.serena.message, /not available on PATH/);
+});
+
+test("resolves the npm CodeGraph shim on Windows", () => {
+  const codegraph = resolveExternalCommand("codegraph", ["init", "C:\\project path"]);
+  if (process.platform === "win32") {
+    assert.equal(codegraph.command, process.env.ComSpec ?? "cmd.exe");
+    assert.deepEqual(codegraph.arguments, [
+      "/d",
+      "/s",
+      "/c",
+      "codegraph.cmd",
+      "init",
+      "C:\\project path",
+    ]);
+  } else {
+    assert.deepEqual(codegraph, {
+      command: "codegraph",
+      arguments: ["init", "C:\\project path"],
+    });
+  }
+
+  assert.deepEqual(resolveExternalCommand("serena", ["--version"]), {
+    command: "serena",
+    arguments: ["--version"],
+  });
 });

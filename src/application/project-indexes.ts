@@ -31,6 +31,11 @@ export interface CommandResult {
   timedOut?: boolean;
 }
 
+export interface ExternalCommandInvocation {
+  command: string;
+  arguments: string[];
+}
+
 export type CommandRunner = (
   command: string,
   arguments_: string[],
@@ -151,7 +156,8 @@ async function runExternalCommand(
   workingDirectory: string,
 ): Promise<CommandResult> {
   return new Promise((resolveResult) => {
-    const child = spawn(command, arguments_, {
+    const invocation = resolveExternalCommand(command, arguments_);
+    const child = spawn(invocation.command, invocation.arguments, {
       cwd: workingDirectory,
       shell: false,
       windowsHide: true,
@@ -199,6 +205,24 @@ async function runExternalCommand(
       });
     });
   });
+}
+
+/**
+ * npm exposes Windows CLIs as .cmd shims. Node's spawn with shell:false does
+ * not execute that shim directly, so route the known npm CLI through cmd.exe
+ * while keeping Node's shell option disabled.
+ */
+export function resolveExternalCommand(
+  command: string,
+  arguments_: string[],
+): ExternalCommandInvocation {
+  if (process.platform !== "win32" || command.toLowerCase() !== "codegraph") {
+    return { command, arguments: arguments_ };
+  }
+  return {
+    command: process.env.ComSpec ?? "cmd.exe",
+    arguments: ["/d", "/s", "/c", `${command}.cmd`, ...arguments_],
+  };
 }
 
 function renderCommand(command: string, arguments_: string[]): string {
