@@ -1,6 +1,6 @@
 ---
 name: project-plan-msg
-description: Record and transition a qualifying durable project-level plan in .agent/planMsg.md when a significant direction is explicitly tracked, confirmed, started, completed, rejected, or superseded across multiple tasks, modules, or OpenSpec changes. May be selected implicitly for evidence-backed plan lifecycle changes; do not trigger for ordinary bugs, code tasks, temporary ideas, or development journals.
+description: Record and transition a qualifying durable project-level plan in .agent/planMsg.md when a significant direction is explicitly tracked, confirmed, started, completed, rejected, or superseded across important capabilities, architecture directions, modules, tasks, or specification changes. May be selected implicitly for evidence-backed plan lifecycle changes; do not trigger for ordinary bugs, code tasks, temporary ideas, or development journals.
 ---
 
 # Project Plan Message
@@ -19,17 +19,20 @@ node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --act
 
 Listing must not create `.agent/planMsg.md`.
 
+Before creation, compare the confirmed direction with every nonterminal plan. Reuse the existing plan when it clearly owns the same durable goal; do not create a second plan merely because a later OpenSpec or LikeC4 locator became available. Preserve the later locator in the owning specification, architecture change, or handoff when the existing plan format cannot be amended.
+
 ## Apply the Admission Rule
 
-Record a plan only when it affects project direction, an important capability, multiple modules, multiple tasks, or multiple OpenSpec changes and has a clear goal or success criteria.
+Record a plan only when it has a durable project-level goal, affects an important capability or architecture direction, spans multiple modules/tasks/windows, or coordinates multiple specification or architecture changes, and has clear success criteria or an explicit tracking decision.
 
 - Track an unconfirmed direction as `proposed` only when the user explicitly asks to preserve it.
 - When the user confirms a qualifying direction, create it if absent and transition it to `accepted` in the same workflow.
-- Do not record ordinary bugs, single implementation tasks, one OpenSpec task, brainstorming, or progress journals.
+- An approved LikeC4 To-Be or accepted first-principles direction is valid confirmation evidence, but it still must pass this admission rule. Approval alone does not make a local change a project plan.
+- Do not record ordinary bugs, single implementation tasks, one low-scope OpenSpec or LikeC4 change, brainstorming, or progress journals.
 
 ## Create
 
-Prepare a UTF-8 JSON value in memory with `title`, `summary`, and supported `successCriteria`, `specRefs`, and `decisions`, then run:
+Prepare a UTF-8 JSON value in memory with `title`, `summary`, and supported `successCriteria`, `specRefs`, and `decisions`, then run. `specRefs` may contain project-relative OpenSpec or LikeC4 source paths; never point it at generated HTML or PNG output:
 
 ```text
 node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --action create --input -
@@ -43,7 +46,7 @@ Project-context writes are serialized by a short-lived project lock.
 
 ## Transition
 
-Supply a concise reason grounded in a user decision, accepted specification, implementation state, or observed verification:
+Supply a concise reason grounded in a user decision, accepted specification or architecture design, implementation state, or observed verification:
 
 ```text
 node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --action transition --id P001 --status accepted --reason "User approved the project direction."

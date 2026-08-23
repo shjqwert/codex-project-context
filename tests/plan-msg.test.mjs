@@ -22,7 +22,7 @@ test("plan register is lazy and validates status transitions", async () => {
     title: "Cross-task context",
     summary: "Keep project-level context deterministic.",
     successCriteria: ["Relevant handoffs are found without loading all history."],
-    specRefs: ["openspec/project-context"],
+    specRefs: ["openspec/project-context", "architecture/motor/changes/closed-loop.c4"],
     decisions: ["Use a project-local index."],
   });
   assert.equal(created.id, "P001");
@@ -46,7 +46,10 @@ test("plan register is lazy and validates status transitions", async () => {
   const markdown = await readFile(planPath, "utf8");
   assert.match(markdown, /## P001 Cross-task context/);
   assert.match(markdown, /Status: `completed`/);
+  assert.match(markdown, /Plan references:/);
+  assert.doesNotMatch(markdown, /OpenSpec references:/);
   assert.match(markdown, /openspec\/project-context/);
+  assert.match(markdown, /architecture\/motor\/changes\/closed-loop\.c4/);
 });
 
 test("concurrent equivalent project plans create one record", async () => {

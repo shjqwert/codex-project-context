@@ -15,6 +15,7 @@ const MAX_ENTRIES = 50_000;
 const IGNORED_DIRECTORIES = new Set([
   ".agent",
   ".codegraph",
+  ".generated",
   ".git",
   ".local-marketplace",
   ".metadata",
@@ -318,7 +319,8 @@ function classifyResource(path: string, directory: boolean): ProjectResourceKind
   if (/(manual|datasheet)/u.test(lower)) return "manual";
   if (extension === ".pdf") return "documentation";
   if (
-    /(^|\/)(docs?|documentation|references?)(\/|$)/u.test(lower) ||
+    /(^|\/)(architecture|docs?|documentation|references?)(\/|$)/u.test(lower) ||
+    [".c4", ".likec4"].includes(extension) ||
     (!directory && ["readme.md", "architecture.md", "contributing.md"].includes(name))
   ) {
     return "documentation";

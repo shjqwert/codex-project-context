@@ -7,20 +7,22 @@ A plan must have a durable project-level goal and at least one of:
 - important capability or architectural direction;
 - impact across multiple modules or tasks;
 - execution across multiple Codex windows;
-- multiple OpenSpec changes serving the same direction.
+- multiple OpenSpec, LikeC4, or other specification changes serving the same direction.
 
 It must also have enough information to state a title, summary, and success criteria or explicit tracking decision.
 
-Do not admit routine bugs, code tasks, one OpenSpec task, temporary ideas, or development journals.
+An approved LikeC4 To-Be is confirmation evidence, not automatic admission. Do not admit routine bugs, code tasks, one low-scope OpenSpec or LikeC4 change, temporary ideas, or development journals.
 
 ## Creation
 
 `.agent/planMsg.md` does not exist until the first qualifying plan is recorded. Listing, initialization, synchronization, and handoff creation must not create it.
 
 - Explicitly tracked but unconfirmed direction: create as `proposed`.
-- Confirmed direction: create as `proposed`, then immediately transition to `accepted` with the confirmation evidence.
+- Confirmed direction, including an admitted user-approved architecture direction: create as `proposed`, then immediately transition to `accepted` with the confirmation evidence.
 
 Exact normalized input is idempotent. Reordered criteria, references, or decisions and differences in Unicode width, case, or repeated whitespace return the existing plan. A genuinely changed direction must change its supported summary, criteria, references, or decisions; terminal plans remain immutable.
+
+A later artifact locator does not by itself create a new direction. When a nonterminal plan already owns the same durable goal, reuse its ID and keep the later OpenSpec or LikeC4 locator in the owning source or handoff instead of creating a near-duplicate plan solely to add that reference.
 
 ## State Graph
 

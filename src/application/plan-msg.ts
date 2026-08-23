@@ -194,7 +194,7 @@ function renderPlan(plan: ProjectPlan): string {
     "",
     `- Status: \`${plan.status}\``,
     `- Updated: ${plan.updatedAt}`,
-    `- OpenSpec references: ${renderValues(plan.specRefs)}`,
+    `- Plan references: ${renderValues(plan.specRefs)}`,
     "",
     plan.summary,
     "",

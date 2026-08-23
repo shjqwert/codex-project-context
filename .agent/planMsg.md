@@ -102,6 +102,58 @@
         }
       ],
       "dedupeKey": "sha256:e7d1f41d8b5bb37bb3a4878302147241d15c20ba8fc2a0c93444f9763d25e309"
+    },
+    {
+      "id": "P003",
+      "title": "Route confirmed solutions through visual architecture review",
+      "summary": "Make Embedded Architecture Review explicit or upstream-handoff-only, route stable first-principles and adversarial outcomes into LikeC4 review, and let Codex Project Context recognize stable LikeC4 evidence and record only qualifying durable plans.",
+      "status": "completed",
+      "successCriteria": [
+        "Embedded Architecture Review is not implicitly selected for ordinary development conversations.",
+        "First-principles and adversarial-review handoffs preserve confirmed decisions, evidence, findings, and architecture-impact dimensions.",
+        "LikeC4 architecture sources are discoverable while generated output and unimplemented To-Be changes are not treated as current project facts.",
+        "Qualifying confirmed directions can be recorded as accepted project plans without allowing project-init or project-sync to create planMsg.md.",
+        "Skill validation, focused plugin tests, full plugin tests, and independent adversarial review complete without unresolved material findings."
+      ],
+      "specRefs": [
+        "skills/project-plan-msg/SKILL.md",
+        "skills/project-plan-msg/references/plan-msg-format.md"
+      ],
+      "decisions": [
+        "Keep project-init and project-sync explicit-only and plan-free.",
+        "Use project-plan-msg as the sole owner of .agent/planMsg.md.",
+        "Keep LikeC4 source models authoritative for visual review and treat generated HTML or PNG as disposable output.",
+        "Do not hand-edit plugin cache; update source and verify before any separately authorized package or installation step."
+      ],
+      "createdAt": "2026-08-23T15:59:19.586Z",
+      "updatedAt": "2026-08-23T16:11:35.281Z",
+      "transitions": [
+        {
+          "from": null,
+          "to": "proposed",
+          "reason": "Plan recorded.",
+          "at": "2026-08-23T15:59:19.586Z"
+        },
+        {
+          "from": "proposed",
+          "to": "accepted",
+          "reason": "User confirmed the Skill routing and LikeC4 project-context integration design.",
+          "at": "2026-08-23T15:59:24.593Z"
+        },
+        {
+          "from": "accepted",
+          "to": "in-progress",
+          "reason": "User authorized the agreed source changes, verification, and independent adversarial review.",
+          "at": "2026-08-23T15:59:24.705Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "Implemented the confirmed Skill routing and LikeC4 project-context integration; standalone source and installed Skill hashes match, plugin build and 69/69 tests passed, and independent Sol Advisor adversarial review returned PASS with no material findings.",
+          "at": "2026-08-23T16:11:35.281Z"
+        }
+      ],
+      "dedupeKey": "sha256:aa672611756b5b9791310b3b946f487d9e82c85a538b31155fd9767df879cbee"
     }
   ]
 }
@@ -112,7 +164,7 @@
 
 - Status: `completed`
 - Updated: 2026-08-17T15:13:51.900Z
-- OpenSpec references: none
+- Plan references: none
 
 Upgrade handoff storage to one stable work current document with revision-safe updates, selective immutable checkpoints, schema-v3 compatibility, Chinese-first Skill output, focused retrieval, review, release, and local Codex installation.
 
@@ -142,7 +194,7 @@ Upgrade handoff storage to one stable work current document with revision-safe u
 
 - Status: `completed`
 - Updated: 2026-08-23T14:14:28.875Z
-- OpenSpec references: none
+- Plan references: none
 
 Remove the retired NotebookLM MCP integration and every executable, schema, CLI, Skill, test, documentation, generated-package, and installed-cache surface while preserving core project-context behavior and historical changelog evidence.
 
@@ -165,3 +217,33 @@ Remove the retired NotebookLM MCP integration and every executable, schema, CLI,
 - 2026-08-23T14:09:06.423Z: proposed -> accepted — User approved the complete NotebookLM removal plan and requested execution.
 - 2026-08-23T14:09:06.498Z: accepted -> in-progress — Implementation, verification, commit, and push have started.
 - 2026-08-23T14:14:28.875Z: in-progress -> completed — NotebookLM removal was committed and pushed at 6c6f9fa; clean TypeScript build and 68/68 tests passed; local package and installed enabled plugin 1.3.0 were verified without retired Skill, schema, module, or CLI surfaces.
+
+## P003 Route confirmed solutions through visual architecture review
+
+- Status: `completed`
+- Updated: 2026-08-23T16:11:35.281Z
+- Plan references: `skills/project-plan-msg/SKILL.md`, `skills/project-plan-msg/references/plan-msg-format.md`
+
+Make Embedded Architecture Review explicit or upstream-handoff-only, route stable first-principles and adversarial outcomes into LikeC4 review, and let Codex Project Context recognize stable LikeC4 evidence and record only qualifying durable plans.
+
+### Success Criteria
+
+- Embedded Architecture Review is not implicitly selected for ordinary development conversations.
+- First-principles and adversarial-review handoffs preserve confirmed decisions, evidence, findings, and architecture-impact dimensions.
+- LikeC4 architecture sources are discoverable while generated output and unimplemented To-Be changes are not treated as current project facts.
+- Qualifying confirmed directions can be recorded as accepted project plans without allowing project-init or project-sync to create planMsg.md.
+- Skill validation, focused plugin tests, full plugin tests, and independent adversarial review complete without unresolved material findings.
+
+### Decisions
+
+- Keep project-init and project-sync explicit-only and plan-free.
+- Use project-plan-msg as the sole owner of .agent/planMsg.md.
+- Keep LikeC4 source models authoritative for visual review and treat generated HTML or PNG as disposable output.
+- Do not hand-edit plugin cache; update source and verify before any separately authorized package or installation step.
+
+### Status History
+
+- 2026-08-23T15:59:19.586Z: created -> proposed — Plan recorded.
+- 2026-08-23T15:59:24.593Z: proposed -> accepted — User confirmed the Skill routing and LikeC4 project-context integration design.
+- 2026-08-23T15:59:24.705Z: accepted -> in-progress — User authorized the agreed source changes, verification, and independent adversarial review.
+- 2026-08-23T16:11:35.281Z: in-progress -> completed — Implemented the confirmed Skill routing and LikeC4 project-context integration; standalone source and installed Skill hashes match, plugin build and 69/69 tests passed, and independent Sol Advisor adversarial review returned PASS with no material findings.

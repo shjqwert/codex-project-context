@@ -18,6 +18,8 @@ Forbidden updates:
 
 Preserve analysis lines while their evidence remains valid. Remove or revise a line when its cited evidence disappears or conflicts with current evidence. A generic PDF is documentation, not automatically a manual. Never classify OpenSpec-owned `specs` paths as tests or render OpenSpec-owned paths in `Project References`.
 
+For LikeC4, synchronize confirmed current architecture from the formal As-Is model and corroborating code or configuration. Do not turn `architecture/<domain>/changes/` into current project facts while a change is proposed, approved but not implemented, partial, failed, or blocked. An implemented change may describe implementation state and visible residual risk, but only an applicable verification pass and migration into the formal As-Is support a verified-current claim. Ignore `.generated/` HTML, PNG, layout, and other reproducible output.
+
 Do not infer project stage, create tasks or plans, download missing references, or fabricate external facts. Return relevant missing inputs as advisories. Repeated synchronization with the same inventory and analysis must be byte-identical.
 
 Experimental document-retrieval state, source inventory, and standalone PDF library upload are outside project-sync.

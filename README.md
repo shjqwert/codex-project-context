@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.3.0` removes the retired external knowledge integration while preserving the revisioned current-handoff model and schema-v3 read compatibility.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.4.0` adds evidence-backed LikeC4 architecture discovery and plan references while preserving the revisioned current-handoff model and schema-v3 read compatibility.
 
 ## Capabilities
 
@@ -74,6 +74,23 @@ codex plugin add codex-project-context@codex-project-context-dev
 ```
 
 Install Node.js 20 or later and the Codex CLI first. Hook trust is local to each computer: review and trust the two plugin Hooks through `/hooks` after the first installation. Once trusted, normal use does not require a confirmation on every prompt.
+
+### Optional Embedded Architecture Review Setup
+
+The companion embedded Skills are maintained in [embedded_skills](https://github.com/shjqwert/embedded_skills). On the new computer, use `$skill-installer` to install the required Skill directories from that repository into the user Skill scope.
+
+LikeC4 itself is not bundled with this plugin. Install its CLI and register its official MCP server separately on each computer:
+
+```powershell
+npm install --global likec4
+codex mcp add likec4 -- npx -y @likec4/mcp
+npx skills add https://likec4.dev/
+
+codex mcp list
+likec4 --version
+```
+
+Restart Codex after registering the MCP server. Keep authoritative `.c4` or `.likec4` architecture sources in each target project and commit them with that project; rendered sites and images remain regenerable outputs.
 
 Hook changes may require review through `/hooks`. Skill metadata makes initialization and synchronization explicit-only while allowing semantic handoff and plan selection when their admission rules are satisfied.
 Hook failures remain fail-open and append bounded diagnostics without prompt contents to `$CODEX_HOME/logs/project-context-hooks.jsonl`. Prompt injection deduplication stores only SHA-256 markers under `$CODEX_HOME/state/project-context-hooks/prompt-injections`; prompt text is not persisted.

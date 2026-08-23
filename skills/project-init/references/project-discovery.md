@@ -42,7 +42,7 @@ Every generated line must be a bounded single line with at least one evidence pa
 
 ## Reference Classification
 
-- Documentation: README, architecture, docs, documentation, references.
+- Documentation: README, `architecture/`, LikeC4 `.c4` / `.likec4`, docs, documentation, references.
 - Manual: paths explicitly identified as manuals or datasheets. A generic PDF is documentation.
 - Hardware: schematic, PCB, hardware, `.sch`, `.kicad_sch`, `.dsn`.
 - Specification: OpenSpec, specification/spec directories, `.arxml`.
@@ -52,6 +52,8 @@ Record OpenSpec-owned `specs` paths as specification document directories, never
 Keep OpenSpec-owned paths in internal capability and specification-directory metadata, but omit them from generated `Project References` entries.
 
 Detection is routing evidence only. A detected directory does not prove its contents are current or authoritative.
+
+For a LikeC4 project, prefer the confirmed current model such as `architecture/<domain>/model.c4` as a durable architecture reference. Treat `architecture/<domain>/changes/` as proposed or active design evidence, not current project fact. An approved To-Be still does not prove implementation. Use it as a current fact only after current code/configuration evidence confirms implementation and the change has been migrated into the formal As-Is model. Ignore `.generated/` sites, PNGs, layout output, and other reproducible views as project references.
 
 ## Missing Inputs
 

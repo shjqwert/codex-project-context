@@ -90,6 +90,26 @@ test("Project References is omitted when only OpenSpec resources are detected", 
   assert.match(agents, /## Project Context/);
 });
 
+test("LikeC4 architecture sources are discoverable and generated views are ignored", async () => {
+  const project = await makeTempDirectory("codex-project-context-likec4-");
+  const architecture = join(project, "architecture", "motor");
+  const generated = join(architecture, ".generated", "site");
+  await mkdir(generated, { recursive: true });
+  await writeFile(join(architecture, "model.c4"), "model { motor = system 'Motor' }\n", "utf8");
+  await writeFile(join(project, "control.likec4"), "model { control = system 'Control' }\n", "utf8");
+  await writeFile(join(generated, "index.html"), "first\n", "utf8");
+
+  const before = await inspectProject(project);
+  assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "architecture"));
+  assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "architecture/motor/model.c4"));
+  assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "control.likec4"));
+  assert.ok(before.paths.every((path) => !path.includes(".generated")));
+
+  await writeFile(join(generated, "index.html"), "second\n", "utf8");
+  const after = await inspectProject(project);
+  assert.equal(after.fingerprint, before.fingerprint);
+});
+
 test("existing AGENTS content is preserved and synchronization is byte-stable", async () => {
   const project = await makeTempDirectory("codex-project-context-existing-");
   const original = "# User Rules\r\n\r\nKeep this exact line.  \r\n";
