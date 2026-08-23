@@ -209,6 +209,12 @@ test("CLI rejects unknown options and malformed numeric values", () => {
   const fractionalLimit = runCli(["match", "--prompt", "router", "--limit", "2.5"]);
   assert.equal(fractionalLimit.status, 1);
   assert.match(fractionalLimit.stderr, /non-negative integer/);
+
+  for (const removedCommand of ["notebooklm-index", "notebooklm-library"]) {
+    const removed = runCli([removedCommand]);
+    assert.equal(removed.status, 1);
+    assert.match(removed.stderr, new RegExp(`Unknown command: ${removedCommand}`));
+  }
 });
 
 function runCli(arguments_, input) {

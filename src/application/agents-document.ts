@@ -15,9 +15,6 @@ export interface ManagedAgentsOptions {
 const SOL_ADVISOR_INTEGRATION_HEADING = "## Sol Advisor Integration";
 const LEGACY_SOL_ADVISOR_HEADING = "## Subagent Orchestration";
 
-const LEGACY_NOTEBOOKLM_AGENTS_ENTRY =
-  "- `.agent/notebooklm-index.json`: NotebookLM reference bindings and document-retrieval state.";
-
 export function renderManagedAgentsSection(
   context: ProjectContext,
   options: ManagedAgentsOptions = {},
@@ -142,20 +139,6 @@ export function updateManagedSolAdvisorIntegration(
   const integration = renderSolAdvisorIntegration(policy).join(lineBreak);
   managed = `${managed.slice(0, insertionIndex)}${integration}${lineBreak}${managed.slice(insertionIndex)}`;
 
-  return `${current.slice(0, start)}${managed}${current.slice(after)}`;
-}
-
-export function removeLegacyExperimentalIndexEntry(current: string): string {
-  const start = current.indexOf(MANAGED_START);
-  const end = current.indexOf(MANAGED_END);
-  if (start < 0 || end < start || countOccurrences(current, MANAGED_START) !== 1 || countOccurrences(current, MANAGED_END) !== 1) {
-    throw new Error("Legacy project context requires one complete project-context managed section; run project-sync with a current analysis input.");
-  }
-  const after = end + MANAGED_END.length;
-  const lineBreak = current.includes("\r\n") ? "\r\n" : "\n";
-  let managed = current.slice(start, after);
-  const entryPattern = new RegExp(`(?:\\r?\\n)?${escapeRegExp(LEGACY_NOTEBOOKLM_AGENTS_ENTRY)}(?:\\r?\\n)?`, "gu");
-  managed = managed.replace(entryPattern, lineBreak);
   return `${current.slice(0, start)}${managed}${current.slice(after)}`;
 }
 

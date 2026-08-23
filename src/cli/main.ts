@@ -22,17 +22,9 @@ import {
   initializeProject,
   synchronizeProject,
 } from "../application/project-context.js";
-import {
-  configureProjectNotebookLmIndex,
-  getProjectNotebookLmIndexStatus,
-} from "../application/notebooklm-project.js";
-import {
-  inspectNotebookLmLibrary,
-  updateNotebookLmLibraryManifest,
-} from "../application/notebooklm-library.js";
 import type { HandoffWriteInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.2.1";
+const VERSION = "1.3.0";
 const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
 
 await main().catch((error: unknown) => {
@@ -73,31 +65,6 @@ async function main(): Promise<void> {
     case "status":
       writeJson(await getProjectStatus(project));
       break;
-    case "notebooklm-index": {
-      const action = requiredOption(options, "action");
-      if (action === "status") {
-        writeJson(await getProjectNotebookLmIndexStatus(project));
-      } else if (action === "configure") {
-        const input = await readJsonInput<unknown>(requiredOption(options, "input"));
-        writeJson(await configureProjectNotebookLmIndex(project, input));
-      } else {
-        throw new Error("--action must be status or configure.");
-      }
-      break;
-    }
-    case "notebooklm-library": {
-      const root = resolve(requiredOption(options, "root"));
-      const action = requiredOption(options, "action");
-      if (action === "inspect") {
-        writeJson(await inspectNotebookLmLibrary(root));
-      } else if (action === "update") {
-        const input = await readJsonInput<unknown>(requiredOption(options, "input"));
-        writeJson(await updateNotebookLmLibraryManifest(root, input));
-      } else {
-        throw new Error("--action must be inspect or update.");
-      }
-      break;
-    }
     case "authorization": {
       const action = requiredOption(options, "sol-advisor-implicit-delegation");
       if (
@@ -236,8 +203,6 @@ function assertAllowedOptions(command: string, options: Map<string, string[]>): 
     init: ["project", "input", "no-sol-advisor-implicit-delegation"],
     sync: ["project", "input"],
     status: ["project"],
-    "notebooklm-index": ["project", "action", "input"],
-    "notebooklm-library": ["root", "action", "input"],
     authorization: ["project", "sol-advisor-implicit-delegation"],
     match: ["project", "prompt", "limit"],
     handoff: ["project", "input"],
@@ -284,10 +249,6 @@ Usage:
   codex-project-context init [--project PATH] --input FILE|- [--no-sol-advisor-implicit-delegation]
   codex-project-context sync [--project PATH] --input FILE|-
   codex-project-context status [--project PATH]
-  codex-project-context notebooklm-index [--project PATH] --action status
-  codex-project-context notebooklm-index [--project PATH] --action configure --input FILE|-
-  codex-project-context notebooklm-library --root PATH --action inspect
-  codex-project-context notebooklm-library --root PATH --action update --input FILE|-
   codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|disable|inherit|remove
   codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
   codex-project-context handoff [--project PATH] --input FILE|-

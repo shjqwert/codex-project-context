@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.2.0` keeps one revisioned current handoff per objective, stores only Agent-selected milestone snapshots, and reads schema-v3 records without rewriting them.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.3.0` removes the retired external knowledge integration while preserving the revisioned current-handoff model and schema-v3 read compatibility.
 
 ## Capabilities
 
@@ -14,9 +14,7 @@
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
 - Skill-authored handoff prose defaults to Chinese while exact identifiers remain unchanged and bounded bilingual aliases preserve English retrieval. An explicit previous-task cue returns the most recent active or blocked current work before closed work.
 
-Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, MarkItDown, or NotebookLM. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
-
-The explicit-only `$codex-project-context:notebooklm-reference-experimental` Skill preserves the previous NotebookLM search, refresh, upload, and experience-note workflows for later evaluation. Its MCP dependency, indexes, failures, and authentication are isolated from `project-init`, `project-sync`, `status`, authorization, Hooks, and ordinary local-document retrieval.
+Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
 
 ## Generated Project Context
 
@@ -100,15 +98,6 @@ node dist/cli/main.js handoff-history --project D:\path\to\project --work-id W00
 node dist/cli/main.js handoff-index --project D:\path\to\project --action verify
 node dist/cli/main.js handoff-index --project D:\path\to\project --action rebuild
 node dist/cli/main.js plan --project D:\path\to\project --action list
-```
-
-Experimental NotebookLM CLI compatibility remains available only for explicit use:
-
-```powershell
-node dist/cli/main.js notebooklm-index --project D:\path\to\project --action status
-$notebookLmIndexJson | node dist/cli/main.js notebooklm-index --project D:\path\to\project --action configure --input -
-node dist/cli/main.js notebooklm-library --root D:\path\to\pdf-library --action inspect
-$manifestJson | node dist/cli/main.js notebooklm-library --root D:\path\to\pdf-library --action update --input -
 ```
 
 `prepare-indexes` creates only missing CodeGraph and Serena project indexes and reports unavailable or failed tools without installing or upgrading them. Initialization, synchronization, handoff creation, and plan creation accept UTF-8 JSON from a file or standard input. The bundled Skills write generated JSON directly to standard input so they do not create intermediate files. See the bundled Skill references for admission criteria, supported fields, evidence rules, and state transitions.

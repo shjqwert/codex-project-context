@@ -30,7 +30,6 @@ import { EMPTY_HANDOFF_INDEX, validateHandoffIndex } from "./handoff-index.js";
 import {
   countDocumentLines,
   hasManagedSolAdvisorIntegration,
-  removeLegacyExperimentalIndexEntry,
   renderManagedAgentsSection,
   updateManagedSolAdvisorIntegration,
   upsertManagedAgentsSection,
@@ -442,9 +441,7 @@ async function prepareManagedAgentsSection(
   if (context.analysis === undefined) {
     return {
       agentsPath,
-      next: removeLegacyExperimentalIndexEntry(
-        updateManagedSolAdvisorIntegration(current, solAdvisorDelegationPolicy),
-      ),
+      next: updateManagedSolAdvisorIntegration(current, solAdvisorDelegationPolicy),
     };
   }
   const managed = renderManagedAgentsSection(context, {
