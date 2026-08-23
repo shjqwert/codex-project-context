@@ -60,7 +60,7 @@
       "id": "P002",
       "title": "Remove NotebookLM integration",
       "summary": "Remove the retired NotebookLM MCP integration and every executable, schema, CLI, Skill, test, documentation, generated-package, and installed-cache surface while preserving core project-context behavior and historical changelog evidence.",
-      "status": "in-progress",
+      "status": "completed",
       "successCriteria": [
         "No NotebookLM Skill, MCP dependency, CLI command, application module, public type, schema, current documentation, dedicated test, or packaged artifact remains.",
         "Legacy NotebookLM project or library data is never deleted automatically.",
@@ -74,7 +74,7 @@
         "Clean generated output before rebuilding so deleted TypeScript sources cannot survive as stale package files."
       ],
       "createdAt": "2026-08-23T14:09:06.339Z",
-      "updatedAt": "2026-08-23T14:09:06.498Z",
+      "updatedAt": "2026-08-23T14:14:28.875Z",
       "transitions": [
         {
           "from": null,
@@ -93,6 +93,12 @@
           "to": "in-progress",
           "reason": "Implementation, verification, commit, and push have started.",
           "at": "2026-08-23T14:09:06.498Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "NotebookLM removal was committed and pushed at 6c6f9fa; clean TypeScript build and 68/68 tests passed; local package and installed enabled plugin 1.3.0 were verified without retired Skill, schema, module, or CLI surfaces.",
+          "at": "2026-08-23T14:14:28.875Z"
         }
       ],
       "dedupeKey": "sha256:e7d1f41d8b5bb37bb3a4878302147241d15c20ba8fc2a0c93444f9763d25e309"
@@ -134,8 +140,8 @@ Upgrade handoff storage to one stable work current document with revision-safe u
 
 ## P002 Remove NotebookLM integration
 
-- Status: `in-progress`
-- Updated: 2026-08-23T14:09:06.498Z
+- Status: `completed`
+- Updated: 2026-08-23T14:14:28.875Z
 - OpenSpec references: none
 
 Remove the retired NotebookLM MCP integration and every executable, schema, CLI, Skill, test, documentation, generated-package, and installed-cache surface while preserving core project-context behavior and historical changelog evidence.
@@ -158,3 +164,4 @@ Remove the retired NotebookLM MCP integration and every executable, schema, CLI,
 - 2026-08-23T14:09:06.339Z: created -> proposed — Plan recorded.
 - 2026-08-23T14:09:06.423Z: proposed -> accepted — User approved the complete NotebookLM removal plan and requested execution.
 - 2026-08-23T14:09:06.498Z: accepted -> in-progress — Implementation, verification, commit, and push have started.
+- 2026-08-23T14:14:28.875Z: in-progress -> completed — NotebookLM removal was committed and pushed at 6c6f9fa; clean TypeScript build and 68/68 tests passed; local package and installed enabled plugin 1.3.0 were verified without retired Skill, schema, module, or CLI surfaces.
