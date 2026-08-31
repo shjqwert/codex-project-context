@@ -1,0 +1,2 @@
+# Frozen retrieval corpus hashes must survive Windows checkouts unchanged.
+tests/fixtures/retrieval/corpus.json text eol=lf
