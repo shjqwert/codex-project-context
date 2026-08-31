@@ -1,0 +1,376 @@
+{
+  "fixtureSha256": "1b31ce2b016823a7c682cbdbc60cb63396e764b47bc20f4738e4fa19e71a95d3",
+  "split": "development",
+  "metrics": {
+    "automaticPrecision": 0.6829268292682927,
+    "automaticRecall": 1,
+    "top1": 0.9558823529411765,
+    "multiComplete": 1,
+    "negativeFalsePositiveRate": 0.4166666666666667,
+    "negativeAnyResultRate": 0.4166666666666667,
+    "ambiguityPreservation": 0
+  },
+  "counts": {
+    "queries": 104,
+    "correct": 84,
+    "returned": 123,
+    "relevant": 84,
+    "topTotal": 68,
+    "multiTotal": 8,
+    "negatives": 24,
+    "ambiguities": 4
+  },
+  "failures": [
+    {
+      "id": "Q002",
+      "category": "en",
+      "expected": [
+        "W101"
+      ],
+      "automatic": [
+        "W102",
+        "W101"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q004",
+      "category": "paraphrase-en",
+      "expected": [
+        "W101"
+      ],
+      "automatic": [
+        "W102",
+        "W101"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q006",
+      "category": "path",
+      "expected": [
+        "W101"
+      ],
+      "automatic": [
+        "W101",
+        "W102"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q014",
+      "category": "path",
+      "expected": [
+        "W102"
+      ],
+      "automatic": [
+        "W102",
+        "W101"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q020",
+      "category": "paraphrase-en",
+      "expected": [
+        "W103"
+      ],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q022",
+      "category": "path",
+      "expected": [
+        "W103"
+      ],
+      "automatic": [
+        "W103",
+        "W104"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q026",
+      "category": "en",
+      "expected": [
+        "W104"
+      ],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q028",
+      "category": "paraphrase-en",
+      "expected": [
+        "W104"
+      ],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q030",
+      "category": "path",
+      "expected": [
+        "W104"
+      ],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q054",
+      "category": "path",
+      "expected": [
+        "W107"
+      ],
+      "automatic": [
+        "W107",
+        "W108"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q058",
+      "category": "en",
+      "expected": [
+        "W108"
+      ],
+      "automatic": [
+        "W108",
+        "W107"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q060",
+      "category": "paraphrase-en",
+      "expected": [
+        "W108"
+      ],
+      "automatic": [
+        "W108",
+        "W107"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q062",
+      "category": "path",
+      "expected": [
+        "W108"
+      ],
+      "automatic": [
+        "W108",
+        "W107"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q129",
+      "category": "exclusion",
+      "expected": [
+        "W102"
+      ],
+      "automatic": [
+        "W102",
+        "W101"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q132",
+      "category": "exclusion",
+      "expected": [
+        "W104"
+      ],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q135",
+      "category": "exclusion",
+      "expected": [
+        "W106"
+      ],
+      "automatic": [
+        "W106",
+        "W105"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q138",
+      "category": "exclusion",
+      "expected": [
+        "W108"
+      ],
+      "automatic": [
+        "W108",
+        "W107"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q153",
+      "category": "ambiguous",
+      "expected": [
+        "W109",
+        "W110"
+      ],
+      "automatic": [
+        "W110",
+        "W109"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q154",
+      "category": "ambiguous",
+      "expected": [
+        "W109",
+        "W110"
+      ],
+      "automatic": [
+        "W110",
+        "W109"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q155",
+      "category": "ambiguous",
+      "expected": [
+        "W109",
+        "W110"
+      ],
+      "automatic": [
+        "W110",
+        "W109"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q156",
+      "category": "ambiguous",
+      "expected": [
+        "W109",
+        "W110"
+      ],
+      "automatic": [
+        "W110",
+        "W109"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q185",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W001"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q186",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W001"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q187",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W001"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q188",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q189",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q190",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q192",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W104",
+        "W103"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q194",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W108",
+        "W107"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q195",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W102",
+        "W101"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q196",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W106",
+        "W105"
+      ],
+      "candidates": []
+    }
+  ],
+  "passed": false
+}

@@ -1,0 +1,47 @@
+{
+  "fixtureSha256": "1b31ce2b016823a7c682cbdbc60cb63396e764b47bc20f4738e4fa19e71a95d3",
+  "split": "holdout",
+  "metrics": {
+    "automaticPrecision": 1,
+    "automaticRecall": 0.9761904761904762,
+    "top1": 0.9705882352941176,
+    "multiComplete": 1,
+    "negativeFalsePositiveRate": 0,
+    "negativeAnyResultRate": 0,
+    "ambiguityPreservation": 1
+  },
+  "counts": {
+    "queries": 104,
+    "correct": 82,
+    "returned": 82,
+    "relevant": 84,
+    "topTotal": 68,
+    "multiTotal": 8,
+    "negatives": 24,
+    "ambiguities": 4
+  },
+  "failures": [
+    {
+      "id": "Q076",
+      "category": "paraphrase-en",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [],
+      "candidates": [
+        "W202",
+        "W201"
+      ]
+    },
+    {
+      "id": "Q080",
+      "category": "topic-continuation",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [],
+      "candidates": []
+    }
+  ],
+  "passed": true
+}

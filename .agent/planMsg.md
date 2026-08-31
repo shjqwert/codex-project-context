@@ -154,6 +154,51 @@
         }
       ],
       "dedupeKey": "sha256:aa672611756b5b9791310b3b946f487d9e82c85a538b31155fd9767df879cbee"
+    },
+    {
+      "id": "P004",
+      "title": "工作流交接、检索精度与 C4 状态跟踪",
+      "summary": "按用户确认范围收敛 embedded_skills 交接职责，提高 Project Context 检索精确度并跟踪 C4 四维状态；明确排除 RAG。完整技术方案先接受独立对抗审查，重要发现由用户处置后再确认实施。",
+      "status": "in-progress",
+      "successCriteria": [
+        "技能交接、模型选择和设备操作职责清晰，原有触发与安全边界不退化。",
+        "通过冻结的正例、负例、歧义和中英文改写评测，同时证明精确度与必要召回。",
+        "C4 状态能跨任务恢复并辨别过期快照，implemented、pass 与批准声明不混同。",
+        "不纳入 RAG 优化，保留现有数据与工作区修改。",
+        "独立对抗审查的重要发现经用户处置，后续实施和发布另行确认。"
+      ],
+      "specRefs": [
+        "docs/plans/2026-08-31-workflow-retrieval-c4.md"
+      ],
+      "decisions": [
+        "用户已接受 embedded_skills 的四项调整。",
+        "用户要求提升语义检索精确度并跟踪 C4 状态。",
+        "用户明确暂不纳入 RAG，正式接入后再讨论。",
+        "当前为计划与审查阶段；文档中的技术细节和数值目标仍待审查与确认。"
+      ],
+      "createdAt": "2026-08-31T06:20:36.111Z",
+      "updatedAt": "2026-08-31T07:11:21.232Z",
+      "transitions": [
+        {
+          "from": null,
+          "to": "proposed",
+          "reason": "Plan recorded.",
+          "at": "2026-08-31T06:20:36.111Z"
+        },
+        {
+          "from": "proposed",
+          "to": "accepted",
+          "reason": "用户确认执行完整计划及三项审查补充，C4 采用证据绑定方案；RAG 排除。",
+          "at": "2026-08-31T07:11:20.875Z"
+        },
+        {
+          "from": "accepted",
+          "to": "in-progress",
+          "reason": "开始冻结评测、调整技能和检索实现；构建用于测试，发布与安装另行确认。",
+          "at": "2026-08-31T07:11:21.232Z"
+        }
+      ],
+      "dedupeKey": "sha256:d6e9051c7d5ea0ea3397da4cf8ea3a7132a4acd471155358e986a93f59e046ce"
     }
   ]
 }
@@ -247,3 +292,32 @@ Make Embedded Architecture Review explicit or upstream-handoff-only, route stabl
 - 2026-08-23T15:59:24.593Z: proposed -> accepted — User confirmed the Skill routing and LikeC4 project-context integration design.
 - 2026-08-23T15:59:24.705Z: accepted -> in-progress — User authorized the agreed source changes, verification, and independent adversarial review.
 - 2026-08-23T16:11:35.281Z: in-progress -> completed — Implemented the confirmed Skill routing and LikeC4 project-context integration; standalone source and installed Skill hashes match, plugin build and 69/69 tests passed, and independent Sol Advisor adversarial review returned PASS with no material findings.
+
+## P004 工作流交接、检索精度与 C4 状态跟踪
+
+- Status: `in-progress`
+- Updated: 2026-08-31T07:11:21.232Z
+- Plan references: `docs/plans/2026-08-31-workflow-retrieval-c4.md`
+
+按用户确认范围收敛 embedded_skills 交接职责，提高 Project Context 检索精确度并跟踪 C4 四维状态；明确排除 RAG。完整技术方案先接受独立对抗审查，重要发现由用户处置后再确认实施。
+
+### Success Criteria
+
+- 技能交接、模型选择和设备操作职责清晰，原有触发与安全边界不退化。
+- 通过冻结的正例、负例、歧义和中英文改写评测，同时证明精确度与必要召回。
+- C4 状态能跨任务恢复并辨别过期快照，implemented、pass 与批准声明不混同。
+- 不纳入 RAG 优化，保留现有数据与工作区修改。
+- 独立对抗审查的重要发现经用户处置，后续实施和发布另行确认。
+
+### Decisions
+
+- 用户已接受 embedded_skills 的四项调整。
+- 用户要求提升语义检索精确度并跟踪 C4 状态。
+- 用户明确暂不纳入 RAG，正式接入后再讨论。
+- 当前为计划与审查阶段；文档中的技术细节和数值目标仍待审查与确认。
+
+### Status History
+
+- 2026-08-31T06:20:36.111Z: created -> proposed — Plan recorded.
+- 2026-08-31T07:11:20.875Z: proposed -> accepted — 用户确认执行完整计划及三项审查补充，C4 采用证据绑定方案；RAG 排除。
+- 2026-08-31T07:11:21.232Z: accepted -> in-progress — 开始冻结评测、调整技能和检索实现；构建用于测试，发布与安装另行确认。

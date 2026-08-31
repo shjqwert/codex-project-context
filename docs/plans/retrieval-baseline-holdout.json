@@ -1,0 +1,418 @@
+{
+  "fixtureSha256": "1b31ce2b016823a7c682cbdbc60cb63396e764b47bc20f4738e4fa19e71a95d3",
+  "split": "holdout",
+  "metrics": {
+    "automaticPrecision": 0.6614173228346457,
+    "automaticRecall": 1,
+    "top1": 0.9411764705882353,
+    "multiComplete": 1,
+    "negativeFalsePositiveRate": 0.5,
+    "negativeAnyResultRate": 0.5,
+    "ambiguityPreservation": 0
+  },
+  "counts": {
+    "queries": 104,
+    "correct": 84,
+    "returned": 127,
+    "relevant": 84,
+    "topTotal": 68,
+    "multiTotal": 8,
+    "negatives": 24,
+    "ambiguities": 4
+  },
+  "failures": [
+    {
+      "id": "Q066",
+      "category": "en",
+      "expected": [
+        "W201"
+      ],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q070",
+      "category": "path",
+      "expected": [
+        "W201"
+      ],
+      "automatic": [
+        "W201",
+        "W202"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q074",
+      "category": "en",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q076",
+      "category": "paraphrase-en",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q078",
+      "category": "path",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q098",
+      "category": "en",
+      "expected": [
+        "W205"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q100",
+      "category": "paraphrase-en",
+      "expected": [
+        "W205"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q102",
+      "category": "path",
+      "expected": [
+        "W205"
+      ],
+      "automatic": [
+        "W205",
+        "W206"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q106",
+      "category": "en",
+      "expected": [
+        "W206"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q108",
+      "category": "paraphrase-en",
+      "expected": [
+        "W206"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q110",
+      "category": "path",
+      "expected": [
+        "W206"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q116",
+      "category": "paraphrase-en",
+      "expected": [
+        "W207"
+      ],
+      "automatic": [
+        "W208",
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q118",
+      "category": "path",
+      "expected": [
+        "W207"
+      ],
+      "automatic": [
+        "W207",
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q124",
+      "category": "paraphrase-en",
+      "expected": [
+        "W208"
+      ],
+      "automatic": [
+        "W208",
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q126",
+      "category": "path",
+      "expected": [
+        "W208"
+      ],
+      "automatic": [
+        "W208",
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q141",
+      "category": "exclusion",
+      "expected": [
+        "W202"
+      ],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q144",
+      "category": "exclusion",
+      "expected": [
+        "W204"
+      ],
+      "automatic": [
+        "W204",
+        "W203"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q147",
+      "category": "exclusion",
+      "expected": [
+        "W206"
+      ],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q150",
+      "category": "exclusion",
+      "expected": [
+        "W208"
+      ],
+      "automatic": [
+        "W208",
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q157",
+      "category": "ambiguous",
+      "expected": [
+        "W209",
+        "W210"
+      ],
+      "automatic": [
+        "W210",
+        "W209"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q158",
+      "category": "ambiguous",
+      "expected": [
+        "W209",
+        "W210"
+      ],
+      "automatic": [
+        "W210",
+        "W209"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q159",
+      "category": "ambiguous",
+      "expected": [
+        "W209",
+        "W210"
+      ],
+      "automatic": [
+        "W210",
+        "W209"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q160",
+      "category": "ambiguous",
+      "expected": [
+        "W209",
+        "W210"
+      ],
+      "automatic": [
+        "W210",
+        "W209"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q197",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q198",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W203"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q199",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q200",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q201",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q202",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q203",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W206",
+        "W205"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q204",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W202",
+        "W201"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q205",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W204",
+        "W203"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q206",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W208",
+        "W207"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q207",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W202"
+      ],
+      "candidates": []
+    },
+    {
+      "id": "Q208",
+      "category": "negative",
+      "expected": [],
+      "automatic": [
+        "W203"
+      ],
+      "candidates": []
+    }
+  ],
+  "passed": false
+}

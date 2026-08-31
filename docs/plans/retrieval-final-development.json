@@ -1,0 +1,25 @@
+{
+  "fixtureSha256": "1b31ce2b016823a7c682cbdbc60cb63396e764b47bc20f4738e4fa19e71a95d3",
+  "split": "development",
+  "metrics": {
+    "automaticPrecision": 1,
+    "automaticRecall": 1,
+    "top1": 1,
+    "multiComplete": 1,
+    "negativeFalsePositiveRate": 0,
+    "negativeAnyResultRate": 0,
+    "ambiguityPreservation": 1
+  },
+  "counts": {
+    "queries": 104,
+    "correct": 84,
+    "returned": 84,
+    "relevant": 84,
+    "topTotal": 68,
+    "multiTotal": 8,
+    "negatives": 24,
+    "ambiguities": 4
+  },
+  "failures": [],
+  "passed": true
+}
