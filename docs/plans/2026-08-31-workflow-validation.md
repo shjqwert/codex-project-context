@@ -1,6 +1,6 @@
 # P004 源码阶段验收
 
-日期：2026-08-31。源码、文档及 Codex 安装已完成，本地提交已生成；两个仓库的推送受本地分支命名钩子阻塞。RAG 不在本轮范围。
+日期：2026-08-31。源码、文档、Codex 安装和三个仓库的提交推送已完成。RAG 不在本轮范围。
 
 ## 检索评测
 
@@ -59,6 +59,6 @@
 ## Git交付状态
 
 - Skills与Sol已分别提交；Project Context检索、状态指引及检出属性也已分开提交。
-- Sol提交`255729d`已推送main；embedded_skills的`9303e15`与Project Context的本地提交等待推送。
-- embedded_skills和codex-project-context具有相同的本地pre-push钩子，只允许`branchs/R工号_缩写/...`，拒绝main。本轮未绕过或修改钩子，未强推；待用户决定处理方式，P004保持in-progress。
+- Sol提交`255729d`、embedded_skills的`9303e15`以及Project Context的`2bff067`均已推送main并核对远程提交一致；本条完成记录随后单独提交推送。
+- 用户明确授权移除分支命名限制后，将embedded_skills和codex-project-context的pre-push钩子移至同目录`pre-push.branch-policy-disabled-<时间>`备份。仅移除该分支命名检查，保留其他钩子，未强推。P004已完成。
 - 工作区索引和临时图片未加入提交；未进行硬件操作、npm发布或GitHub Release发布。

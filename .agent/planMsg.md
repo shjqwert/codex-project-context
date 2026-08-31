@@ -159,7 +159,7 @@
       "id": "P004",
       "title": "工作流交接、检索精度与 C4 状态跟踪",
       "summary": "按用户确认范围收敛 embedded_skills 交接职责，提高 Project Context 检索精确度并跟踪 C4 四维状态；明确排除 RAG。完整技术方案先接受独立对抗审查，重要发现由用户处置后再确认实施。",
-      "status": "in-progress",
+      "status": "completed",
       "successCriteria": [
         "技能交接、模型选择和设备操作职责清晰，原有触发与安全边界不退化。",
         "通过冻结的正例、负例、歧义和中英文改写评测，同时证明精确度与必要召回。",
@@ -177,7 +177,7 @@
         "当前为计划与审查阶段；文档中的技术细节和数值目标仍待审查与确认。"
       ],
       "createdAt": "2026-08-31T06:20:36.111Z",
-      "updatedAt": "2026-08-31T07:11:21.232Z",
+      "updatedAt": "2026-08-31T09:08:54.408Z",
       "transitions": [
         {
           "from": null,
@@ -196,6 +196,12 @@
           "to": "in-progress",
           "reason": "开始冻结评测、调整技能和检索实现；构建用于测试，发布与安装另行确认。",
           "at": "2026-08-31T07:11:21.232Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "源码及80项测试、独立审查与离线C4验收完成；Project Context 1.5.0、Sol 0.12.2和4个技能已安装验证；三个仓库提交已推送，用户授权移除本地分支命名钩子并保留备份。",
+          "at": "2026-08-31T09:08:54.408Z"
         }
       ],
       "dedupeKey": "sha256:d6e9051c7d5ea0ea3397da4cf8ea3a7132a4acd471155358e986a93f59e046ce"
@@ -295,8 +301,8 @@ Make Embedded Architecture Review explicit or upstream-handoff-only, route stabl
 
 ## P004 工作流交接、检索精度与 C4 状态跟踪
 
-- Status: `in-progress`
-- Updated: 2026-08-31T07:11:21.232Z
+- Status: `completed`
+- Updated: 2026-08-31T09:08:54.408Z
 - Plan references: `docs/plans/2026-08-31-workflow-retrieval-c4.md`
 
 按用户确认范围收敛 embedded_skills 交接职责，提高 Project Context 检索精确度并跟踪 C4 四维状态；明确排除 RAG。完整技术方案先接受独立对抗审查，重要发现由用户处置后再确认实施。
@@ -321,3 +327,4 @@ Make Embedded Architecture Review explicit or upstream-handoff-only, route stabl
 - 2026-08-31T06:20:36.111Z: created -> proposed — Plan recorded.
 - 2026-08-31T07:11:20.875Z: proposed -> accepted — 用户确认执行完整计划及三项审查补充，C4 采用证据绑定方案；RAG 排除。
 - 2026-08-31T07:11:21.232Z: accepted -> in-progress — 开始冻结评测、调整技能和检索实现；构建用于测试，发布与安装另行确认。
+- 2026-08-31T09:08:54.408Z: in-progress -> completed — 源码及80项测试、独立审查与离线C4验收完成；Project Context 1.5.0、Sol 0.12.2和4个技能已安装验证；三个仓库提交已推送，用户授权移除本地分支命名钩子并保留备份。
