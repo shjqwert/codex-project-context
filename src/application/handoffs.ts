@@ -30,7 +30,8 @@ import {
   normalizeHandoffAliases,
   validateHandoffIndex,
 } from "./handoff-index.js";
-import { searchHandoffsBm25, type Bm25Hit } from "./bm25.js";
+import { rankHandoffsBm25, searchHandoffsBm25, tokenizeBm25, type Bm25Hit } from "./bm25.js";
+import { analyzeRetrievalQuery } from "./retrieval-query.js";
 import { readProjectContext, requireProjectRoot } from "./project-context.js";
 
 const SECTION_LABELS: Array<[keyof HandoffSections, string, string]> = [
@@ -171,28 +172,126 @@ export function matchHandoffEntries(
   prompt: string,
   bm25Search: (entries: HandoffIndexEntry[], query: string) => Bm25Hit[] = searchHandoffsBm25,
 ): HandoffMatch[] {
-  const normalizedPrompt = normalizeSearchText(prompt);
-  const ruleMatches = entries
-    .map((entry) => scoreRuleEntry(entry, normalizedPrompt))
-    .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD);
+  const query = analyzeRetrievalQuery(prompt);
+  const eligible = entries.filter((entry) => !query.excluded.some((clause) => entryMatchesExclusion(entry, clause)));
+  const normalizedPrompt = normalizeSearchText(query.positive);
   let lexicalHits: Bm25Hit[] = [];
+  let clauseHits: Bm25Hit[][] = [];
   try {
-    lexicalHits = bm25Search(entries, prompt);
+    clauseHits = query.clauses.map((clause) => bm25Search(eligible, clause));
+    lexicalHits = clauseHits.flat();
   } catch {
     // BM25 is optional; deterministic routing must remain available.
   }
+  const ruleMatches = eligible
+    .map((entry) => scoreRuleEntry(entry, normalizedPrompt))
+    .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD)
+    .filter((match) => match.score >= 80 || lexicalHits.some((hit) => hit.entry.workId === match.entry.workId)
+      || query.clauses.some((clause) => isBareModuleLookup(match.entry, clause)));
   const merged = new Map<string, HandoffMatch>();
   for (const match of ruleMatches) merged.set(match.entry.workId, match);
   for (const hit of lexicalHits) {
-    if (!merged.has(hit.entry.workId)) merged.set(hit.entry.workId, bm25Match(hit));
+    const existing = merged.get(hit.entry.workId);
+    if (existing === undefined || existing.score === BM25_MATCH_SCORE && hit.rawScore > (existing.bm25Score ?? 0)) {
+      merged.set(hit.entry.workId, bm25Match(hit));
+    } else if (existing.score < 80) {
+      Object.assign(existing, { matchedTerms: hit.matchedTerms, termCoverage: hit.termCoverage, bm25Score: hit.rawScore });
+    }
   }
-  if (merged.size > 0) return [...merged.values()].sort(compareMatches);
-  if (!hasRecentContinuationCue(normalizedPrompt)) return [];
-  const preferred = [...entries]
+  if (merged.size > 0) {
+    const matches = [...merged.values()].sort(compareMatches);
+    if (!query.explicitAll) {
+      const ambiguousIds = new Set<string>();
+      for (const [index, clause] of query.clauses.entries()) {
+        const local = new Map<string, HandoffMatch>();
+        for (const hit of clauseHits[index] ?? []) local.set(hit.entry.workId, bm25Match(hit));
+        for (const match of matches) {
+          if (!local.has(match.entry.workId) && match.score < 80 && isBareModuleLookup(match.entry, clause)) {
+            local.set(match.entry.workId, match);
+          }
+        }
+        const candidates = [...local.values()].sort(compareMatches);
+        if (hasAmbiguousLeaders(candidates)) for (const candidate of candidates) ambiguousIds.add(candidate.entry.workId);
+      }
+      for (const match of matches) {
+        if (match.score < 80 && ambiguousIds.has(match.entry.workId)) {
+          match.disposition = "candidate";
+          match.reasons.push("ambiguous objective; inspect metadata before reading current documents");
+        }
+      }
+    }
+    return matches;
+  }
+  if (!query.continuationOnly) return [];
+  const preferred = [...eligible]
     .filter((entry) => !CLOSED_STATUSES.has(entry.status))
     .sort(compareEntriesByRecency)[0]
-    ?? [...entries].sort(compareEntriesByRecency)[0];
+    ?? [...eligible].sort(compareEntriesByRecency)[0];
   return preferred === undefined ? [] : [baseMatch(preferred, MATCH_THRESHOLD, ["recent continuation cue"])];
+}
+
+function isBareModuleLookup(entry: HandoffIndexEntry, clause: string): boolean {
+  const normalized = normalizeSearchText(clause);
+  return entry.routing.modules.some((module) => containsBounded(normalized, module)
+    && tokenizeBm25(clause).every((term) => tokenizeBm25(module).includes(term)));
+}
+
+function hasAmbiguousLeaders(matches: HandoffMatch[]): boolean {
+  const [first, second] = matches;
+  if (first === undefined || second === undefined || first.score >= 80 || second.score >= 80) return false;
+  const firstTerms = first.matchedTerms ?? [];
+  const secondTerms = second.matchedTerms ?? [];
+  if (firstTerms.length === 0 || secondTerms.length === 0) return first.score === second.score;
+  const overlap = firstTerms.filter((term) => secondTerms.includes(term)).length;
+  const firstScore = first.bm25Score ?? first.score;
+  const secondScore = second.bm25Score ?? second.score;
+  const sameEvidence = firstTerms.length === secondTerms.length && overlap === firstTerms.length;
+  return (sameEvidence || Math.abs(firstScore - secondScore) / Math.max(firstScore, secondScore) < 0.12)
+    && overlap / Math.max(firstTerms.length, secondTerms.length) >= 0.5;
+}
+
+function entryMatchesExclusion(entry: HandoffIndexEntry, clause: string): boolean {
+  const normalized = normalizeSearchText(clause);
+  if ([entry.workId, ...entry.legacyRecordIds, ...entry.routing.specRefs, ...entry.routing.bugIds,
+    ...entry.routing.files, ...entry.routing.symbols, ...entry.routing.modules]
+    .some((value) => containsBounded(normalized, value))) return true;
+  const text = normalizeSearchText([entry.title, entry.summary, ...entry.routing.aliases ?? []].join(" "));
+  return /\p{Script=Han}/u.test(normalized) ? text.includes(normalized) : containsBounded(text, normalized);
+}
+
+export function explainHandoffEntries(entries: HandoffIndexEntry[], prompt: string) {
+  const query = analyzeRetrievalQuery(prompt);
+  const matches = matchHandoffEntries(entries, prompt);
+  const selected = new Set(matches.map((match) => match.entry.workId));
+  const ranking = rankHandoffsBm25(entries, query.positive);
+  return {
+    matches,
+    queryTerms: ranking.queryTerms,
+    excludedClauses: query.excluded,
+    continuationOnly: query.continuationOnly,
+    rejected: entries.flatMap((entry) => {
+      if (selected.has(entry.workId)) return [];
+      const excluded = query.excluded.some((clause) => entryMatchesExclusion(entry, clause));
+      const hit = ranking.hits.find((candidate) => candidate.entry.workId === entry.workId);
+      if (!excluded && hit === undefined) return [];
+      return [{ workId: entry.workId, reason: excluded ? "explicit exclusion" : "insufficient topic evidence or stronger locator",
+        termCoverage: hit?.termCoverage, inCorpusCoverage: hit?.inCorpusCoverage, matchedUnits: hit?.matchedUnits }];
+    }),
+  };
+}
+
+/** Diagnostic reads never repair storage or turn an invalid current into usable evidence. */
+export async function explainHandoffs(projectDirectory: string, prompt: string) {
+  const projectRoot = await requireProjectRoot(projectDirectory);
+  const context = await readProjectContext(projectRoot);
+  const indexPath = resolve(projectRoot, context.handoffIndex);
+  const index = await readOrRebuildIndex(projectRoot, indexPath, false, false);
+  const report = explainHandoffEntries(index.entries, prompt);
+  if (await pathExists(indexPath) && await storageMayBeNewer(projectRoot, indexPath)
+    || await matchedCurrentIsStaleOrInvalid(projectRoot, report.matches)) {
+    return { ...report, matches: [], storageWarning: "Current storage may differ from the index; verify current documents before using matches." };
+  }
+  return report;
 }
 
 export async function rebuildHandoffIndex(projectDirectory: string): Promise<HandoffIndex> {
@@ -551,10 +650,12 @@ async function readOrRebuildIndex(
   projectRoot: string,
   indexPath: string,
   persistMissing: boolean,
+  repairExisting = true,
 ): Promise<HandoffIndex> {
   if (await pathExists(indexPath)) {
     const stored = validateHandoffIndex(await readJson<unknown>(indexPath));
     if (stored.schemaVersion === 3) return legacyIndexToRuntime(stored);
+    if (!repairExisting) return stored;
     if (!(await storageMayBeNewer(projectRoot, indexPath))) return stored;
     const rebuilt = await buildIndexFromStorage(projectRoot, { repairMissingCheckpoints: true });
     await writeJsonAtomic(indexPath, rebuilt);
@@ -929,6 +1030,8 @@ function bm25Match(hit: Bm25Hit): HandoffMatch {
     bm25Score: hit.rawScore,
     matchedTerms: hit.matchedTerms,
     termCoverage: hit.termCoverage,
+    inCorpusCoverage: hit.inCorpusCoverage,
+    matchedUnits: hit.matchedUnits,
   };
 }
 
@@ -937,6 +1040,7 @@ function baseMatch(entry: HandoffIndexEntry, score: number, reasons: string[]): 
     entry,
     score,
     reasons,
+    disposition: "reliable",
     confidence: reasons.some((reason) => ["handoff id", "spec id", "bug id"].includes(reason))
       ? "exact"
       : score >= 100 ? "high" : "medium",
@@ -1181,15 +1285,12 @@ function containsBounded(prompt: string, value: string): boolean {
   const normalized = normalizeSearchText(value).trim();
   if (normalized.length === 0) return false;
   const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(^|[^\\p{L}\\p{N}_-])${escaped}(?=$|[^\\p{L}\\p{N}_-])`, "u").test(prompt);
+  const wordCharacters = /^[\x00-\x7f]+$/u.test(normalized) ? "a-z0-9_-" : "\\p{L}\\p{N}_-";
+  return new RegExp(`(^|[^${wordCharacters}])${escaped}(?=$|[^${wordCharacters}])`, "u").test(prompt);
 }
 
 function normalizeSearchText(value: string): string {
   return value.normalize("NFKC").toLocaleLowerCase().replaceAll("\\", "/");
-}
-
-function hasRecentContinuationCue(prompt: string): boolean {
-  return /上次|上一个窗口|上一窗口|接着上次|继续之前|之前的(?:工作|任务)|刚才的(?:工作|任务)|continue\s+(?:the\s+)?(?:previous|last)|pick\s+up\s+where/u.test(prompt);
 }
 
 function canonicalList(values: string[] | undefined): string[] {

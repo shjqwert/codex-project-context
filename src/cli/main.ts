@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { stdin } from "node:process";
 import {
   createHandoff,
+  explainHandoffs,
   getHandoffHistory,
   matchHandoffs,
   rebuildHandoffIndex,
@@ -24,8 +25,8 @@ import {
 } from "../application/project-context.js";
 import type { HandoffWriteInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.4.0";
-const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation"]);
+const VERSION = "1.5.0";
+const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation", "explain"]);
 
 await main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -80,6 +81,11 @@ async function main(): Promise<void> {
     }
     case "match": {
       const prompt = requiredOption(options, "prompt");
+      if (hasFlag(options, "explain")) {
+        if (option(options, "limit") !== undefined) throw new Error("--explain returns complete diagnostics and cannot be combined with --limit.");
+        writeJson({ ok: true, projectRoot: project, ...await explainHandoffs(project, prompt) });
+        break;
+      }
       const rawLimit = option(options, "limit");
       const limit = rawLimit === undefined ? undefined : parseIntegerOption(rawLimit, "limit", 0);
       const matches = await matchHandoffs(project, prompt, limit);
@@ -204,7 +210,7 @@ function assertAllowedOptions(command: string, options: Map<string, string[]>): 
     sync: ["project", "input"],
     status: ["project"],
     authorization: ["project", "sol-advisor-implicit-delegation"],
-    match: ["project", "prompt", "limit"],
+    match: ["project", "prompt", "limit", "explain"],
     handoff: ["project", "input"],
     "handoff-history": ["project", "work-id", "revision"],
     "handoff-index": ["project", "action"],
@@ -250,7 +256,7 @@ Usage:
   codex-project-context sync [--project PATH] --input FILE|-
   codex-project-context status [--project PATH]
   codex-project-context authorization [--project PATH] --sol-advisor-implicit-delegation enable|disable|inherit|remove
-  codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER]
+  codex-project-context match [--project PATH] --prompt TEXT [--limit NUMBER | --explain]
   codex-project-context handoff [--project PATH] --input FILE|-
   codex-project-context handoff-history [--project PATH] --work-id W001 [--revision NUMBER]
   codex-project-context handoff-index [--project PATH] --action verify|rebuild

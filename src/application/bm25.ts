@@ -12,10 +12,9 @@ export const BM25_FIELD_WEIGHTS = Object.freeze({
 });
 export const BM25_MIN_QUERY_TERMS = 2;
 export const BM25_MIN_MATCHED_TERMS = 2;
-// Calibrated by the ambiguity, broad-term, Chinese, and 10/100/1000-entry tests:
-// require multiple terms and 50% coverage, reject corpus-wide noise with a raw floor,
-// require stable normalized quality, and keep leaders within 12% instead of forcing one.
-export const BM25_MIN_TERM_COVERAGE = 0.5;
+// Full topic coverage (including unknown text) and non-overlapping evidence gate
+// retrieval; raw/normalized floors reject noise and close leaders remain visible.
+export const BM25_MIN_TERM_COVERAGE = 0.6;
 export const BM25_MIN_RAW_SCORE = 0.25;
 export const BM25_MIN_NORMALIZED_SCORE = 0.25;
 export const BM25_CLOSE_SCORE_RATIO = 0.12;
@@ -30,9 +29,12 @@ const ENGLISH_STOP_WORDS = new Set([
   "in", "inspect", "is", "it", "last", "of", "on", "or", "please", "previous",
   "project", "record", "related", "return", "review", "state", "task", "test", "tests",
   "testing", "the", "this", "to", "update", "verification", "verify", "with", "work", "write",
+  "about", "after", "before", "can", "cannot", "could", "describe", "do", "does", "find",
+  "help", "how", "module", "need", "not", "now", "show", "should", "until", "what", "when", "without", "you",
 ]);
 const CJK_STOP_WORDS = [
   "继续", "之前", "上次", "工作", "任务", "检查", "验证", "验收", "测试", "记录", "项目", "相关", "这个", "那个",
+  "请帮我", "帮我", "确认", "一下", "现在", "状态",
 ];
 const CJK_RUN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]+/gu;
 
@@ -48,6 +50,9 @@ export interface Bm25Hit {
   normalizedScore: number;
   matchedTerms: string[];
   termCoverage: number;
+  inCorpusCoverage: number;
+  matchedUnits: number;
+  phraseAnchor: boolean;
 }
 
 export interface Bm25Ranking {
@@ -87,8 +92,9 @@ export function rankHandoffsBm25(entries: HandoffIndexEntry[], query: string): B
   const documents = entries.map(buildDocument);
   const averageLength = documents.reduce((sum, document) => sum + document.length, 0) / documents.length || 1;
   const documentFrequencies = buildDocumentFrequencies(documents);
-  const queryTerms = tokenizedQuery.filter((term) => documentFrequencies.has(term));
-  if (queryTerms.length === 0) return { queryTerms, hits: [] };
+  const queryTerms = tokenizedQuery;
+  const inCorpusTerms = queryTerms.filter((term) => documentFrequencies.has(term));
+  if (inCorpusTerms.length === 0) return { queryTerms, hits: [] };
   const hits = documents.flatMap((document): Bm25Hit[] => {
     let rawScore = 0;
     let maximumMatchedScore = 0;
@@ -107,29 +113,27 @@ export function rankHandoffsBm25(entries: HandoffIndexEntry[], query: string): B
       matchedTerms.push(term);
     }
     if (matchedTerms.length === 0) return [];
+    const coverage = measureQueryCoverage(query, document.frequencies);
     return [{
       entry: document.entry,
       rawScore,
       normalizedScore: maximumMatchedScore === 0 ? 0 : rawScore / maximumMatchedScore,
       matchedTerms,
-      termCoverage: matchedTerms.length / queryTerms.length,
+      termCoverage: coverage.coverage,
+      inCorpusCoverage: matchedTerms.length / inCorpusTerms.length,
+      matchedUnits: coverage.matchedUnits,
+      phraseAnchor: coverage.phraseAnchor,
     }];
   }).sort(compareHits);
   return { queryTerms, hits };
 }
 
 export function tokenizeBm25(value: string): string[] {
-  let normalized = value.normalize("NFKC").replaceAll("\\", "/");
-  normalized = normalized
-    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, "$1 $2")
-    .replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, "$1 $2")
-    .toLocaleLowerCase();
-  for (const stopWord of CJK_STOP_WORDS) normalized = normalized.replaceAll(stopWord, " ");
-
+  const normalized = normalizeBm25(value);
   const tokens: string[] = [];
   const withoutCjk = normalized.replace(CJK_RUN, " ");
   for (const token of withoutCjk.match(/[\p{L}\p{N}]+/gu) ?? []) {
-    if (token.length >= MIN_LEXICAL_TOKEN_LENGTH && !ENGLISH_STOP_WORDS.has(token)) tokens.push(token);
+    if (isUsefulWord(token)) tokens.push(token);
   }
   for (const run of normalized.match(CJK_RUN) ?? []) {
     for (let size = CJK_NGRAM_MIN; size <= Math.min(CJK_NGRAM_MAX, run.length); size += 1) {
@@ -139,6 +143,57 @@ export function tokenizeBm25(value: string): string[] {
     }
   }
   return tokens;
+}
+
+function normalizeBm25(value: string): string {
+  let normalized = value.normalize("NFKC").replaceAll("\\", "/");
+  normalized = normalized
+    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, "$1 $2")
+    .replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, "$1 $2")
+    .toLocaleLowerCase();
+  for (const stopWord of CJK_STOP_WORDS) normalized = normalized.replaceAll(stopWord, " ");
+
+  return normalized;
+}
+
+function isUsefulWord(word: string): boolean {
+  return word.length >= MIN_LEXICAL_TOKEN_LENGTH && !ENGLISH_STOP_WORDS.has(word);
+}
+
+/** Coverage includes out-of-vocabulary text; overlapping grams cover a character only once. */
+function measureQueryCoverage(query: string, frequencies: Map<string, number>): {
+  coverage: number; matchedUnits: number; phraseAnchor: boolean;
+} {
+  const normalized = normalizeBm25(query);
+  const words = [...new Set(normalized.replace(CJK_RUN, " ").match(/[\p{L}\p{N}]+/gu) ?? [])].filter(isUsefulWord);
+  let total = words.length;
+  let matched = words.filter((word) => frequencies.has(word)).length;
+  let matchedUnits = matched;
+  let phraseAnchor = false;
+  const counted = new Set<string>();
+  for (const run of normalized.match(CJK_RUN) ?? []) {
+    if (run.length < CJK_NGRAM_MIN) continue;
+    total += run.length;
+    const covered = new Array<boolean>(run.length).fill(false);
+    let nextUnit = 0;
+    for (let offset = 0; offset < run.length; offset += 1) {
+      for (let size = CJK_NGRAM_MAX; size >= CJK_NGRAM_MIN; size -= 1) {
+        if (offset + size > run.length) continue;
+        const term = run.slice(offset, offset + size);
+        if (!frequencies.has(term)) continue;
+        covered.fill(true, offset, offset + size);
+        if (offset >= nextUnit && !counted.has(term)) {
+          counted.add(term);
+          matchedUnits += 1;
+          nextUnit = offset + size;
+        }
+        if (term === run && size >= 3) phraseAnchor = true;
+      }
+    }
+    matched += covered.filter(Boolean).length;
+    phraseAnchor ||= run.length >= 3 && covered.every(Boolean);
+  }
+  return { coverage: total === 0 ? 0 : matched / total, matchedUnits, phraseAnchor };
 }
 
 function buildDocument(entry: HandoffIndexEntry): WeightedDocument {
@@ -173,6 +228,7 @@ function buildDocumentFrequencies(documents: WeightedDocument[]): Map<string, nu
 
 function isReliableHit(hit: Bm25Hit): boolean {
   return hit.matchedTerms.length >= BM25_MIN_MATCHED_TERMS &&
+    (hit.matchedUnits >= 2 || hit.phraseAnchor) &&
     hit.termCoverage >= BM25_MIN_TERM_COVERAGE &&
     hit.rawScore >= BM25_MIN_RAW_SCORE &&
     hit.normalizedScore >= BM25_MIN_NORMALIZED_SCORE;

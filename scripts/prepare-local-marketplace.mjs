@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +12,23 @@ if (!pluginTarget.startsWith(expectedPrefix)) {
   throw new Error("Refusing to package outside .local-marketplace.");
 }
 
+const skillRoot = resolve(repositoryRoot, "skills");
+const skillEntries = [];
+for (const entry of await readdir(skillRoot, { withFileTypes: true })) {
+  const source = resolve(skillRoot, entry.name);
+  if (entry.isDirectory()) {
+    const skill = await stat(resolve(source, "SKILL.md")).catch((error) => {
+      if (error.code === "ENOENT") return undefined;
+      throw error;
+    });
+    if (!skill?.isFile()) {
+      if (await containsFiles(source)) throw new Error(`Nonempty skill directory has no SKILL.md: ${entry.name}`);
+      continue;
+    }
+  }
+  skillEntries.push(entry.name);
+}
+
 await rm(pluginTarget, { recursive: true, force: true });
 await mkdir(pluginTarget, { recursive: true });
 
@@ -20,12 +37,15 @@ for (const path of [
   "dist",
   "hooks",
   "schemas",
-  "skills",
   "CHANGELOG.zh-CN.md",
   "package.json",
   "README.md",
 ]) {
   await cp(resolve(repositoryRoot, path), resolve(pluginTarget, path), { recursive: true });
+}
+await mkdir(resolve(pluginTarget, "skills"), { recursive: true });
+for (const name of skillEntries) {
+  await cp(resolve(skillRoot, name), resolve(pluginTarget, "skills", name), { recursive: true });
 }
 
 const manifest = JSON.parse(
@@ -57,3 +77,10 @@ const marketplacePath = join(marketplaceRoot, ".agents", "plugins", "marketplace
 await mkdir(dirname(marketplacePath), { recursive: true });
 await writeFile(marketplacePath, `${JSON.stringify(marketplace, null, 2)}\n`, "utf8");
 process.stdout.write(`${marketplaceRoot}\n`);
+
+async function containsFiles(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (!entry.isDirectory() || await containsFiles(resolve(directory, entry.name))) return true;
+  }
+  return false;
+}

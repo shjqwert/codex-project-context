@@ -45,12 +45,16 @@ export async function withProjectWriteLock<T>(
       }
       break;
     } catch (error) {
-      if (!hasErrorCode(error, "EEXIST")) throw error;
-      if (await isStaleLock(lockPath)) {
+      // Windows can transiently reject exclusive creation while a previous handle
+      // is being released. Retry acquisition only; never remove a lock on EPERM.
+      const retryCreation = process.platform === "win32" && hasErrorCode(error, "EPERM");
+      if (!hasErrorCode(error, "EEXIST") && !retryCreation) throw error;
+      if (!retryCreation && await isStaleLock(lockPath)) {
         await rm(lockPath, { force: true }).catch(() => undefined);
         continue;
       }
       if (Date.now() >= deadline) {
+        if (retryCreation) throw error;
         throw new Error(`Timed out waiting for project-context write lock: ${lockPath}`);
       }
       await delay(RETRY_MS);

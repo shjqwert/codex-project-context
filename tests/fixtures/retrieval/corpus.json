@@ -1,0 +1,3034 @@
+{
+  "schemaVersion": 1,
+  "description": "Curated local metadata retrieval acceptance corpus. Task families split before implementation; not a general semantic benchmark.",
+  "entries": [
+    {
+      "workId": "W101",
+      "cycle": "development",
+      "title": "Motor overcurrent restart",
+      "summary": "PWM remains disabled until the sampled current is safe.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "motor"
+        ],
+        "files": [
+          "src/motor/restart.ts"
+        ],
+        "symbols": [
+          "restartMotor"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电机过流安全重启",
+          "motor safety restart",
+          "电流恢复后重新启动"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W101",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W101.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "workId": "W102",
+      "cycle": "development",
+      "title": "Motor speed calibration",
+      "summary": "Calibrate the speed estimate using encoder measurements.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "motor"
+        ],
+        "files": [
+          "src/motor/calibration.ts"
+        ],
+        "symbols": [
+          "calibrateSpeed"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电机转速标定",
+          "rotor speed calibration",
+          "转速测量偏差校准"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W102",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000002",
+      "currentPath": ".agent/handoff/current/development/W102.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-02T00:00:00.000Z",
+      "updatedAt": "2026-08-02T00:00:00.000Z"
+    },
+    {
+      "workId": "W103",
+      "cycle": "development",
+      "title": "CAN bus-off recovery",
+      "summary": "Recover the CAN controller after bus-off.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "can"
+        ],
+        "files": [
+          "src/can/bus-off.ts"
+        ],
+        "symbols": [
+          "recoverBusOff"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "CAN总线关闭恢复",
+          "bus off controller recovery",
+          "总线关闭后恢复控制器"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W103",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000003",
+      "currentPath": ".agent/handoff/current/development/W103.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-03T00:00:00.000Z",
+      "updatedAt": "2026-08-03T00:00:00.000Z"
+    },
+    {
+      "workId": "W104",
+      "cycle": "development",
+      "title": "CAN receive timeout",
+      "summary": "Detect missing CAN messages after a receive deadline.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "can"
+        ],
+        "files": [
+          "src/can/timeout.ts"
+        ],
+        "symbols": [
+          "checkCanTimeout"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "CAN接收报文超时",
+          "CAN receive message deadline",
+          "接收报文超时检测"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W104",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000004",
+      "currentPath": ".agent/handoff/current/development/W104.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-04T00:00:00.000Z",
+      "updatedAt": "2026-08-04T00:00:00.000Z"
+    },
+    {
+      "workId": "W105",
+      "cycle": "development",
+      "title": "Graceful socket shutdown",
+      "summary": "Drain queued socket messages before closing the connection.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "network"
+        ],
+        "files": [
+          "src/net/shutdown.ts"
+        ],
+        "symbols": [
+          "drainSocket"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "套接字优雅关闭",
+          "socket drain shutdown",
+          "连接排空后关闭"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W105",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000005",
+      "currentPath": ".agent/handoff/current/development/W105.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-05T00:00:00.000Z",
+      "updatedAt": "2026-08-05T00:00:00.000Z"
+    },
+    {
+      "workId": "W106",
+      "cycle": "development",
+      "title": "TLS certificate validation",
+      "summary": "Reject expired certificates during TLS handshake.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "network"
+        ],
+        "files": [
+          "src/net/tls.ts"
+        ],
+        "symbols": [
+          "validateCertificate"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "TLS证书链校验",
+          "certificate chain validation",
+          "证书过期拒绝连接"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W106",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000006",
+      "currentPath": ".agent/handoff/current/development/W106.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-06T00:00:00.000Z",
+      "updatedAt": "2026-08-06T00:00:00.000Z"
+    },
+    {
+      "workId": "W107",
+      "cycle": "development",
+      "title": "ADC DMA double buffering",
+      "summary": "Switch DMA sample buffers without overwriting unread samples.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "adc"
+        ],
+        "files": [
+          "src/adc/buffers.ts"
+        ],
+        "symbols": [
+          "switchAdcBuffer"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "ADC双缓冲采样",
+          "DMA sample buffer switching",
+          "采样缓冲区切换"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W107",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000007",
+      "currentPath": ".agent/handoff/current/development/W107.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-07T00:00:00.000Z",
+      "updatedAt": "2026-08-07T00:00:00.000Z"
+    },
+    {
+      "workId": "W108",
+      "cycle": "development",
+      "title": "ADC reference calibration",
+      "summary": "Compensate reference voltage drift in ADC conversions.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "adc"
+        ],
+        "files": [
+          "src/adc/reference.ts"
+        ],
+        "symbols": [
+          "calibrateReference"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "ADC参考电压校准",
+          "ADC reference voltage calibration",
+          "参考电压偏差补偿"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W108",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000008",
+      "currentPath": ".agent/handoff/current/development/W108.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-08T00:00:00.000Z",
+      "updatedAt": "2026-08-08T00:00:00.000Z"
+    },
+    {
+      "workId": "W201",
+      "cycle": "development",
+      "title": "Firmware rollback recovery",
+      "summary": "Restore the previous firmware image after an unsuccessful upgrade.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "boot"
+        ],
+        "files": [
+          "src/boot/rollback.ts"
+        ],
+        "symbols": [
+          "rollbackFirmware"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "固件升级回滚恢复",
+          "boot image rollback",
+          "升级失败回退旧固件"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W201",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000009",
+      "currentPath": ".agent/handoff/current/development/W201.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-09T00:00:00.000Z",
+      "updatedAt": "2026-08-09T00:00:00.000Z"
+    },
+    {
+      "workId": "W202",
+      "cycle": "development",
+      "title": "Signed firmware verification",
+      "summary": "Verify signed firmware images before booting.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "boot"
+        ],
+        "files": [
+          "src/boot/signature.ts"
+        ],
+        "symbols": [
+          "verifyFirmware"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "固件签名验证",
+          "boot signature verification",
+          "镜像签名拒绝篡改"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W202",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000010",
+      "currentPath": ".agent/handoff/current/development/W202.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-10T00:00:00.000Z",
+      "updatedAt": "2026-08-10T00:00:00.000Z"
+    },
+    {
+      "workId": "W203",
+      "cycle": "development",
+      "title": "Configuration hot reload",
+      "summary": "Reload settings without restarting the process.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "configuration"
+        ],
+        "files": [
+          "src/config/reload.ts"
+        ],
+        "symbols": [
+          "reloadSettings"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "配置热加载",
+          "settings hot reload",
+          "运行时重新加载配置"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W203",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000011",
+      "currentPath": ".agent/handoff/current/development/W203.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-11T00:00:00.000Z",
+      "updatedAt": "2026-08-11T00:00:00.000Z"
+    },
+    {
+      "workId": "W204",
+      "cycle": "development",
+      "title": "Configuration schema migration",
+      "summary": "Migrate stored settings between schema versions.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "configuration"
+        ],
+        "files": [
+          "src/config/migrate.ts"
+        ],
+        "symbols": [
+          "migrateSettings"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "配置格式迁移",
+          "settings schema migration",
+          "旧配置格式版本升级"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W204",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000012",
+      "currentPath": ".agent/handoff/current/development/W204.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-12T00:00:00.000Z",
+      "updatedAt": "2026-08-12T00:00:00.000Z"
+    },
+    {
+      "workId": "W205",
+      "cycle": "development",
+      "title": "Battery undervoltage recovery",
+      "summary": "Resume battery output only after voltage recovers.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "battery"
+        ],
+        "files": [
+          "src/battery/voltage.ts"
+        ],
+        "symbols": [
+          "recoverBattery"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电池欠压恢复",
+          "battery voltage recovery",
+          "电池电压恢复后启动"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W205",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000013",
+      "currentPath": ".agent/handoff/current/development/W205.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-13T00:00:00.000Z",
+      "updatedAt": "2026-08-13T00:00:00.000Z"
+    },
+    {
+      "workId": "W206",
+      "cycle": "development",
+      "title": "Battery current filtering",
+      "summary": "Filter noise from battery current measurements.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "battery"
+        ],
+        "files": [
+          "src/battery/filter.ts"
+        ],
+        "symbols": [
+          "filterBatteryCurrent"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电池电流滤波",
+          "battery current noise filter",
+          "电池采样噪声抑制"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W206",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000014",
+      "currentPath": ".agent/handoff/current/development/W206.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-14T00:00:00.000Z",
+      "updatedAt": "2026-08-14T00:00:00.000Z"
+    },
+    {
+      "workId": "W207",
+      "cycle": "development",
+      "title": "HSS capture completion",
+      "summary": "Finish HSS capture when its requested duration expires.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "hss"
+        ],
+        "files": [
+          "src/hss/duration.ts"
+        ],
+        "symbols": [
+          "finishCapture"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "HSS采集窗口结束",
+          "capture duration completion",
+          "定时采集正常结束"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W207",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000015",
+      "currentPath": ".agent/handoff/current/development/W207.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-15T00:00:00.000Z",
+      "updatedAt": "2026-08-15T00:00:00.000Z"
+    },
+    {
+      "workId": "W208",
+      "cycle": "development",
+      "title": "HSS capture pagination",
+      "summary": "Page through saved HSS samples using bounded cursors.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [
+          "hss"
+        ],
+        "files": [
+          "src/hss/query.ts"
+        ],
+        "symbols": [
+          "queryCapture"
+        ],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "HSS采集数据分页",
+          "capture query pagination",
+          "历史采集游标分页"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W208",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000016",
+      "currentPath": ".agent/handoff/current/development/W208.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-16T00:00:00.000Z",
+      "updatedAt": "2026-08-16T00:00:00.000Z"
+    },
+    {
+      "workId": "W109",
+      "cycle": "development",
+      "title": "Link retry policy",
+      "summary": "Two different objectives share this underspecified topic.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [],
+        "files": [
+          "src/W109.ts"
+        ],
+        "symbols": [],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "链路重试策略",
+          "link retry policy"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W109",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W109.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "workId": "W110",
+      "cycle": "development",
+      "title": "Link retry policy",
+      "summary": "Two different objectives share this underspecified topic.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [],
+        "files": [
+          "src/W110.ts"
+        ],
+        "symbols": [],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "链路重试策略",
+          "link retry policy"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W110",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W110.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "workId": "W209",
+      "cycle": "development",
+      "title": "Power transition timeout",
+      "summary": "Two different objectives share this underspecified topic.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [],
+        "files": [
+          "src/W209.ts"
+        ],
+        "symbols": [],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电源切换超时",
+          "power transition timeout"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W209",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W209.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "workId": "W210",
+      "cycle": "development",
+      "title": "Power transition timeout",
+      "summary": "Two different objectives share this underspecified topic.",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [],
+        "files": [
+          "src/W210.ts"
+        ],
+        "symbols": [],
+        "tests": [],
+        "tags": [],
+        "aliases": [
+          "电源切换超时",
+          "power transition timeout"
+        ]
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W210",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W210.md",
+      "revision": 1,
+      "status": "active",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "workId": "W001",
+      "cycle": "development",
+      "title": "项目上下文管理与交接检索",
+      "summary": "配置项目上下文并保存交接记录。",
+      "kind": "investigation",
+      "routing": {
+        "specRefs": [],
+        "bugIds": [],
+        "modules": [],
+        "files": [],
+        "symbols": [],
+        "tests": [],
+        "tags": [],
+        "aliases": []
+      },
+      "availableSections": [
+        "objective",
+        "currentState",
+        "remainingWork"
+      ],
+      "groupKey": "work:W001",
+      "dedupeKey": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+      "currentPath": ".agent/handoff/current/development/W001.md",
+      "revision": 1,
+      "status": "completed",
+      "legacyRecordIds": [],
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-01T00:00:00.000Z"
+    }
+  ],
+  "queries": [
+    {
+      "id": "Q001",
+      "query": "电机过流安全重启",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q002",
+      "query": "motor safety restart",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q003",
+      "query": "恢复电流后电机怎样安全重启",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q004",
+      "query": "motor current recovery safe restart",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q005",
+      "query": "定位 W101",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q006",
+      "query": "Inspect src/motor/restart.ts",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q007",
+      "query": "Inspect restartMotor",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q008",
+      "query": "继续上次的电机过流安全重启",
+      "relevantIds": [
+        "W101"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q009",
+      "query": "电机转速标定",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q010",
+      "query": "rotor speed calibration",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q011",
+      "query": "转速测量偏差的标定",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q012",
+      "query": "encoder speed estimate calibration",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q013",
+      "query": "定位 W102",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q014",
+      "query": "Inspect src/motor/calibration.ts",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q015",
+      "query": "Inspect calibrateSpeed",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q016",
+      "query": "继续上次的电机转速标定",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q017",
+      "query": "CAN总线关闭恢复",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q018",
+      "query": "bus off controller recovery",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q019",
+      "query": "CAN总线关闭后恢复",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q020",
+      "query": "CAN controller bus off recovery",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q021",
+      "query": "定位 W103",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q022",
+      "query": "Inspect src/can/bus-off.ts",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q023",
+      "query": "Inspect recoverBusOff",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q024",
+      "query": "继续上次的CAN总线关闭恢复",
+      "relevantIds": [
+        "W103"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q025",
+      "query": "CAN接收报文超时",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q026",
+      "query": "CAN receive message deadline",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q027",
+      "query": "接收CAN报文超时检测",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q028",
+      "query": "missing CAN messages receive deadline",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q029",
+      "query": "定位 W104",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q030",
+      "query": "Inspect src/can/timeout.ts",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q031",
+      "query": "Inspect checkCanTimeout",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q032",
+      "query": "继续上次的CAN接收报文超时",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q033",
+      "query": "套接字优雅关闭",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q034",
+      "query": "socket drain shutdown",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q035",
+      "query": "连接排空后关闭套接字",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q036",
+      "query": "drain queued socket messages shutdown",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q037",
+      "query": "定位 W105",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q038",
+      "query": "Inspect src/net/shutdown.ts",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q039",
+      "query": "Inspect drainSocket",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q040",
+      "query": "继续上次的套接字优雅关闭",
+      "relevantIds": [
+        "W105"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q041",
+      "query": "TLS证书链校验",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q042",
+      "query": "certificate chain validation",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q043",
+      "query": "TLS连接证书过期校验",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q044",
+      "query": "expired certificate TLS handshake validation",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q045",
+      "query": "定位 W106",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q046",
+      "query": "Inspect src/net/tls.ts",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q047",
+      "query": "Inspect validateCertificate",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q048",
+      "query": "继续上次的TLS证书链校验",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q049",
+      "query": "ADC双缓冲采样",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q050",
+      "query": "DMA sample buffer switching",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q051",
+      "query": "DMA采样双缓冲切换",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q052",
+      "query": "DMA buffer switching unread samples",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q053",
+      "query": "定位 W107",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q054",
+      "query": "Inspect src/adc/buffers.ts",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q055",
+      "query": "Inspect switchAdcBuffer",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q056",
+      "query": "继续上次的ADC双缓冲采样",
+      "relevantIds": [
+        "W107"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q057",
+      "query": "ADC参考电压校准",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "zh"
+    },
+    {
+      "id": "Q058",
+      "query": "ADC reference voltage calibration",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "en"
+    },
+    {
+      "id": "Q059",
+      "query": "ADC参考电压漂移补偿",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q060",
+      "query": "ADC reference voltage drift calibration",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q061",
+      "query": "定位 W108",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "id"
+    },
+    {
+      "id": "Q062",
+      "query": "Inspect src/adc/reference.ts",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "path"
+    },
+    {
+      "id": "Q063",
+      "query": "Inspect calibrateReference",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "symbol"
+    },
+    {
+      "id": "Q064",
+      "query": "继续上次的ADC参考电压校准",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q065",
+      "query": "固件升级回滚恢复",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q066",
+      "query": "boot image rollback",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q067",
+      "query": "升级失败回退旧固件",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q068",
+      "query": "restore previous firmware after upgrade failure",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q069",
+      "query": "定位 W201",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q070",
+      "query": "Inspect src/boot/rollback.ts",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q071",
+      "query": "Inspect rollbackFirmware",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q072",
+      "query": "继续上次的固件升级回滚恢复",
+      "relevantIds": [
+        "W201"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q073",
+      "query": "固件签名验证",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q074",
+      "query": "boot signature verification",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q075",
+      "query": "启动前验证固件镜像签名",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q076",
+      "query": "signed firmware image verification before boot",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q077",
+      "query": "定位 W202",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q078",
+      "query": "Inspect src/boot/signature.ts",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q079",
+      "query": "Inspect verifyFirmware",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q080",
+      "query": "继续上次的固件签名验证",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q081",
+      "query": "配置热加载",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q082",
+      "query": "settings hot reload",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q083",
+      "query": "运行时重新加载配置",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q084",
+      "query": "settings reload without restarting process",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q085",
+      "query": "定位 W203",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q086",
+      "query": "Inspect src/config/reload.ts",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q087",
+      "query": "Inspect reloadSettings",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q088",
+      "query": "继续上次的配置热加载",
+      "relevantIds": [
+        "W203"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q089",
+      "query": "配置格式迁移",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q090",
+      "query": "settings schema migration",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q091",
+      "query": "旧配置格式版本升级",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q092",
+      "query": "migrate stored settings between schema versions",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q093",
+      "query": "定位 W204",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q094",
+      "query": "Inspect src/config/migrate.ts",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q095",
+      "query": "Inspect migrateSettings",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q096",
+      "query": "继续上次的配置格式迁移",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q097",
+      "query": "电池欠压恢复",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q098",
+      "query": "battery voltage recovery",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q099",
+      "query": "电池欠压恢复后启动",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q100",
+      "query": "battery output voltage recovery",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q101",
+      "query": "定位 W205",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q102",
+      "query": "Inspect src/battery/voltage.ts",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q103",
+      "query": "Inspect recoverBattery",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q104",
+      "query": "继续上次的电池欠压恢复",
+      "relevantIds": [
+        "W205"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q105",
+      "query": "电池电流滤波",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q106",
+      "query": "battery current noise filter",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q107",
+      "query": "电池电流采样噪声抑制",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q108",
+      "query": "filter battery current measurement noise",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q109",
+      "query": "定位 W206",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q110",
+      "query": "Inspect src/battery/filter.ts",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q111",
+      "query": "Inspect filterBatteryCurrent",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q112",
+      "query": "继续上次的电池电流滤波",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q113",
+      "query": "HSS采集窗口结束",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q114",
+      "query": "capture duration completion",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q115",
+      "query": "HSS定时采集窗口结束",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q116",
+      "query": "HSS requested duration capture completion",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q117",
+      "query": "定位 W207",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q118",
+      "query": "Inspect src/hss/duration.ts",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q119",
+      "query": "Inspect finishCapture",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q120",
+      "query": "继续上次的HSS采集窗口结束",
+      "relevantIds": [
+        "W207"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q121",
+      "query": "HSS采集数据分页",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "zh"
+    },
+    {
+      "id": "Q122",
+      "query": "capture query pagination",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "en"
+    },
+    {
+      "id": "Q123",
+      "query": "HSS历史采集游标分页",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-zh"
+    },
+    {
+      "id": "Q124",
+      "query": "saved HSS sample cursor pagination",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "paraphrase-en"
+    },
+    {
+      "id": "Q125",
+      "query": "定位 W208",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "id"
+    },
+    {
+      "id": "Q126",
+      "query": "Inspect src/hss/query.ts",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "path"
+    },
+    {
+      "id": "Q127",
+      "query": "Inspect queryCapture",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "symbol"
+    },
+    {
+      "id": "Q128",
+      "query": "继续上次的HSS采集数据分页",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "topic-continuation"
+    },
+    {
+      "id": "Q129",
+      "query": "不要继续 W101，处理 W102",
+      "relevantIds": [
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q130",
+      "query": "Show W101 and W102",
+      "relevantIds": [
+        "W101",
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi"
+    },
+    {
+      "id": "Q131",
+      "query": "motor safety restart and rotor speed calibration",
+      "relevantIds": [
+        "W101",
+        "W102"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q132",
+      "query": "不要继续 W103，处理 W104",
+      "relevantIds": [
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q133",
+      "query": "Show W103 and W104",
+      "relevantIds": [
+        "W103",
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi"
+    },
+    {
+      "id": "Q134",
+      "query": "bus off controller recovery and CAN receive message deadline",
+      "relevantIds": [
+        "W103",
+        "W104"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q135",
+      "query": "不要继续 W105，处理 W106",
+      "relevantIds": [
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q136",
+      "query": "Show W105 and W106",
+      "relevantIds": [
+        "W105",
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi"
+    },
+    {
+      "id": "Q137",
+      "query": "socket drain shutdown and certificate chain validation",
+      "relevantIds": [
+        "W105",
+        "W106"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q138",
+      "query": "不要继续 W107，处理 W108",
+      "relevantIds": [
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q139",
+      "query": "Show W107 and W108",
+      "relevantIds": [
+        "W107",
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi"
+    },
+    {
+      "id": "Q140",
+      "query": "DMA sample buffer switching and ADC reference voltage calibration",
+      "relevantIds": [
+        "W107",
+        "W108"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "development",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q141",
+      "query": "不要继续 W201，处理 W202",
+      "relevantIds": [
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q142",
+      "query": "Show W201 and W202",
+      "relevantIds": [
+        "W201",
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi"
+    },
+    {
+      "id": "Q143",
+      "query": "boot image rollback and boot signature verification",
+      "relevantIds": [
+        "W201",
+        "W202"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q144",
+      "query": "不要继续 W203，处理 W204",
+      "relevantIds": [
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q145",
+      "query": "Show W203 and W204",
+      "relevantIds": [
+        "W203",
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi"
+    },
+    {
+      "id": "Q146",
+      "query": "settings hot reload and settings schema migration",
+      "relevantIds": [
+        "W203",
+        "W204"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q147",
+      "query": "不要继续 W205，处理 W206",
+      "relevantIds": [
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q148",
+      "query": "Show W205 and W206",
+      "relevantIds": [
+        "W205",
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi"
+    },
+    {
+      "id": "Q149",
+      "query": "battery voltage recovery and battery current noise filter",
+      "relevantIds": [
+        "W205",
+        "W206"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q150",
+      "query": "不要继续 W207，处理 W208",
+      "relevantIds": [
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "exclusion"
+    },
+    {
+      "id": "Q151",
+      "query": "Show W207 and W208",
+      "relevantIds": [
+        "W207",
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi"
+    },
+    {
+      "id": "Q152",
+      "query": "capture duration completion and capture query pagination",
+      "relevantIds": [
+        "W207",
+        "W208"
+      ],
+      "autoReadAllowed": true,
+      "expectedDisposition": "reliable",
+      "split": "holdout",
+      "category": "multi-natural"
+    },
+    {
+      "id": "Q153",
+      "query": "link retry policy",
+      "relevantIds": [
+        "W109",
+        "W110"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "development",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q154",
+      "query": "链路重试策略",
+      "relevantIds": [
+        "W109",
+        "W110"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "development",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q155",
+      "query": "继续链路重试策略",
+      "relevantIds": [
+        "W109",
+        "W110"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "development",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q156",
+      "query": "Inspect link retry policy",
+      "relevantIds": [
+        "W109",
+        "W110"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "development",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q157",
+      "query": "power transition timeout",
+      "relevantIds": [
+        "W209",
+        "W210"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "holdout",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q158",
+      "query": "电源切换超时",
+      "relevantIds": [
+        "W209",
+        "W210"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "holdout",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q159",
+      "query": "继续电源切换超时",
+      "relevantIds": [
+        "W209",
+        "W210"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "holdout",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q160",
+      "query": "Inspect power transition timeout",
+      "relevantIds": [
+        "W209",
+        "W210"
+      ],
+      "autoReadAllowed": false,
+      "expectedDisposition": "candidate",
+      "split": "holdout",
+      "category": "ambiguous"
+    },
+    {
+      "id": "Q161",
+      "query": "周末餐厅推荐",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q162",
+      "query": "明天杭州天气",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q163",
+      "query": "写一首关于海洋的诗",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q164",
+      "query": "查询航班票价",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q165",
+      "query": "量子纠缠实验装置",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q166",
+      "query": "太阳能电池材料研究",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q167",
+      "query": "热电偶冷端补偿",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q168",
+      "query": "机械轴承润滑方案",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q169",
+      "query": "股票收益率计算",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q170",
+      "query": "办公室座位安排",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q171",
+      "query": "打印机墨盒故障",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q172",
+      "query": "无线充电线圈匝数",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q173",
+      "query": "garden irrigation schedule",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q174",
+      "query": "university admissions deadline",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q175",
+      "query": "museum opening hours",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q176",
+      "query": "aircraft wing aerodynamics",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q177",
+      "query": "protein folding experiment",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q178",
+      "query": "ceramic coating adhesion",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q179",
+      "query": "thermocouple cold junction compensation",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q180",
+      "query": "hydraulic valve cavitation",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q181",
+      "query": "international chess tournament",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q182",
+      "query": "woodworking bench dimensions",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q183",
+      "query": "ocean tide forecast",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q184",
+      "query": "optical lens distortion",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q185",
+      "query": "不是交接检索，现在做热电偶冷端补偿",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q186",
+      "query": "交接检索 热电偶冷端补偿 校准电压漂移",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q187",
+      "query": "上下文管理 同步整流栅极振荡",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q188",
+      "query": "继续上次的热电偶冷端补偿",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q189",
+      "query": "继续上次的机械轴承润滑",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q190",
+      "query": "继续上次的激光光束整形",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q191",
+      "query": "电机 量子纠缠实验装置",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q192",
+      "query": "CAN 陶瓷涂层附着力研究",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q193",
+      "query": "socket hydraulic valve cavitation investigation",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q194",
+      "query": "ADC optical lens aberration measurement",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q195",
+      "query": "motor astronomy telescope mirror polishing",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q196",
+      "query": "network office seating allocation",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "development",
+      "category": "negative"
+    },
+    {
+      "id": "Q197",
+      "query": "不是电池欠压恢复，改为研究热电偶冷端补偿",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q198",
+      "query": "配置热加载 晶体缺陷位错密度计算",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q199",
+      "query": "HSS采集窗口结束 光学干涉条纹相位解算",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q200",
+      "query": "继续上次的流体湍流边界计算",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q201",
+      "query": "continue the previous thermocouple compensation investigation",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q202",
+      "query": "pick up where hydraulic cavitation modelling stopped",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q203",
+      "query": "battery oceanographic salinity sensor chemistry",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q204",
+      "query": "boot botanical seed germination experiment",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q205",
+      "query": "configuration ceramic coating fracture toughness",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q206",
+      "query": "HSS museum exhibition planning",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q207",
+      "query": "signed firmware astrophotography lens alignment",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    },
+    {
+      "id": "Q208",
+      "query": "settings reload quantum interferometry phase measurement",
+      "relevantIds": [],
+      "autoReadAllowed": false,
+      "expectedDisposition": "none",
+      "split": "holdout",
+      "category": "negative"
+    }
+  ]
+}

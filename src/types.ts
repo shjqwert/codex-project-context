@@ -231,11 +231,14 @@ export interface HandoffMatch {
   score: number;
   reasons: string[];
   confidence: "exact" | "high" | "medium";
+  disposition: "reliable" | "candidate";
   records: HandoffRecordReference[];
   lexicalScore?: number;
   bm25Score?: number;
   matchedTerms?: string[];
   termCoverage?: number;
+  inCorpusCoverage?: number;
+  matchedUnits?: number;
 }
 
 export type ProjectPlanStatus =
