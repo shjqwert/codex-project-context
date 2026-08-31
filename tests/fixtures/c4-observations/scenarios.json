@@ -1,0 +1,647 @@
+{
+  "description": "Offline forward-testing facts, not real firmware or hardware evidence. Identity labels represent already-observed content identities; equal labels mean equal content. Evaluate each case independently. Only explicit closureEvidence can establish past closure.",
+  "cases": [
+    {
+      "id": "C01",
+      "title": "首次基线待确认",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "pending-confirmation",
+        "designStatus": "proposed",
+        "implementationStatus": "not-started",
+        "verificationStatus": "not-run"
+      },
+      "snapshotStates": {
+        "baselineStatus": "pending-confirmation",
+        "designStatus": "proposed",
+        "implementationStatus": "not-started",
+        "verificationStatus": "not-run"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C02",
+      "title": "方案批准后待实现",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "not-started",
+        "verificationStatus": "not-run"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "not-started",
+        "verificationStatus": "not-run"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C03",
+      "title": "实现中",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "partial",
+        "verificationStatus": "not-run"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "partial",
+        "verificationStatus": "not-run"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C04",
+      "title": "软件实现完成，设备验证缺条件",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "blocked"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "blocked"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C05",
+      "title": "原验证范围内全部必要身份未变",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C06",
+      "title": "仅模型输入变化",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v2",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C07",
+      "title": "C4未变，仅实现变化",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v2",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C08",
+      "title": "切换活动构建",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "release",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C09",
+      "title": "同路径报告内容被替换",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v2",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C10",
+      "title": "缺少当前固件身份",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": null,
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C11",
+      "title": "活动变化文件异常缺失",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": false,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C12",
+      "title": "未确认基线却声明通过",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "pending-confirmation",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C13",
+      "title": "正常关闭已有明确证据",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": false,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": {
+        "userConfirmedClosure": true,
+        "finalStates": {
+          "baselineStatus": "confirmed",
+          "designStatus": "approved",
+          "implementationStatus": "implemented",
+          "verificationStatus": "pass"
+        },
+        "asIsMigrationValidated": true,
+        "historyLocator": ".agent/handoff/history/development/W001/R0004.md",
+        "retiredSourceIdentity": "model-v1",
+        "openFindings": 0
+      }
+    },
+    {
+      "id": "C14",
+      "title": "快照声明与同指纹来源矛盾",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": true,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "blocked"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    },
+    {
+      "id": "C15",
+      "title": "项目未初始化，但C4与验证证据可独立核对",
+      "request": "报告当前 C4 状态，并判断能否复用旧验证结论、能否认为变化已经关闭。只读分析，不操作设备。",
+      "projectInitialized": false,
+      "sourceExists": true,
+      "sourceStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "snapshotStates": {
+        "baselineStatus": "confirmed",
+        "designStatus": "approved",
+        "implementationStatus": "implemented",
+        "verificationStatus": "pass"
+      },
+      "recordedIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "currentIdentity": {
+        "model": "model-v1",
+        "implementation": "source-v1",
+        "configuration": "config-v1",
+        "activeBuild": "debug",
+        "firmware": "firmware-v1",
+        "testInputs": "tests-v1",
+        "testResult": "report-v1",
+        "scope": "software fixture only",
+        "target": "offline-fixture"
+      },
+      "closureEvidence": null
+    }
+  ]
+}

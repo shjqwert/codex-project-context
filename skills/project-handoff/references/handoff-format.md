@@ -50,6 +50,10 @@ History is retained until an explicit future policy says otherwise. A late check
 
 ## Evidence Rules
 
+For work that includes C4 state, apply [architecture-observations.md](architecture-observations.md).
+Keep source declarations, observed state and evidence freshness distinct using the existing
+sections; no additional persistent schema or state store is introduced.
+
 - Use project-relative paths.
 - Record a passed test only after observing successful output.
 - Keep hypotheses out of `bugDiagnosis`.
@@ -67,3 +71,7 @@ Schema-v3 immutable records remain readable. Records sharing a reliable legacy g
 Exact work IDs, legacy IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules rank above BM25. BM25 uses only current index `title`, `summary`, modules, tags, tests, and bilingual aliases. Active and blocked current work ranks ahead of completed and superseded work for natural-language ties. Exact routing is status-independent.
 
 Default matching returns only each matched current document. History requires a known `workId` and an explicit history query.
+
+Matches marked `candidate` are ambiguous, not authorization to load every candidate
+body. Compare metadata with the current objective first; use `match --explain` for
+complete reasons. An unmatched concrete topic must not become an unrelated recent task.

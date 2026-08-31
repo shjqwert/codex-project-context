@@ -1,10 +1,10 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.4.0` adds evidence-backed LikeC4 architecture discovery and plan references while preserving the revisioned current-handoff model and schema-v3 read compatibility.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.5.0` improves topic-aware retrieval, separates ambiguous candidates from reliable matches, and tracks evidence-backed C4 observations while preserving the current-handoff model and schema-v3 read compatibility.
 
 ## Capabilities
 
-- Explicit `$codex-project-context:project-init` creates missing CodeGraph and Serena project indexes through their already-installed CLIs, inventories the confirmed repository, directs the Agent to analyze current evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify narrowly scoped, repository-supported developer dependencies, and MarkItDown may convert an exact, selected, bounded local document that normal tools cannot read adequately.
+- Explicit `$codex-project-context:project-init` creates missing CodeGraph and Serena project indexes through their already-installed CLIs, inventories the confirmed repository, directs the Agent to analyze current evidence, then validates and persists an Agent-authored managed `AGENTS.md` section. When callable, Context7 may clarify repository-supported developer dependencies; an available local reader may inspect an exact, selected, bounded document without bulk conversion.
 - Explicit `$codex-project-context:project-sync` repeats the same evidence-backed, bounded analysis for an initialized project and synchronizes only supported managed context.
 - New projects inherit global Sol Advisor eligibility by default without creating a redundant authorization file. Project policy may explicitly allow (`true`) or disable (`false`) implicit delegation in `.agent/authorizations.json`; the CLI can later restore inherited behavior without changing durable project context.
 - Implicit-capable `$codex-project-context:project-handoff` creates or revision-updates one authoritative current document per objective, with optional immutable milestone checkpoints and a lightweight schema v4 relevance index.
@@ -14,7 +14,11 @@
 - Equivalent handoff and plan inputs are idempotent under a project-local write lock.
 - Skill-authored handoff prose defaults to Chinese while exact identifiers remain unchanged and bounded bilingual aliases preserve English retrieval. An explicit previous-task cue returns the most recent active or blocked current work before closed work.
 
-Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or MarkItDown. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local Context7 and MarkItDown availability is not persisted as a project capability.
+Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Context7, or a particular document converter. During project initialization the plugin may create missing CodeGraph and Serena project indexes when their CLIs are already installed, but it never installs or upgrades optional tools. CodeGraph and Serena perform normal incremental maintenance themselves after the first index; the plugin does not bind refresh work to synchronization or Hooks. Session-local documentation tools are not persisted as project capabilities.
+
+Retrieval preserves full query-topic coverage instead of discarding unknown topic terms. Explicit exclusions apply to identifier and lexical routing; a concrete unmatched continuation topic no longer falls back to unrelated recent work. Results include `disposition: reliable | candidate`: ambiguous candidates require metadata review before body reads. `match --explain` reports complete read-only evidence and rejection diagnostics; it cannot be combined with `--limit`. Scores and coverage are retrieval evidence, not semantic probabilities.
+
+C4 state remains four separate declarations owned by the architecture workflow. A qualifying handoff records their observation and evidence freshness in its existing sections. Reusing pass requires unchanged applicable model, implementation/configuration, build/firmware and test/result identities; a model hash or report path alone is insufficient. See [architecture observations](skills/project-handoff/references/architecture-observations.md). No new state database, automatic model scan or knowledge-service integration is introduced.
 
 ## Generated Project Context
 

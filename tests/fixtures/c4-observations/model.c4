@@ -1,0 +1,24 @@
+specification {
+  element system
+}
+model {
+  baseline = system "Offline observation fixture" {
+    metadata {
+      baselineStatus "confirmed"
+    }
+  }
+  changeRoot = system "Illustrative change" {
+    metadata {
+      baselineStatus "confirmed"
+      designStatus "approved"
+      implementationStatus "implemented"
+      verificationStatus "pass"
+      verificationScope "software fixture only"
+    }
+  }
+}
+views {
+  view delta {
+    include *
+  }
+}

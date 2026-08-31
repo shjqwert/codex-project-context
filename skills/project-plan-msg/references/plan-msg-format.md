@@ -24,6 +24,11 @@ Exact normalized input is idempotent. Reordered criteria, references, or decisio
 
 A later artifact locator does not by itself create a new direction. When a nonterminal plan already owns the same durable goal, reuse its ID and keep the later OpenSpec or LikeC4 locator in the owning source or handoff instead of creating a near-duplicate plan solely to add that reference.
 
+A plan status describes its durable goal, not the current C4 verification state. C4
+declarations stay in their model; cross-task observations and their evidence freshness
+belong in the existing handoff sections. Direction acceptance does not imply To-Be
+approval, implementation authorization or passing hardware verification.
+
 ## State Graph
 
 ```text

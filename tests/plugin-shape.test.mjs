@@ -93,7 +93,8 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.doesNotMatch(initSkill, /temporary .*JSON/i);
   assert.match(initSkill, /CodeGraph first/);
   assert.match(initSkill, /Context7/);
-  assert.match(initSkill, /MarkItDown/);
+  assert.match(initSkill, /available local reader/);
+  assert.doesNotMatch(initSkill, /MarkItDown/);
   assert.match(initSkill, /session-local/);
   assert.match(initSkill, /do not bulk-convert/);
   assert.match(initSkill, /inherit global Sol Advisor eligibility by default/);
@@ -106,7 +107,8 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(syncSkill, /standard input/);
   assert.doesNotMatch(syncSkill, /temporary .*JSON/i);
   assert.match(syncSkill, /Context7/);
-  assert.match(syncSkill, /MarkItDown/);
+  assert.match(syncSkill, /available local reader/);
+  assert.doesNotMatch(syncSkill, /MarkItDown/);
   assert.match(syncSkill, /session-local/);
   assert.match(syncSkill, /one-time legacy missing-to-`false` migration/);
   assert.match(syncSkill, /preserves a current valid authorization byte-for-byte/);
@@ -130,7 +132,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   const discoveryContract = await readFile("skills/project-init/references/project-discovery.md", "utf8");
   assert.match(discoveryContract, /prepare-indexes/);
   assert.match(discoveryContract, /update automatically during normal MCP use/);
-  assert.match(discoveryContract, /Context7 and MarkItDown are optional session tools/);
+  assert.match(discoveryContract, /Context7 and local readers are optional session tools/);
   assert.match(discoveryContract, /cannot supply a project-relative evidence path/);
   assert.match(discoveryContract, /Do not bulk-convert/);
 

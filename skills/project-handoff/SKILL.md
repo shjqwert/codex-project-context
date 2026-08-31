@@ -27,6 +27,8 @@ Never let the CLI infer a mutable write target from `groupKey`, title similarity
 
 Read [handoff-format.md](references/handoff-format.md) completely. Read [examples.md](references/examples.md) when diagnosis, objective identity, checkpoint judgment, or migration behavior is uncertain.
 
+When C4 state is part of the continuing objective, read [architecture-observations.md](references/architecture-observations.md). Record declarations and evidence freshness in existing sections; do not infer current pass from a model hash or historical approval alone.
+
 Use Chinese by default for `title`, `summary`, and every prose section. Keep paths, symbols, IDs, test names, protocol terms, and other exact identifiers unchanged. Generate 2-6 concise retrieval aliases with at least one natural Chinese phrase and one natural English phrase. Aliases are search metadata and must not duplicate the title or summary.
 
 Root-cause claims require evidence. When a cause remains uncertain, omit `sections.bugDiagnosis` and record only material uncertainty under `sections.risks`.
