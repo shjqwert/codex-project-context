@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.5.0` improves topic-aware retrieval, separates ambiguous candidates from reliable matches, and tracks evidence-backed C4 observations while preserving the current-handoff model and schema-v3 read compatibility.
+`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.6.0` adds dedicated Architecture Baseline discovery, prioritizes canonical baselines within bounded project references, and excludes reproducible architecture views while preserving the current-handoff model and schema-v3 read compatibility.
 
 ## Capabilities
 

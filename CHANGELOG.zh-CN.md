@@ -1,5 +1,24 @@
 # 中文变更日志
 
+## 1.6.0（2026-09-01）
+
+### Architecture Baseline
+
+- 将 `architecture/baseline.md` 与 `architecture/<domain>/baseline.md` 识别为具有专用读取目的的架构基线资源。
+- 根级单域与多域布局使用明确的正式模型、活动变化和 `.generated/likec4/` 映射；Project Context 仍不确认或修改基线状态。
+- Architecture Baseline 在有界资源列表中优先于普通文档，避免被通用 24 项资源上限意外截断。
+
+### 生成物与跨任务证据
+
+- 忽略 `.generated/` 以及误放在 `architecture/` 下的 HTML、SVG、PNG、布局 JSON 和常规 LikeC4 生成目录，避免将可再生视图作为架构事实或指纹输入。
+- handoff 可观察基线内容身份、设计批准范围、批准指纹和明确批准证据，但不会把哈希当作用户批准或反向改写架构工件。
+- 新建、移动或确认基线后的 project-sync 保持显式执行；同步完成前，生成的 Project Context 按陈旧上下文处理。
+
+### 验证
+
+- 增加生成视图过滤、保留合法同名架构域和 Architecture Baseline 资源优先级回归测试；TypeScript 干净构建和完整测试通过，结果为 81/81。
+- CLI、`package.json` 与插件清单版本已核对为 `1.6.0`，清单构建版本为 `1.6.0+codex.20260901115236`。
+
 ## 1.5.0（2026-08-31）
 
 - 本地打包跳过遗留空 Skill 目录树，不删除源目录；非空但缺少 SKILL.md 的目录在替换安装包前报错，避免携带无效技能。
