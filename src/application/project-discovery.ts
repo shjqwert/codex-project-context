@@ -12,6 +12,7 @@ import { assertDirectory, pathExists, readJsonIfPresent } from "../infrastructur
 
 const MAX_DEPTH = 12;
 const MAX_ENTRIES = 50_000;
+const MAX_RESOURCES = 24;
 const IGNORED_DIRECTORIES = new Set([
   ".agent",
   ".codegraph",
@@ -154,6 +155,7 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
           if (depth === 0 && CAPABILITY_DIRECTORIES.has(lowerName)) directories.push(projectPath);
           continue;
         }
+        if (isGeneratedArchitectureOutput(projectPath, true)) continue;
         directories.push(projectPath);
         if (depth < MAX_DEPTH) {
           await visit(absolute, depth + 1);
@@ -161,6 +163,7 @@ async function scanProject(projectRoot: string): Promise<ProjectSnapshot> {
           truncationReasons.add("depth-limit");
         }
       } else if (entry.isFile()) {
+        if (isGeneratedArchitectureOutput(projectPath, false)) continue;
         files.push(projectPath);
         try {
           const details = await stat(absolute);
@@ -285,8 +288,14 @@ function detectResources(snapshot: ProjectSnapshot): ProjectResource[] {
     if (kind !== undefined) resources.set(path, buildResource(kind, path));
   }
   return [...resources.values()]
-    .sort((left, right) => left.kind.localeCompare(right.kind) || left.path.localeCompare(right.path))
-    .slice(0, 24);
+    .sort((left, right) => {
+      const baselinePriority = Number(isArchitectureBaselinePath(right.path))
+        - Number(isArchitectureBaselinePath(left.path));
+      return baselinePriority
+        || left.kind.localeCompare(right.kind)
+        || left.path.localeCompare(right.path);
+    })
+    .slice(0, MAX_RESOURCES);
 }
 
 async function detectCapabilities(
@@ -329,6 +338,13 @@ function classifyResource(path: string, directory: boolean): ProjectResourceKind
 }
 
 function buildResource(kind: ProjectResourceKind, path: string): ProjectResource {
+  if (kind === "documentation" && isArchitectureBaselinePath(path)) {
+    return {
+      kind,
+      path,
+      purpose: "Architecture baseline; read before changing module responsibilities, dependencies, state ownership, public interfaces, scheduling, hardware boundaries, or architecture intent.",
+    };
+  }
   const purposes: Record<ProjectResourceKind, string> = {
     documentation: "Project documentation; read only when the task depends on it.",
     manual: "Manual or datasheet; inspect metadata first and open relevant content only when needed.",
@@ -337,6 +353,29 @@ function buildResource(kind: ProjectResourceKind, path: string): ProjectResource
     test: "Test reference or suite; use to identify verification entry points and current behavior.",
   };
   return { kind, path, purpose: purposes[kind] };
+}
+
+function isArchitectureBaselinePath(path: string): boolean {
+  return /^architecture\/(?:[^/]+\/)?baseline\.md$/u.test(
+    normalizePath(path).toLocaleLowerCase(),
+  );
+}
+
+function isGeneratedArchitectureOutput(path: string, directory: boolean): boolean {
+  const lower = normalizePath(path).toLocaleLowerCase();
+  if (!/(^|\/)architecture(\/|$)/u.test(lower)) return false;
+  const segments = lower.split("/");
+  const architectureIndex = segments.indexOf("architecture");
+  const architecturePath = segments.slice(architectureIndex + 1);
+  if (
+    architecturePath.length >= 2
+    && architecturePath.slice(1).some((segment) => ["layouts", "png", "site"].includes(segment))
+  ) return true;
+  if (directory) return false;
+  const name = basename(lower);
+  const extension = extname(lower);
+  return [".htm", ".html", ".png", ".svg"].includes(extension)
+    || (extension === ".json" && /(^|[._-])layouts?([._-]|$)/u.test(name));
 }
 
 function normalizePath(value: string): string {

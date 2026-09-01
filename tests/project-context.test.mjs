@@ -93,21 +93,83 @@ test("Project References is omitted when only OpenSpec resources are detected", 
 test("LikeC4 architecture sources are discoverable and generated views are ignored", async () => {
   const project = await makeTempDirectory("codex-project-context-likec4-");
   const architecture = join(project, "architecture", "motor");
-  const generated = join(architecture, ".generated", "site");
+  const generated = join(project, ".generated", "likec4", "motor", "site");
+  const misplacedGenerated = join(architecture, "site");
+  await mkdir(architecture, { recursive: true });
   await mkdir(generated, { recursive: true });
+  await mkdir(misplacedGenerated, { recursive: true });
+  await writeFile(
+    join(project, "architecture", "baseline.md"),
+    "---\narchitectureBaseline: 1\nbaselineStatus: confirmed\n---\n",
+    "utf8",
+  );
+  await writeFile(
+    join(architecture, "baseline.md"),
+    "---\narchitectureBaseline: 1\ndomain: motor\nbaselineStatus: pending-confirmation\n---\n",
+    "utf8",
+  );
   await writeFile(join(architecture, "model.c4"), "model { motor = system 'Motor' }\n", "utf8");
   await writeFile(join(project, "control.likec4"), "model { control = system 'Control' }\n", "utf8");
   await writeFile(join(generated, "index.html"), "first\n", "utf8");
+  await writeFile(join(architecture, "view.png"), "first\n", "utf8");
+  await writeFile(join(architecture, "manual-layout.json"), "{}\n", "utf8");
+  await writeFile(join(misplacedGenerated, "index.html"), "first\n", "utf8");
 
   const before = await inspectProject(project);
   assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "architecture"));
+  for (const path of ["architecture/baseline.md", "architecture/motor/baseline.md"]) {
+    const baseline = before.resources.find((resource) => resource.path === path);
+    assert.equal(baseline?.kind, "documentation");
+    assert.match(baseline?.purpose ?? "", /Architecture baseline; read before changing module responsibilities/);
+  }
   assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "architecture/motor/model.c4"));
   assert.ok(before.resources.some(({ kind, path }) => kind === "documentation" && path === "control.likec4"));
   assert.ok(before.paths.every((path) => !path.includes(".generated")));
+  assert.ok(before.paths.every((path) => !/architecture\/motor\/(?:view\.png|manual-layout\.json|site(?:\/|$))/u.test(path)));
 
   await writeFile(join(generated, "index.html"), "second\n", "utf8");
+  await writeFile(join(architecture, "view.png"), "second\n", "utf8");
+  await writeFile(join(architecture, "manual-layout.json"), "{\"changed\":true}\n", "utf8");
+  await writeFile(join(misplacedGenerated, "index.html"), "second\n", "utf8");
   const after = await inspectProject(project);
   assert.equal(after.fingerprint, before.fingerprint);
+
+  await initializeProject(project);
+  const agents = await readFile(join(project, "AGENTS.md"), "utf8");
+  assert.match(
+    agents,
+    /documentation: `architecture\/baseline\.md` — Architecture baseline; read before changing module responsibilities/,
+  );
+});
+
+test("Architecture Baselines take precedence over the general resource cap", async () => {
+  const project = await makeTempDirectory("codex-project-context-baseline-priority-");
+  const architecture = join(project, "architecture");
+  const lateDomain = join(architecture, "z-domain");
+  const outputNamedDomain = join(architecture, "site");
+  await mkdir(lateDomain, { recursive: true });
+  await mkdir(outputNamedDomain, { recursive: true });
+  for (let index = 0; index < 30; index += 1) {
+    await writeFile(join(architecture, `a-${String(index).padStart(2, "0")}.md`), "fixture\n", "utf8");
+  }
+  await writeFile(
+    join(lateDomain, "baseline.md"),
+    "---\narchitectureBaseline: 1\ndomain: z-domain\nbaselineStatus: confirmed\n---\n",
+    "utf8",
+  );
+  await writeFile(
+    join(outputNamedDomain, "baseline.md"),
+    "---\narchitectureBaseline: 1\ndomain: site\nbaselineStatus: confirmed\n---\n",
+    "utf8",
+  );
+
+  const inventory = await inspectProject(project);
+  const baseline = inventory.resources.find(({ path }) => path === "architecture/z-domain/baseline.md");
+  const outputNamedBaseline = inventory.resources.find(({ path }) => path === "architecture/site/baseline.md");
+  assert.equal(inventory.resources.length, 24);
+  assert.equal(baseline?.kind, "documentation");
+  assert.match(baseline?.purpose ?? "", /Architecture baseline; read before changing module responsibilities/);
+  assert.equal(outputNamedBaseline?.kind, "documentation");
 });
 
 test("existing AGENTS content is preserved and synchronization is byte-stable", async () => {

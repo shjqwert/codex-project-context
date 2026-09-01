@@ -18,7 +18,7 @@ Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Con
 
 Retrieval preserves full query-topic coverage instead of discarding unknown topic terms. Explicit exclusions apply to identifier and lexical routing; a concrete unmatched continuation topic no longer falls back to unrelated recent work. Results include `disposition: reliable | candidate`: ambiguous candidates require metadata review before body reads. `match --explain` reports complete read-only evidence and rejection diagnostics; it cannot be combined with `--limit`. Scores and coverage are retrieval evidence, not semantic probabilities.
 
-C4 state remains four separate declarations owned by the architecture workflow. A qualifying handoff records their observation and evidence freshness in its existing sections. Reusing pass requires unchanged applicable model, implementation/configuration, build/firmware and test/result identities; a model hash or report path alone is insufficient. See [architecture observations](skills/project-handoff/references/architecture-observations.md). No new state database, automatic model scan or knowledge-service integration is introduced.
+C4 state remains four separate declarations owned by the architecture workflow. Canonical `architecture/baseline.md` and `architecture/<domain>/baseline.md` resources are discovered as documentation with dedicated routing for architecture intent, module boundaries, ownership and dependency constraints; file presence alone does not make a baseline confirmed or current. A qualifying handoff records baseline, model, implementation and verification observations with separate evidence freshness. Reusing pass requires unchanged applicable baseline, model, implementation/configuration, build/firmware and test/result identities; a hash or report path alone is insufficient. See [architecture observations](skills/project-handoff/references/architecture-observations.md). No new schema type, state database, automatic model scan or knowledge-service integration is introduced.
 
 ## Generated Project Context
 
@@ -32,7 +32,7 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 6. Sol Advisor Integration
 7. Handoff Context
 
-`Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`.
+`Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`. A selected canonical Architecture Baseline keeps its dedicated read-before-change purpose; pending, stale, or conflicting baselines remain proposals or advisories rather than current facts.
 
 `Project Context` contains only the context, plan, and handoff entry points that apply. Experimental integration state is never rendered there. `Handoff Context` keeps stable relevance and evidence boundaries while using up to three project-specific, evidence-backed routing lines; it does not use a project-type template or expose Hook and schema internals.
 

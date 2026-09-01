@@ -22,6 +22,8 @@ Keep `Code Analysis` concise and evidence-based. Mention CodeGraph or Serena onl
 
 Omit `Project References` when the analysis selects no non-OpenSpec references. Render category guidance only when the Agent submits it for selected resources. Do not generate `Development Rules`, `Specification Routing`, or `Completion Rules`.
 
+When a selected resource is the canonical `architecture/baseline.md` or `architecture/<domain>/baseline.md`, preserve its dedicated Architecture Baseline purpose. Do not describe a `pending-confirmation`, stale, conflicting, or unreadable baseline as confirmed current architecture; report that limitation in the Agent-authored analysis instead.
+
 Keep the `Project Context` and `Handoff Context` section roles stable, but render their content from actual project configuration and evidence. `Project Context` names only the context, plan, and handoff entry points that apply. It must not expose experimental integrations, component lists, source IDs, Hook behavior, Skill selection, schema internals, migration rules, or write-boundary implementation details.
 
 Keep `Sol Advisor Integration` minimal: state the effective project policy (`inherit`, explicit allow, or explicit deny), the three-state authorization semantics, fail-closed invalid-state behavior, and ownership boundary. Route details, role prompts, model selection, and result protocols remain in the Sol Advisor Skill rather than the project file.

@@ -205,6 +205,110 @@
         }
       ],
       "dedupeKey": "sha256:d6e9051c7d5ea0ea3397da4cf8ea3a7132a4acd471155358e986a93f59e046ce"
+    },
+    {
+      "id": "P005",
+      "title": "嵌入式架构设计与持续治理能力",
+      "summary": "联合演进 embedded_skills 与 codex-project-context：将现有 Embedded Architecture Review 扩展为 design、evolve、audit 三种显式模式，建立紧凑 Architecture Baseline 合同，使项目上下文能够发现并正确路由已确认基线，同时保留现有 LikeC4、审批、交接和验证边界。",
+      "status": "completed",
+      "successCriteria": [
+        "embedded-architecture-review 支持 design、evolve、audit，且普通局部开发不会隐式进入架构流程。",
+        "Architecture Baseline 具有规范路径、明确状态、职责与依赖合同，并与 LikeC4、活动 change 和代码证据分工清楚。",
+        "first-principles-framing、adversarial-review、embedded-code-style、validate-embedded-drivers 能按稳定交接合同协作。",
+        "codex-project-context 能发现相关 Architecture Baseline，忽略生成物，不把 proposed、stale 或活动 change 当成已确认事实。",
+        "LikeC4 默认使用紧凑源文件目录和可控生成目录，并提供实时预览、单文件 HTML 与 PNG 的明确路由。",
+        "两个仓库的最小相关验证与完整适用测试通过，且不修改 Hooks、context schema 或 LikeC4 本身。"
+      ],
+      "specRefs": [],
+      "decisions": [
+        "扩展现有 embedded-architecture-review，不创建重复的 project-architecture Skill。",
+        "架构 Skill 保持显式调用或可靠上游交接，不承担后台持续监控。",
+        "Architecture Baseline 使用 architecture/baseline.md 或 architecture/<domain>/baseline.md；项目上下文仍将其作为 documentation 资源。",
+        "代码事实由 CodeGraph、源码和配置提供；架构意图由 baseline.md 保存；结构模型由正式 model.c4 保存；活动变化由 changes/ 保存。",
+        "不新增 context schema 类型，不修改 SessionStart/UserPromptSubmit Hooks，不自动执行 project-sync 或吸收架构漂移。"
+      ],
+      "createdAt": "2026-09-01T10:18:00.623Z",
+      "updatedAt": "2026-09-01T10:33:14.074Z",
+      "transitions": [
+        {
+          "from": null,
+          "to": "proposed",
+          "reason": "Plan recorded.",
+          "at": "2026-09-01T10:18:00.623Z"
+        },
+        {
+          "from": "proposed",
+          "to": "accepted",
+          "reason": "用户确认了跨仓库任务范围、职责边界与实施顺序。",
+          "at": "2026-09-01T10:18:00.927Z"
+        },
+        {
+          "from": "accepted",
+          "to": "in-progress",
+          "reason": "用户明确要求开始执行，现已进入源码核对、实现和验证阶段。",
+          "at": "2026-09-01T10:18:01.238Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "已完成跨仓库实现；codex-project-context 全量 80/80 测试通过，5 个修改 Skill 通过官方 quick_validate，14 个交接标识与 5 个调用策略检查通过，LikeC4 1.59.2 命令已按本机帮助核对。",
+          "at": "2026-09-01T10:33:14.074Z"
+        }
+      ],
+      "dedupeKey": "sha256:b8b127ed59518d5d7b576509672d7ffcf5cdac43caa0d4f5ab468dc402da8607"
+    },
+    {
+      "id": "P006",
+      "title": "修复嵌入式架构治理审查缺口",
+      "summary": "承接已终结的 P005，按用户确认的 Sol Advisor 对抗审查结论，补全 Architecture Baseline 路径、批准证据、状态恢复和显式同步合同，并修复资源发现、交接 token 与 DESIGN/EVOLVE 路由边界。",
+      "status": "completed",
+      "successCriteria": [
+        "根级与域级 Architecture Baseline 的 model、changes、生成目录映射唯一且可执行。",
+        "批准门槛绑定当前设计内容身份，baselineStatus 只有一个权威来源，并定义冲突恢复规则。",
+        "显式 project-sync 被记录为必须结清的人工后续项，但不增加 Hook、自动扫描或 schema。",
+        "生成视图不会进入 Project Context 资源，Architecture Baseline 不会因普通资源上限被遗漏。",
+        "审计与代码生成 Skill 的交接 token 和 DESIGN/EVOLVE 前置条件一致。",
+        "相关测试、Skill 校验和完整适用测试通过。"
+      ],
+      "specRefs": [
+        "skills/project-init/references/project-discovery.md",
+        "skills/project-sync/references/resource-rules.md"
+      ],
+      "decisions": [
+        "P005 已终结且不可重开，本计划作为审查后修正计划替代并引用它。",
+        "接受 Sol Advisor 报告的四项决策缺口与四项实现/测试问题作为本轮最小修正范围。",
+        "不新增 Hook、context schema、后台扫描、自动同步或自动吸收漂移。",
+        "完成修正和验证后再恢复完成结论。"
+      ],
+      "createdAt": "2026-09-01T11:31:39.879Z",
+      "updatedAt": "2026-09-01T11:40:25.420Z",
+      "transitions": [
+        {
+          "from": null,
+          "to": "proposed",
+          "reason": "Plan recorded.",
+          "at": "2026-09-01T11:31:39.879Z"
+        },
+        {
+          "from": "proposed",
+          "to": "accepted",
+          "reason": "用户确认接受 Sol Advisor 的八项审查发现并开始最小修正。",
+          "at": "2026-09-01T11:31:47.698Z"
+        },
+        {
+          "from": "accepted",
+          "to": "in-progress",
+          "reason": "开始修订架构治理合同、资源发现实现和针对性测试。",
+          "at": "2026-09-01T11:31:48.008Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "completed",
+          "reason": "八项审查缺口均已修正；Project Context 全量 81/81 测试、5 个 Skill 官方校验、4/4 跨 Skill 契约测试与两个仓库 diff 检查通过。",
+          "at": "2026-09-01T11:40:25.420Z"
+        }
+      ],
+      "dedupeKey": "sha256:cf5cffda46b714b917c252590fed604493c3d16b655f58e185ddf14261b50cbb"
     }
   ]
 }
@@ -328,3 +432,66 @@ Make Embedded Architecture Review explicit or upstream-handoff-only, route stabl
 - 2026-08-31T07:11:20.875Z: proposed -> accepted — 用户确认执行完整计划及三项审查补充，C4 采用证据绑定方案；RAG 排除。
 - 2026-08-31T07:11:21.232Z: accepted -> in-progress — 开始冻结评测、调整技能和检索实现；构建用于测试，发布与安装另行确认。
 - 2026-08-31T09:08:54.408Z: in-progress -> completed — 源码及80项测试、独立审查与离线C4验收完成；Project Context 1.5.0、Sol 0.12.2和4个技能已安装验证；三个仓库提交已推送，用户授权移除本地分支命名钩子并保留备份。
+
+## P005 嵌入式架构设计与持续治理能力
+
+- Status: `completed`
+- Updated: 2026-09-01T10:33:14.074Z
+- Plan references: none
+
+联合演进 embedded_skills 与 codex-project-context：将现有 Embedded Architecture Review 扩展为 design、evolve、audit 三种显式模式，建立紧凑 Architecture Baseline 合同，使项目上下文能够发现并正确路由已确认基线，同时保留现有 LikeC4、审批、交接和验证边界。
+
+### Success Criteria
+
+- embedded-architecture-review 支持 design、evolve、audit，且普通局部开发不会隐式进入架构流程。
+- Architecture Baseline 具有规范路径、明确状态、职责与依赖合同，并与 LikeC4、活动 change 和代码证据分工清楚。
+- first-principles-framing、adversarial-review、embedded-code-style、validate-embedded-drivers 能按稳定交接合同协作。
+- codex-project-context 能发现相关 Architecture Baseline，忽略生成物，不把 proposed、stale 或活动 change 当成已确认事实。
+- LikeC4 默认使用紧凑源文件目录和可控生成目录，并提供实时预览、单文件 HTML 与 PNG 的明确路由。
+- 两个仓库的最小相关验证与完整适用测试通过，且不修改 Hooks、context schema 或 LikeC4 本身。
+
+### Decisions
+
+- 扩展现有 embedded-architecture-review，不创建重复的 project-architecture Skill。
+- 架构 Skill 保持显式调用或可靠上游交接，不承担后台持续监控。
+- Architecture Baseline 使用 architecture/baseline.md 或 architecture/<domain>/baseline.md；项目上下文仍将其作为 documentation 资源。
+- 代码事实由 CodeGraph、源码和配置提供；架构意图由 baseline.md 保存；结构模型由正式 model.c4 保存；活动变化由 changes/ 保存。
+- 不新增 context schema 类型，不修改 SessionStart/UserPromptSubmit Hooks，不自动执行 project-sync 或吸收架构漂移。
+
+### Status History
+
+- 2026-09-01T10:18:00.623Z: created -> proposed — Plan recorded.
+- 2026-09-01T10:18:00.927Z: proposed -> accepted — 用户确认了跨仓库任务范围、职责边界与实施顺序。
+- 2026-09-01T10:18:01.238Z: accepted -> in-progress — 用户明确要求开始执行，现已进入源码核对、实现和验证阶段。
+- 2026-09-01T10:33:14.074Z: in-progress -> completed — 已完成跨仓库实现；codex-project-context 全量 80/80 测试通过，5 个修改 Skill 通过官方 quick_validate，14 个交接标识与 5 个调用策略检查通过，LikeC4 1.59.2 命令已按本机帮助核对。
+
+## P006 修复嵌入式架构治理审查缺口
+
+- Status: `completed`
+- Updated: 2026-09-01T11:40:25.420Z
+- Plan references: `skills/project-init/references/project-discovery.md`, `skills/project-sync/references/resource-rules.md`
+
+承接已终结的 P005，按用户确认的 Sol Advisor 对抗审查结论，补全 Architecture Baseline 路径、批准证据、状态恢复和显式同步合同，并修复资源发现、交接 token 与 DESIGN/EVOLVE 路由边界。
+
+### Success Criteria
+
+- 根级与域级 Architecture Baseline 的 model、changes、生成目录映射唯一且可执行。
+- 批准门槛绑定当前设计内容身份，baselineStatus 只有一个权威来源，并定义冲突恢复规则。
+- 显式 project-sync 被记录为必须结清的人工后续项，但不增加 Hook、自动扫描或 schema。
+- 生成视图不会进入 Project Context 资源，Architecture Baseline 不会因普通资源上限被遗漏。
+- 审计与代码生成 Skill 的交接 token 和 DESIGN/EVOLVE 前置条件一致。
+- 相关测试、Skill 校验和完整适用测试通过。
+
+### Decisions
+
+- P005 已终结且不可重开，本计划作为审查后修正计划替代并引用它。
+- 接受 Sol Advisor 报告的四项决策缺口与四项实现/测试问题作为本轮最小修正范围。
+- 不新增 Hook、context schema、后台扫描、自动同步或自动吸收漂移。
+- 完成修正和验证后再恢复完成结论。
+
+### Status History
+
+- 2026-09-01T11:31:39.879Z: created -> proposed — Plan recorded.
+- 2026-09-01T11:31:47.698Z: proposed -> accepted — 用户确认接受 Sol Advisor 的八项审查发现并开始最小修正。
+- 2026-09-01T11:31:48.008Z: accepted -> in-progress — 开始修订架构治理合同、资源发现实现和针对性测试。
+- 2026-09-01T11:40:25.420Z: in-progress -> completed — 八项审查缺口均已修正；Project Context 全量 81/81 测试、5 个 Skill 官方校验、4/4 跨 Skill 契约测试与两个仓库 diff 检查通过。

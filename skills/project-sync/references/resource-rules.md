@@ -18,7 +18,13 @@ Forbidden updates:
 
 Preserve analysis lines while their evidence remains valid. Remove or revise a line when its cited evidence disappears or conflicts with current evidence. A generic PDF is documentation, not automatically a manual. Never classify OpenSpec-owned `specs` paths as tests or render OpenSpec-owned paths in `Project References`.
 
-For LikeC4, synchronize confirmed current architecture from the formal As-Is model and corroborating code or configuration. Do not turn `architecture/<domain>/changes/` into current project facts while a change is proposed, approved but not implemented, partial, failed, or blocked. An implemented change may describe implementation state and visible residual risk, but only an applicable verification pass and migration into the formal As-Is support a verified-current claim. Ignore `.generated/` HTML, PNG, layout, and other reproducible output.
+For architecture resources, keep responsibilities separate:
+
+- `architecture/baseline.md` or `architecture/<domain>/baseline.md` records architecture intent and long-lived constraints. Synchronize it as a confirmed current reference only when `baselineStatus` is `confirmed` and current evidence does not make its relevant locators or claims stale.
+- Root single-domain layout uses `architecture/model.c4` and `architecture/changes/`; multi-domain layout uses the `model.c4` and `changes/` adjacent to `architecture/<domain>/baseline.md`. The formal model records current structural facts, corroborated by code or configuration.
+- The mapped `changes/` records proposed or active change evidence, not current project fact while a change is proposed, approved but not implemented, partial, failed, or blocked.
+
+An implemented change may describe implementation state and visible residual risk, but only an applicable verification pass and migration into the formal As-Is support a verified-current claim. Project synchronization may update resource routing and advisories, but never edits, confirms, or silently refreshes an Architecture Baseline. A new, moved, or newly confirmed baseline creates a required explicit synchronization action; until the user runs project-sync, generated Project Context must be described as stale and the pending action remains visible in the current handoff. Ignore root or nested `.generated/` output and conventional reproducible views misplaced under `architecture/`, including `site/`, `png/`, `layouts/`, HTML, SVG, PNG, and layout JSON.
 
 Do not infer project stage, create tasks or plans, download missing references, or fabricate external facts. Return relevant missing inputs as advisories. Repeated synchronization with the same inventory and analysis must be byte-identical.
 
