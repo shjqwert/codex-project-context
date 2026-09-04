@@ -17,6 +17,10 @@ Required prose fields:
 
 Use Chinese by default for prose. Keep exact identifiers unchanged. Optional routing arrays are `specRefs`, `modules`, `symbols`, `files`, `bugIds`, `tests`, `tags`, and `aliases`. New Skill-authored input supplies 2-6 aliases with Chinese and English coverage.
 
+Optional Plan/Change associations are `planIds`, `changeIds` and qualified
+`taskRefs` as defined in [change-links.md](change-links.md). They are included in
+new state identity only when present. Do not bulk-rewrite old records to add them.
+
 Optional sections are `workCompleted`, `bugDiagnosis`, `decisionsAndConstraints`, `failedAttempts`, `verification`, `risks`, and `evidence`. Omit empty sections.
 
 Updates additionally require `workId` and `expectedRevision`, and submit the complete next state. Status is one of `active`, `blocked`, `completed`, or `superseded`. Closed work requires `reopen: true` and `status: "active"` before content changes.
@@ -55,6 +59,7 @@ Keep source declarations, observed state and evidence freshness distinct using t
 sections; no additional persistent schema or state store is introduced.
 
 - Use project-relative paths.
+- Do not store J-Link variables, register snapshots, HSS samples or capture references.
 - Record a passed test only after observing successful output.
 - Keep hypotheses out of `bugDiagnosis`.
 - Record constraints only from the user, current code, tests, specifications, logs, or project references.
@@ -75,3 +80,7 @@ Default matching returns only each matched current document. History requires a 
 Matches marked `candidate` are ambiguous, not authorization to load every candidate
 body. Compare metadata with the current objective first; use `match --explain` for
 complete reasons. An unmatched concrete topic must not become an unrelated recent task.
+
+Read summaries first, then only needed sections. Hook deduplication tracks emitted
+work/revision/disposition cards; truncated cards remain eligible and a later
+revision produces a fresh card. There is no fixed Top 1 cap.

@@ -130,7 +130,18 @@ export type HandoffKind =
   | "maintenance"
   | "verification";
 
-export interface HandoffRouting {
+export interface HandoffTaskRef {
+  changeId: string;
+  taskId: string;
+}
+
+export interface HandoffLinks {
+  planIds?: string[];
+  changeIds?: string[];
+  taskRefs?: HandoffTaskRef[];
+}
+
+export interface HandoffRouting extends HandoffLinks {
   specRefs: string[];
   bugIds: string[];
   modules: string[];
@@ -141,7 +152,7 @@ export interface HandoffRouting {
   aliases: string[];
 }
 
-export interface HandoffInput {
+export interface HandoffInput extends HandoffLinks {
   title: string;
   summary: string;
   kind: HandoffKind;

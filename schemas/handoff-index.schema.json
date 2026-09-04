@@ -30,7 +30,26 @@
         "symbols": { "$ref": "#/$defs/stringArray" },
         "tests": { "$ref": "#/$defs/stringArray" },
         "tags": { "$ref": "#/$defs/stringArray" },
-        "aliases": { "$ref": "#/$defs/stringArray" }
+        "aliases": { "$ref": "#/$defs/stringArray" },
+        "planIds": {
+          "type": "array", "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^P[0-9]+$" }
+        },
+        "changeIds": {
+          "type": "array", "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        },
+        "taskRefs": {
+          "type": "array", "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["changeId", "taskId"],
+            "properties": {
+              "changeId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+              "taskId": { "type": "string", "pattern": "^T[0-9]+$" }
+            }
+          }
+        }
       }
     },
     "entry": {

@@ -12,6 +12,7 @@ import type {
   HandoffRouting,
   HandoffSections,
   HandoffStatus,
+  HandoffTaskRef,
   HandoffWriteInput,
   LegacyHandoffIndex,
   LegacyHandoffIndexEntry,
@@ -32,6 +33,7 @@ import {
 } from "./handoff-index.js";
 import { rankHandoffsBm25, searchHandoffsBm25, tokenizeBm25, type Bm25Hit } from "./bm25.js";
 import { analyzeRetrievalQuery } from "./retrieval-query.js";
+import { normalizeHandoffLinks } from "./change-links.js";
 import { readProjectContext, requireProjectRoot } from "./project-context.js";
 
 const SECTION_LABELS: Array<[keyof HandoffSections, string, string]> = [
@@ -173,7 +175,11 @@ export function matchHandoffEntries(
   bm25Search: (entries: HandoffIndexEntry[], query: string) => Bm25Hit[] = searchHandoffsBm25,
 ): HandoffMatch[] {
   const query = analyzeRetrievalQuery(prompt);
-  const eligible = entries.filter((entry) => !query.excluded.some((clause) => entryMatchesExclusion(entry, clause)));
+  const taskRequests = requestedTasks(entries, query.clauses);
+  const eligible = entries.filter((entry) =>
+    !query.excluded.some((clause) => entryMatchesExclusion(entry, clause))
+    && ([entry.workId, ...entry.legacyRecordIds].some((id) => containsBounded(normalizeSearchText(query.positive), id))
+      || !conflictingTaskScope(entry, taskRequests)));
   const normalizedPrompt = normalizeSearchText(query.positive);
   let lexicalHits: Bm25Hit[] = [];
   let clauseHits: Bm25Hit[][] = [];
@@ -184,9 +190,10 @@ export function matchHandoffEntries(
     // BM25 is optional; deterministic routing must remain available.
   }
   const ruleMatches = eligible
-    .map((entry) => scoreRuleEntry(entry, normalizedPrompt))
+    .map((entry) => scoreRuleEntry(entry, normalizedPrompt, taskRequests))
     .filter((result): result is HandoffMatch => result !== undefined && result.score >= MATCH_THRESHOLD)
-    .filter((match) => match.score >= 80 || lexicalHits.some((hit) => hit.entry.workId === match.entry.workId)
+    .filter((match) => match.score >= 80 || match.reasons.includes("unqualified task id")
+      || lexicalHits.some((hit) => hit.entry.workId === match.entry.workId)
       || query.clauses.some((clause) => isBareModuleLookup(match.entry, clause)));
   const merged = new Map<string, HandoffMatch>();
   for (const match of ruleMatches) merged.set(match.entry.workId, match);
@@ -252,7 +259,14 @@ function hasAmbiguousLeaders(matches: HandoffMatch[]): boolean {
 
 function entryMatchesExclusion(entry: HandoffIndexEntry, clause: string): boolean {
   const normalized = normalizeSearchText(clause);
+  const scoped = requestedTasks([entry], [clause]);
+  if (scoped.length > 0 && (entry.routing.taskRefs ?? []).some((ref) =>
+    scoped.some((requested) => ref.changeId === requested.changeId && ref.taskId === requested.taskId))) return true;
   if ([entry.workId, ...entry.legacyRecordIds, ...entry.routing.specRefs, ...entry.routing.bugIds,
+    ...(scoped.length === 0 ? [
+      ...entry.routing.planIds ?? [], ...entry.routing.changeIds ?? [],
+      ...(entry.routing.taskRefs ?? []).map((ref) => ref.changeId),
+    ] : []),
     ...entry.routing.files, ...entry.routing.symbols, ...entry.routing.modules]
     .some((value) => containsBounded(normalized, value))) return true;
   const text = normalizeSearchText([entry.title, entry.summary, ...entry.routing.aliases ?? []].join(" "));
@@ -405,7 +419,8 @@ async function updateCurrent(
   const legacyDedupeKey = buildLegacyHandoffDedupeKey(input, current.cycle);
   if (
     dedupeKey === current.dedupeKey
-    || (!isCurrentPath(current.currentPath) && legacyDedupeKey === current.dedupeKey)
+    || (!isCurrentPath(current.currentPath) && Object.keys(normalizeHandoffLinks(input)).length === 0
+      && legacyDedupeKey === current.dedupeKey)
   ) return deduplicatedResult(current);
   if (CLOSED_STATUSES.has(current.status) && (input.reopen !== true || status !== "active")) {
     throw new Error("Closed handoff work requires reopen: true and status active before an update.");
@@ -564,6 +579,9 @@ function renderHandoff(
     `tests: ${JSON.stringify(entry.routing.tests)}`,
     `tags: ${JSON.stringify(entry.routing.tags)}`,
     `aliases: ${JSON.stringify(entry.routing.aliases)}`,
+    ...(entry.routing.planIds === undefined ? [] : [`plan_ids: ${JSON.stringify(entry.routing.planIds)}`]),
+    ...(entry.routing.changeIds === undefined ? [] : [`change_ids: ${JSON.stringify(entry.routing.changeIds)}`]),
+    ...(entry.routing.taskRefs === undefined ? [] : [`task_refs: ${JSON.stringify(entry.routing.taskRefs)}`]),
     `available_sections: ${JSON.stringify(entry.availableSections)}`,
     "---",
   ];
@@ -579,7 +597,7 @@ function normalizeInput(input: HandoffInput): HandoffInput {
   assertOnlyKeys(input, [
     "title", "summary", "kind", "sections", "cycle", "specRefs", "modules", "symbols",
     "files", "bugIds", "tests", "tags", "aliases", "workId", "expectedRevision", "status",
-    "reopen", "checkpoint", "checkpointReason",
+    "reopen", "checkpoint", "checkpointReason", "planIds", "changeIds", "taskRefs",
   ], "input");
   const kind = requiredText(input.kind, "kind") as HandoffKind;
   if (!HANDOFF_KINDS.has(kind)) throw new Error(`Unsupported handoff kind: ${kind}.`);
@@ -626,6 +644,7 @@ function normalizeInput(input: HandoffInput): HandoffInput {
     tests: uniqueStrings(input.tests),
     tags: uniqueStrings(input.tags),
     aliases,
+    ...normalizeHandoffLinks(input),
     ...(input.workId === undefined ? {} : { workId: normalizeWorkId(input.workId) }),
     ...(input.expectedRevision === undefined ? {} : { expectedRevision: requiredRevision(input.expectedRevision, "expectedRevision") }),
     ...(input.status === undefined ? {} : { status: input.status }),
@@ -1007,7 +1026,7 @@ async function listMarkdownFiles(directory: string): Promise<string[]> {
   return result.sort();
 }
 
-function scoreRuleEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch | undefined {
+function scoreRuleEntry(entry: HandoffIndexEntry, prompt: string, taskRequests: HandoffTaskRef[]): HandoffMatch | undefined {
   let score = 0;
   const reasons: string[] = [];
   const add = (weight: number, reason: string): void => {
@@ -1017,10 +1036,53 @@ function scoreRuleEntry(entry: HandoffIndexEntry, prompt: string): HandoffMatch 
   if ([entry.workId, ...entry.legacyRecordIds].some((value) => containsBounded(prompt, value))) add(100, "handoff id");
   if (entry.routing.specRefs.some((value) => containsBounded(prompt, value))) add(100, "spec id");
   if (entry.routing.bugIds.some((value) => containsBounded(prompt, value))) add(100, "bug id");
+  if (entry.routing.planIds?.some((value) => containsBounded(prompt, value))) add(100, "plan id");
+  const changes = [...entry.routing.changeIds ?? [], ...(entry.routing.taskRefs ?? []).map((ref) => ref.changeId)];
+  if (changes.some((value) => containsBounded(prompt, value))) add(100, "change id");
+  if (entry.routing.taskRefs?.some((ref) => taskRequests.some((request) =>
+    request.changeId === ref.changeId && request.taskId === ref.taskId))) add(120, "scoped task id");
+  else if (taskRequests.length === 0 && entry.routing.taskRefs?.some((ref) => containsBounded(prompt, ref.taskId))) {
+    add(55, "unqualified task id");
+  }
   if (entry.routing.files.some((value) => containsPath(prompt, value))) add(90, "file path");
   if (entry.routing.symbols.some((value) => containsBounded(prompt, value))) add(80, "symbol");
   if (entry.routing.modules.some((value) => containsBounded(prompt, value))) add(60, "module");
-  return score === 0 ? undefined : baseMatch(entry, score, reasons);
+  if (score === 0) return undefined;
+  const match = baseMatch(entry, score, reasons);
+  if (reasons.includes("unqualified task id") && reasons.every((reason) =>
+    reason === "unqualified task id" || reason === "module")) match.disposition = "candidate";
+  return match;
+}
+
+function requestedTasks(entries: HandoffIndexEntry[], clauses: string[]): HandoffTaskRef[] {
+  const knownChanges = [...new Set(entries.flatMap((entry) => [
+    ...entry.routing.changeIds ?? [], ...(entry.routing.taskRefs ?? []).map((ref) => ref.changeId),
+  ]))];
+  const requests = new Map<string, HandoffTaskRef>();
+  for (const clause of clauses) {
+    const normalized = normalizeSearchText(clause);
+    for (const match of normalized.matchAll(/\b([a-z0-9]+(?:-[a-z0-9]+)*)\/(t[0-9]+)\b/gu)) {
+      const [, changeId, task] = match;
+      if (changeId !== undefined && task !== undefined) {
+        const taskId = task.toUpperCase();
+        requests.set(changeId + "/" + taskId, { changeId, taskId });
+      }
+    }
+    const changes = knownChanges.filter((id) => containsBounded(normalized, id));
+    const tasks = [...new Set([...normalized.matchAll(/\bt[0-9]+\b/gu)].map((match) => match[0].toUpperCase()))];
+    const changeId = changes[0], taskId = tasks[0];
+    if (changes.length === 1 && tasks.length === 1 && changeId !== undefined && taskId !== undefined) {
+      requests.set(changeId + "/" + taskId, { changeId, taskId });
+    }
+  }
+  return [...requests.values()];
+}
+
+function conflictingTaskScope(entry: HandoffIndexEntry, requests: HandoffTaskRef[]): boolean {
+  const refs = entry.routing.taskRefs ?? [];
+  const relevant = requests.filter((request) => refs.some((ref) => ref.changeId === request.changeId));
+  return relevant.length > 0 && !refs.some((ref) => relevant.some((request) =>
+    request.changeId === ref.changeId && request.taskId === ref.taskId));
 }
 
 function bm25Match(hit: Bm25Hit): HandoffMatch {
@@ -1041,7 +1103,7 @@ function baseMatch(entry: HandoffIndexEntry, score: number, reasons: string[]): 
     score,
     reasons,
     disposition: "reliable",
-    confidence: reasons.some((reason) => ["handoff id", "spec id", "bug id"].includes(reason))
+    confidence: reasons.some((reason) => ["handoff id", "spec id", "bug id", "plan id", "change id", "scoped task id"].includes(reason))
       ? "exact"
       : score >= 100 ? "high" : "medium",
     records: [recordReference(entry)],
@@ -1100,6 +1162,7 @@ function buildHandoffDedupeKey(input: HandoffInput, cycle: string, status: Hando
     tests: canonicalList(input.tests),
     tags: canonicalList(input.tags),
     sections,
+    ...normalizeHandoffLinks(input),
   };
   return `sha256:${createHash("sha256").update(JSON.stringify(canonical)).digest("hex")}`;
 }
@@ -1135,6 +1198,7 @@ function routingFromInput(input: HandoffInput): HandoffRouting {
     tests: input.tests ?? [],
     tags: input.tags ?? [],
     aliases: input.aliases ?? [],
+    ...normalizeHandoffLinks(input),
   };
 }
 
@@ -1148,6 +1212,9 @@ function routingFromFields(fields: Map<string, unknown>): HandoffRouting {
     tests: fields.get("tests") as string[],
     tags: fields.get("tags") as string[],
     aliases: (fields.get("aliases") ?? []) as string[],
+    ...normalizeHandoffLinks({
+      planIds: fields.get("plan_ids"), changeIds: fields.get("change_ids"), taskRefs: fields.get("task_refs"),
+    }),
   };
 }
 
@@ -1167,6 +1234,7 @@ function inputFromEntry(entry: HandoffIndexEntry, sections: HandoffSections): Ha
     tags: entry.routing.tags,
     aliases: entry.routing.aliases,
     status: entry.status,
+    ...normalizeHandoffLinks(entry.routing),
   };
 }
 

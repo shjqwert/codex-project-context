@@ -9,6 +9,7 @@ import type {
 import { readTextIfPresent, writeTextAtomic } from "../infrastructure/files.js";
 import { withProjectWriteLock } from "../infrastructure/project-write-lock.js";
 import { requireProjectRoot } from "./project-context.js";
+import { listProjectChanges, type ProjectChangeSummary } from "./project-changes.js";
 
 const DATA_START = "<!-- PROJECT_PLAN_DATA_START -->";
 const DATA_END = "<!-- PROJECT_PLAN_DATA_END -->";
@@ -113,11 +114,22 @@ export async function transitionProjectPlan(
 
 export async function listProjectPlans(
   projectDirectory: string,
-): Promise<{ ok: true; path: string; projectRoot: string; plans: ProjectPlan[] }> {
+): Promise<{
+  ok: true; path: string; projectRoot: string;
+  plans: Array<ProjectPlan & { changes: ProjectChangeSummary[] }>;
+  warnings?: string[];
+}> {
   const projectRoot = await requireProjectRoot(projectDirectory);
   const planPath = resolve(projectRoot, ".agent", "planMsg.md");
   const document = await readPlanDocument(planPath);
-  return { ok: true, path: planPath, projectRoot, plans: document.plans };
+  const related = await listProjectChanges(projectRoot);
+  return {
+    ok: true, path: planPath, projectRoot,
+    plans: document.plans.map((plan) => ({
+      ...plan, changes: related.changes.filter((change) => change.planId === plan.id),
+    })),
+    ...(related.warnings.length === 0 ? {} : { warnings: related.warnings }),
+  };
 }
 
 async function readPlanDocument(planPath: string): Promise<ProjectPlanDocument> {
