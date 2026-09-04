@@ -12,7 +12,7 @@ await runHook("SessionStart", async () => {
   }
 
   const context = await readProjectContext(projectRoot);
-  writeAdditionalContext(
+  await writeAdditionalContext(
     "SessionStart",
     [
       "[codex-project-context] This project has durable cross-task context enabled.",

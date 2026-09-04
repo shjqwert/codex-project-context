@@ -1,7 +1,23 @@
 import { createHash } from "node:crypto";
-import { mkdir, open, rm } from "node:fs/promises";
+import { access, mkdir, open, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
+
+export async function hasPromptInjection(
+  sessionId: string | undefined,
+  projectRoot: string,
+  matchIdentity: string,
+): Promise<boolean> {
+  const directory = sessionProjectStateDirectory(sessionId, projectRoot);
+  if (directory === undefined) return false;
+  try {
+    await access(resolve(directory, `${hash(matchIdentity)}.seen`));
+    return true;
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) return false;
+    throw error;
+  }
+}
 
 export async function claimPromptInjection(
   sessionId: string | undefined,

@@ -25,15 +25,22 @@ export async function readHookInput(): Promise<HookInput> {
   return input;
 }
 
-export function writeAdditionalContext(eventName: string, additionalContext: string): void {
-  process.stdout.write(
+export async function writeAdditionalContext(eventName: string, additionalContext: string): Promise<void> {
+  const output =
     `${JSON.stringify({
       hookSpecificOutput: {
         hookEventName: eventName,
         additionalContext,
       },
-    })}\n`,
-  );
+    })}\n`;
+  await new Promise<void>((resolve, reject) => {
+    process.stdout.once("error", reject);
+    process.stdout.write(output, (error) => {
+      if (error) { reject(error); return; }
+      process.stdout.removeListener("error", reject);
+      resolve();
+    });
+  });
 }
 
 export async function runHook(eventName: string, action: () => Promise<void>): Promise<void> {
