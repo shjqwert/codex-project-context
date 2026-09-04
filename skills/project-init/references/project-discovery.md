@@ -16,13 +16,13 @@ Before inventory inspection, use the plugin's bounded `prepare-indexes` command 
 
 Context7 and local readers are optional session tools, not repository capabilities. Use Context7 only after repository evidence identifies a concrete dependency or developer product; prefer the repository-supported version, keep queries narrowly scoped, and do not send sensitive or proprietary project content. Its external documentation can clarify evidence but cannot supply a project-relative evidence path. Use an appropriate available local reader only for an exact, selected project-local document that is necessary, bounded, and not adequately readable with normal tools; cite the original project-relative file rather than converted output. Do not bulk-convert discovered resources or persist session-local tool availability in `.agent/context.json` or generated `AGENTS.md` guidance.
 
-Do not collect or publish package-manager, build, test, lint, type-check, or format commands in generated project context.
+Use [Build context](build-context.md) to record a small set of evidence-backed build and test entries. Recording an entry does not authorize running it.
 
 ## Scan Boundary
 
 - Scan names and metadata to a bounded depth.
 - Ignore dependency caches, build output, generated output, VCS internals, and prior agent metadata.
-- Do not read manual, datasheet, schematic, binary, or large reference contents during initialization. Experimental document-retrieval workflows are outside project initialization.
+- Do not bulk-read manuals, schematics, binaries or large references. For a selected schematic or durable hardware-document gap, load [Hardware context](hardware-context.md) and use RAG's existing scoped workflow.
 - Cap stored resources so generated context remains concise.
 - Normalize durable paths to project-relative forward-slash form.
 
@@ -31,7 +31,7 @@ Do not collect or publish package-manager, build, test, lint, type-check, or for
 Create schemaVersion 1 JSON with the inventory fingerprint and these arrays:
 
 - `overview`: concise project facts such as name, types, languages, source/test areas, and evidence-supported platform or toolchain facts;
-- `buildAndVerification`: one to three authorization rules relevant to the analyzed repository;
+- `buildAndVerification`: one to three evidence-backed build/test entries and applicable project-specific invocation restrictions;
 - `codeAnalysis`: concise routing based on tools actually available and the repository structure;
 - `references`: only real non-OpenSpec resources selected as useful project references;
 - `referenceGuidance`: rules that apply only to the selected reference categories;
@@ -53,10 +53,10 @@ Keep OpenSpec-owned paths in internal capability and specification-directory met
 
 Detection is routing evidence only. A detected directory does not prove its contents are current or authoritative.
 
-Recognize `architecture/baseline.md` and `architecture/<domain>/baseline.md` as Architecture Baseline documentation. Prefer a relevant baseline whose declared `baselineStatus` is `confirmed`, and give it the dedicated purpose: read before changing module responsibilities, dependencies, state ownership, public interfaces, scheduling, hardware boundaries, or architecture intent. File presence alone is not confirmation. A `pending-confirmation` baseline is a proposal; a baseline whose locators or evidence conflict with current code is stale or advisory and must not be rendered as current fact.
+Load [Architecture context](architecture-context.md) only for an existing baseline/model or a material architecture question.
 
-For a LikeC4 project, use the confirmed Architecture Baseline for design intent and long-lived constraints. Root single-domain layout maps to `architecture/model.c4`, `architecture/changes/`, and `.generated/likec4/root/`; multi-domain layout maps each `architecture/<domain>/baseline.md` to its adjacent `model.c4` and `changes/`, with output in `.generated/likec4/<domain>/`. Use the formal model for structural facts and active changes as proposed or active design evidence, not current project fact. An approved To-Be still does not prove implementation. Use it as a current fact only after current code/configuration evidence confirms implementation and the change has been migrated into the formal As-Is model. Ignore root or nested `.generated/` sites and conventional reproducible view output even when misplaced under `architecture/`, including `site/`, `png/`, `layouts/`, HTML, SVG, PNG, and layout JSON.
+
 
 ## Missing Inputs
 
-For an embedded repository, an absent manual or schematic may become a `missing-reference` advisory when current code or configuration proves the input is relevant. Do not fabricate or download the missing artifact. Do not block unrelated initialization. Do not infer project stage or create tasks or plans.
+An absent initial schematic is normal: do not store a placeholder or persistent missing warning. A later explicit sync or direct analysis request routes a selected source to RAG. A concrete missing manual needed for the current question is reported by RAG without fabricating or downloading it. Do not block unrelated initialization, infer project stage, or create tasks or plans.

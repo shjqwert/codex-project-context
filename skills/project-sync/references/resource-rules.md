@@ -28,7 +28,7 @@ An implemented change may describe implementation state and visible residual ris
 
 Do not infer project stage, create tasks or plans, download missing references, or fabricate external facts. Return relevant missing inputs as advisories. Repeated synchronization with the same inventory and analysis must be byte-identical.
 
-Experimental document-retrieval state, source inventory, and standalone PDF library upload are outside project-sync.
+RAG owns document knowledge, source inventory, unchanged-source reuse and manual matching. For a selected schematic added or changed since initialization, explicit sync may invoke the existing RAG project-schematic workflow described in the shared Hardware reference. Persist only the original resource entry and concise use principle in Project Context; no missing-schematic placeholders, parsed components, source IDs or duplicate processing state.
 
 Preserve valid `.agent/authorizations.json` bytes. A missing file means inherited Sol Advisor eligibility after the new integration marker exists. The only synchronization write allowed to this file is the one-time legacy migration from a previously disabled, marker-free project to explicit `implicitDelegation: false`.
 

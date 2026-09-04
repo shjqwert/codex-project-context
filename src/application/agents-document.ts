@@ -56,13 +56,16 @@ export function renderManagedAgentsSection(
     "- `.agent/context.json`: stable project metadata and context configuration.",
     "- `.agent/planMsg.md`: confirmed project-level plans and key decisions, created only when needed.",
     ...handoffContextEntries,
+    ...(context.profile?.specificationDirectories.includes("openspec")
+      ? ["- `openspec/`: native specifications and Changes; use existing lifecycle documents without duplicating task state here."]
+      : []),
     "",
     ...renderSolAdvisorIntegration(options.solAdvisorDelegationPolicy ?? "inherit"),
     "## Handoff Context",
     "",
     "- Create a handoff only when coherent work must continue in another task; skip routine questions and one-off small changes.",
     ...(analysis.handoffGuidance.length === 0
-      ? ["- Query the handoff index using reliable evidence from the current task, then read every reliably relevant record."]
+      ? ["- Query relevant handoff summaries first, then read only current-document sections needed for the present evidence gap."]
       : renderAnalysisLines(analysis.handoffGuidance)),
     "- If no reliable match exists, continue from the current project without forcing historical context or reading unrelated records.",
     "- Use handoffs only to restore the objective, confirmed progress, verification, remaining work, and risks; current code, configuration, references, and test evidence remain authoritative.",

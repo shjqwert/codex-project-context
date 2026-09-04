@@ -63,6 +63,10 @@ export async function inspectProject(projectRoot: string): Promise<ProjectInvent
     sourceDirectories: detectDirectories(snapshot.directories, [
       "app",
       "apps",
+      "application",
+      "bsp",
+      "drivers",
+      "firmware",
       "include",
       "lib",
       "libs",
@@ -214,6 +218,8 @@ function detectProjectTypes(snapshot: ProjectSnapshot): string[] {
   if ([...files].some((path) => path.endsWith(".sln") || path.endsWith(".vcxproj"))) {
     types.add("Visual Studio");
   }
+  if ([...files].some((path) => /\.(ewp|eww)$/u.test(path))) types.add("IAR");
+  if ([...files].some((path) => /\.(uvprojx?|uvmpw)$/u.test(path))) types.add("Keil");
   if ([...files].some((path) => path.endsWith(".c") || path.endsWith(".h") || path.endsWith(".cpp"))) {
     types.add("C/C++");
   }
