@@ -62,7 +62,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   }
 
   const handoffSchema = JSON.parse(await readFile("schemas/handoff-index.schema.json", "utf8"));
-  assert.equal(handoffSchema.properties.schemaVersion.const, 4);
+  assert.equal(handoffSchema.properties.schemaVersion.const, 5);
   assert.ok(handoffSchema.$defs.entry.required.includes("workId"));
   assert.ok(handoffSchema.$defs.entry.required.includes("revision"));
   assert.ok(handoffSchema.$defs.entry.required.includes("status"));

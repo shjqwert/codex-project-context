@@ -204,6 +204,11 @@ export interface HandoffIndexEntry {
 }
 
 export interface HandoffIndex {
+  schemaVersion: 5;
+  entries: HandoffIndexEntry[];
+}
+
+export interface PreviousHandoffIndex {
   schemaVersion: 4;
   entries: HandoffIndexEntry[];
 }
@@ -227,7 +232,7 @@ export interface LegacyHandoffIndex {
   entries: LegacyHandoffIndexEntry[];
 }
 
-export type StoredHandoffIndex = HandoffIndex | LegacyHandoffIndex;
+export type StoredHandoffIndex = HandoffIndex | PreviousHandoffIndex | LegacyHandoffIndex;
 
 export interface HandoffRecordReference {
   workId: string;

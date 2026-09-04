@@ -435,7 +435,7 @@ test("records omit empty sections and rebuild a missing index without Hook-style
 
   const rebuilt = await rebuildHandoffIndex(project);
   assert.equal(rebuilt.entries[0]?.workId, "W001");
-  assert.equal(JSON.parse(await readFile(indexPath, "utf8")).schemaVersion, 4);
+  assert.equal(JSON.parse(await readFile(indexPath, "utf8")).schemaVersion, 5);
 });
 
 test("current updates use revisions, Chinese headings, checkpoints, and structured conflicts", async () => {
@@ -575,7 +575,7 @@ test("schema-v3 groups remain read-only until an explicit lazy v4 update", async
     symbols: ["legacyRouter"],
   }));
   assert.equal(updated.revision, 3);
-  assert.equal(JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8")).schemaVersion, 4);
+  assert.equal(JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8")).schemaVersion, 5);
   assert.deepEqual((await getHandoffHistory(project, "W010")).records.map(({ revision }) => revision), [1, 2]);
   assert.equal((await readFile(join(project, first.path), "utf8")).includes("schema_version: 1"), true);
 });

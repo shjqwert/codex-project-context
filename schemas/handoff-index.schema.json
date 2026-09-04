@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "entries"],
   "properties": {
-    "schemaVersion": { "const": 4 },
+    "schemaVersion": { "const": 5 },
     "entries": {
       "type": "array",
       "items": { "$ref": "#/$defs/entry" }

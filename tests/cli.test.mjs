@@ -124,7 +124,7 @@ test("CLI initializes, records, reports, and matches project context", async () 
 
   const index = JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8"));
   assert.equal(index.entries.length, 1);
-  assert.equal(index.schemaVersion, 4);
+  assert.equal(index.schemaVersion, 5);
   assert.equal(index.entries[0].currentPath, ".agent/handoff/current/development/W001-router-verification.md");
   assert.equal(index.entries[0].revision, 1);
   assert.equal(index.entries[0].status, "active");

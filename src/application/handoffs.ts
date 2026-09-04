@@ -351,7 +351,7 @@ export async function verifyHandoffIndex(projectDirectory: string): Promise<{
     };
   }
   const rebuilt = await buildIndexFromStorage(projectRoot, { validateHistory: true });
-  if (JSON.stringify(stored) !== JSON.stringify(rebuilt)) {
+  if (JSON.stringify(stored.entries) !== JSON.stringify(rebuilt.entries)) {
     throw new Error("Handoff index does not match the current Markdown records.");
   }
   return {
@@ -545,7 +545,7 @@ function buildIndexEntry(args: {
     updatedAt: args.updatedAt,
   };
   if (entry.groupKey.length === 0) entry.groupKey = buildHandoffGroupKey(entry);
-  return validateV4Entry(entry);
+  return validateCurrentEntry(entry);
 }
 
 function renderHandoff(
@@ -674,8 +674,10 @@ async function readOrRebuildIndex(
   if (await pathExists(indexPath)) {
     const stored = validateHandoffIndex(await readJson<unknown>(indexPath));
     if (stored.schemaVersion === 3) return legacyIndexToRuntime(stored);
-    if (!repairExisting) return stored;
-    if (!(await storageMayBeNewer(projectRoot, indexPath))) return stored;
+    // Normalize the version in memory; reading a valid v4 cache is not a migration write.
+    const current: HandoffIndex = { schemaVersion: 5, entries: stored.entries };
+    if (!repairExisting) return current;
+    if (!(await storageMayBeNewer(projectRoot, indexPath))) return current;
     const rebuilt = await buildIndexFromStorage(projectRoot, { repairMissingCheckpoints: true });
     await writeJsonAtomic(indexPath, rebuilt);
     return rebuilt;
@@ -709,7 +711,7 @@ async function buildIndexFromStorage(projectRoot: string, options: BuildOptions 
       }
     }
   }
-  return validateV4Index({ schemaVersion: 4, entries: [...entries.values()].sort(compareEntriesAscending) });
+  return validateCurrentIndex({ schemaVersion: 5, entries: [...entries.values()].sort(compareEntriesAscending) });
 }
 
 async function scanCurrentRecords(projectRoot: string): Promise<ParsedCurrentRecord[]> {
@@ -763,7 +765,7 @@ function parseCurrentRecord(
   const currentPath = expectedType === "current"
     ? relative(projectRoot, path).replaceAll("\\", "/")
     : inferCurrentPathFromCheckpoint(fields);
-  const entry = validateV4Entry({
+  const entry = validateCurrentEntry({
     workId: fields.get("work_id"),
     cycle: fields.get("cycle"),
     title: fields.get("title"),
@@ -874,7 +876,7 @@ function groupLegacyEntries(entries: LegacyHandoffIndexEntry[]): HandoffIndexEnt
     const first = ordered[0];
     const latest = ordered.at(-1);
     if (first === undefined || latest === undefined) throw new Error("Unexpected empty legacy handoff group.");
-    return validateV4Entry({
+    return validateCurrentEntry({
       workId: first.id,
       cycle: latest.cycle,
       title: latest.title,
@@ -895,7 +897,7 @@ function groupLegacyEntries(entries: LegacyHandoffIndexEntry[]): HandoffIndexEnt
 }
 
 function legacyIndexToRuntime(index: LegacyHandoffIndex): HandoffIndex {
-  return validateV4Index({ schemaVersion: 4, entries: groupLegacyEntries(index.entries) });
+  return validateCurrentIndex({ schemaVersion: 5, entries: groupLegacyEntries(index.entries) });
 }
 
 async function collectHistoryRecords(projectRoot: string, entry: HandoffIndexEntry): Promise<HandoffRecordReference[]> {
@@ -1256,20 +1258,20 @@ function legacyInput(entry: LegacyHandoffIndexEntry, sections: HandoffSections):
   };
 }
 
-function validateV4Entry(value: unknown): HandoffIndexEntry {
-  const stored = validateHandoffIndex({ schemaVersion: 4, entries: [value] });
-  if (stored.schemaVersion !== 4 || stored.entries[0] === undefined) throw new Error("Invalid handoff current entry.");
+function validateCurrentEntry(value: unknown): HandoffIndexEntry {
+  const stored = validateHandoffIndex({ schemaVersion: 5, entries: [value] });
+  if (stored.schemaVersion !== 5 || stored.entries[0] === undefined) throw new Error("Invalid handoff current entry.");
   return stored.entries[0];
 }
 
-function validateV4Index(value: unknown): HandoffIndex {
+function validateCurrentIndex(value: unknown): HandoffIndex {
   const stored = validateHandoffIndex(value);
-  if (stored.schemaVersion !== 4) throw new Error("Expected handoff index schemaVersion 4.");
+  if (stored.schemaVersion !== 5) throw new Error("Expected handoff index schemaVersion 5.");
   return stored;
 }
 
 function sortedIndex(index: HandoffIndex): HandoffIndex {
-  return validateV4Index({ schemaVersion: 4, entries: [...index.entries].sort(compareEntriesAscending) });
+  return validateCurrentIndex({ schemaVersion: 5, entries: [...index.entries].sort(compareEntriesAscending) });
 }
 
 function replaceEntry(index: HandoffIndex, entry: HandoffIndexEntry): void {

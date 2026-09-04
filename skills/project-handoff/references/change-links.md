@@ -1,5 +1,12 @@
 # Plan, Change and task references
 
+New or updated indexes use schemaVersion 5. Readers accept v3/v4 without rewriting
+valid stored data just to upgrade it, including v4 links written by the earlier
+1.7.0 development branch. A real update or explicit index rebuild writes v5;
+untouched current/history Markdown stays unchanged. Index verification compares
+content across supported versions. Older 1.6.0 clients cannot read a v5 index;
+this version boundary is not a downgrade guarantee.
+
 Add only known links to the normal handoff input:
 
 ```json
