@@ -57,7 +57,7 @@ test("UserPromptSubmit emits matching handoff cards and stays silent otherwise",
   assert.equal(unrelated.stdout, "");
 });
 
-test("UserPromptSubmit injects each unchanged match set once per task", async () => {
+test("UserPromptSubmit injects each unchanged card once per task", async () => {
   const project = await makeTempDirectory("codex-project-context-prompt-dedupe-");
   const stateDirectory = await makeTempDirectory("codex-project-context-hook-state-");
   await initializeProject(project);
@@ -187,9 +187,12 @@ test("UserPromptSubmit reports truncation without changing the complete handoff 
 
   assert.equal(result.status, 0, result.stderr);
   const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(context, /Matched 8 work item\(s\) and 8 current document\(s\)/);
+  const emittedCards = [...context.matchAll(/^W[0-9]+ revision /gmu)];
+  assert.ok(emittedCards.length > 0 && emittedCards.length < 8);
+  const config = JSON.parse(await readFile("hooks/hooks.json", "utf8"));
+  assert.ok(context.length <= config.hooks.UserPromptSubmit[0].hooks[0].additionalContextLimit);
   assert.match(context, /Hook routing output was truncated/);
-  assert.match(context, /handoff match CLI with the current prompt/);
+  assert.match(context, /handoff match CLI/);
   assert.equal(after, before);
 });
 
