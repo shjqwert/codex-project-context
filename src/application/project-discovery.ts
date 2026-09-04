@@ -64,14 +64,21 @@ export async function inspectProject(projectRoot: string): Promise<ProjectInvent
       "app",
       "apps",
       "application",
+      "appl",
+      "boot",
+      "bootloader",
       "bsp",
+      "bsw",
+      "cdd",
       "drivers",
       "firmware",
       "include",
       "lib",
       "libs",
+      "mcal",
       "packages",
       "source",
+      "sources",
       "src",
     ]),
     testDirectories: detectDirectories(snapshot.directories, [
@@ -328,7 +335,9 @@ function classifyResource(path: string, directory: boolean): ProjectResourceKind
     return "specification";
   }
   if (/(^|\/)(tests?|testing)(\/|$)/u.test(lower)) return "test";
-  if (/(schematic|hardware|pcb)/u.test(lower) || [".dsn", ".kicad_sch", ".sch"].includes(extension)) {
+  if (/(schematic|hardware|pcb|原理图|电路图)/u.test(lower)
+    || /(^|[\/_. -])(circuit|sch)([\/_. -]|$)/u.test(lower)
+    || [".dsn", ".kicad_sch", ".sch"].includes(extension)) {
     return "hardware";
   }
   if (/(manual|datasheet)/u.test(lower)) return "manual";

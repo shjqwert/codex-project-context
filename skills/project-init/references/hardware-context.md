@@ -6,6 +6,12 @@ Later additions are handled by explicit project-sync or the user's direct
 schematic-analysis request, never by automatic filesystem polling.
 
 When a real project schematic is selected during explicit initialization or sync,
+use the user's explicit source identification even when the filename is generic.
+Chinese names such as 原理图/电路图 and clear circuit/sch names are discovery clues,
+not proof of document contents. A lone PDF or ambiguous SCM name is not automatically
+a schematic; inspect a bounded title page or metadata only when needed for selection.
+
+For the selected source,
 use the available ragrepo-knowledge Skill's project-schematic reference. RAG owns
 source inspection, unchanged-source reuse, changed-source processing, project-only
 schematic storage, and device/public-manual applicability matching. Retain its

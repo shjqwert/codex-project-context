@@ -2,6 +2,10 @@
 
 ## 1.7.0（开发分支，实际测试未执行）
 
+- 评审修订：Handoff 索引新写入升级 v5，读取兼容 v3/v4；只读访问不因版本升级重写有效索引，旧 current/history Markdown 保持可读。
+- Hook 在会话内原子预约输出，保留进程退出后的重试机会；按 hooks.json 的总上限计算完整上下文，未输出卡片保持可用。stdout 与状态落盘间中断仍可能重发，尚无运行验证。
+- 补充中文原理图和清晰源码目录线索；project-sync 的架构、硬件细节改为条件参考。
+
 - init/sync 按 Core、Build、Hardware、Architecture、Change 分层读取参考；记录有依据的构建/测试入口，识别 IAR 与 Keil 工程，保留用户规则及过期输入保护。
 - 无原理图正常初始化；后续显式同步或直接分析交由 RAG 处理，项目上下文只保存资源入口和简短原则。
 - Plan 查询只读聚合原生 OpenSpec 的活动及归档 Change；交接增加可选 Plan、Change 与限定 Change 的 Task 引用，旧记录无关联时保持去重身份。
