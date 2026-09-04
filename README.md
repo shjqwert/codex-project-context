@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, project-level plans, evidence-based handoffs, and project-level delegation policy. Version `1.6.0` adds dedicated Architecture Baseline discovery, prioritizes canonical baselines within bounded project references, and excludes reproducible architecture views while preserving the current-handoff model and schema-v3 read compatibility.
+`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Development version `1.7.0` adds layered discovery, evidence-backed build entries, RAG schematic routing, native OpenSpec Change associations, and deduplication of emitted Hook cards. Actual tests, builds, installation and release validation have not been run for this version; tags and packaging follow the dedicated testing phase.
 
 ## Capabilities
 
@@ -34,7 +34,7 @@ For a project without `AGENTS.md`, initialization generates a concise managed se
 
 `Code Analysis` contains concise Agent-authored routing based on available CodeGraph, Serena, and normal project tools. The generated file does not embed the official CodeGraph block, broad Development Rules, Specification Routing, Completion Rules, or duplicated explicit-invocation metadata. OpenSpec paths are omitted from `Project References`. A selected canonical Architecture Baseline keeps its dedicated read-before-change purpose; pending, stale, or conflicting baselines remain proposals or advisories rather than current facts.
 
-`Project Context` contains only the context, plan, and handoff entry points that apply. Experimental integration state is never rendered there. `Handoff Context` keeps stable relevance and evidence boundaries while using up to three project-specific, evidence-backed routing lines; it does not use a project-type template or expose Hook and schema internals.
+`Project Context` contains the context, Plan, Handoff and existing native OpenSpec entry points. RAG retains knowledge and source state; project references retain only paths and a compact retrieval principle. `Handoff Context` restores relevant summaries before loading the sections needed by the current task.
 
 Existing `AGENTS.md` content is preserved; only the plugin-managed boundary is created or replaced. The CLI separates inventory from judgment: `inspect` returns a bounded repository inventory and fingerprint, while `init` and `sync` require a schemaVersion 1 Agent analysis whose facts and rules cite current project-relative evidence. The CLI validates paths, freshness, managed boundaries, and the 200-line limit. It does not infer project stage, create tasks, download missing references, or load full manuals and schematics.
 
