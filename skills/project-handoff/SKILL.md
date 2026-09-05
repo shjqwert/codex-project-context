@@ -29,6 +29,11 @@ Read [handoff-format.md](references/handoff-format.md) completely. Read [example
 
 When C4 state is part of the continuing objective, read [architecture-observations.md](references/architecture-observations.md). Record declarations and evidence freshness in existing sections; do not infer current pass from a model hash or historical approval alone.
 
+When the objective belongs to a Plan, Change or Change task, read
+[change-links.md](references/change-links.md) and qualify task identity by its
+Change. Compare compact summaries before reading required current sections.
+Never put J-Link variables, registers, HSS samples or capture references in handoffs.
+
 Use Chinese by default for `title`, `summary`, and every prose section. Keep paths, symbols, IDs, test names, protocol terms, and other exact identifiers unchanged. Generate 2-6 concise retrieval aliases with at least one natural Chinese phrase and one natural English phrase. Aliases are search metadata and must not duplicate the title or summary.
 
 Root-cause claims require evidence. When a cause remains uncertain, omit `sections.bugDiagnosis` and record only material uncertainty under `sections.risks`.
@@ -87,7 +92,7 @@ History never participates in global BM25 matching.
 
 ## Repair the Index
 
-The schema v4 index is a rebuildable current-state cache. Valid current Markdown is authoritative. Access may repair a stale index under the project lock after an interrupted write. A corrupt current stops that work item's injection and update; never overwrite it automatically from history. A corrupt history snapshot does not block current matching.
+The schema v5 index is a rebuildable current-state cache. Valid current Markdown is authoritative. Access may repair a stale index under the project lock after an interrupted write. A corrupt current stops that work item's injection and update; never overwrite it automatically from history. A corrupt history snapshot does not block current matching.
 
 Verify or explicitly rebuild with:
 
@@ -96,4 +101,4 @@ node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-ro
 node <plugin-root>/dist/cli/main.js handoff-index --project <absolute-project-root> --action rebuild
 ```
 
-Schema-v3 records remain read-only and are not moved or rewritten. The first explicit update lazily creates a schema-v4 current document; the oldest legacy ID becomes `workId`, other legacy IDs remain exact aliases, and legacy records map to chronological virtual revisions.
+Schema-v3 records remain read-only and are not moved or rewritten. The first explicit update lazily creates a current document with a schema-v5 index; the oldest legacy ID becomes `workId`, other legacy IDs remain exact aliases, and legacy records map to chronological virtual revisions.

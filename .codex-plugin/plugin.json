@@ -1,6 +1,6 @@
 {
   "name": "codex-project-context",
-  "version": "1.6.0+codex.20260901115236",
+  "version": "1.7.0",
   "description": "Initialize and route durable project context across Codex tasks.",
   "author": {
     "name": "Local developer"
@@ -23,8 +23,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Explicitly inspect, analyze, and initialize this project for cross-task context.",
-      "Explicitly inspect and synchronize this project's Agent-authored context.",
+      "Explicitly inspect current repository evidence to initialize or synchronize this project's Agent-authored context.",
       "Create an evidence-based handoff for this task.",
       "Record or transition a durable project-level plan."
     ]

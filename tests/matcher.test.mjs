@@ -209,7 +209,8 @@ test("concurrent equivalent handoffs create one durable record", async () => {
     await readdir(join(project, ".agent", "handoff", "current", "development")),
     ["W001-session-cleanup.md"],
   );
-  await assert.rejects(access(join(project, ".agent", ".project-context-write.lock")), /ENOENT/);
+  assert.ok((await readdir(join(project, ".agent", ".project-context-write.lock")))
+    .some((name) => /^generation-[1-9][0-9]*\.released$/u.test(name)));
 });
 
 test("matching supports Chinese phrases and returns the complete most recent group", async () => {
@@ -435,7 +436,7 @@ test("records omit empty sections and rebuild a missing index without Hook-style
 
   const rebuilt = await rebuildHandoffIndex(project);
   assert.equal(rebuilt.entries[0]?.workId, "W001");
-  assert.equal(JSON.parse(await readFile(indexPath, "utf8")).schemaVersion, 4);
+  assert.equal(JSON.parse(await readFile(indexPath, "utf8")).schemaVersion, 5);
 });
 
 test("current updates use revisions, Chinese headings, checkpoints, and structured conflicts", async () => {
@@ -547,7 +548,7 @@ test("concurrent stale updates allow one write and return one revision conflict"
   assert.equal((await matchHandoffs(project, "继续并发更新"))[0]?.entry.revision, 2);
 });
 
-test("schema-v3 groups remain read-only until an explicit lazy v4 update", async () => {
+test("schema-v3 groups remain read-only until an explicit lazy v5 update", async () => {
   const project = await makeTempDirectory("codex-project-context-v3-lazy-");
   await initializeProject(project);
   const recordsDirectory = join(project, ".agent", "handoff", "records", "development");
@@ -575,7 +576,7 @@ test("schema-v3 groups remain read-only until an explicit lazy v4 update", async
     symbols: ["legacyRouter"],
   }));
   assert.equal(updated.revision, 3);
-  assert.equal(JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8")).schemaVersion, 4);
+  assert.equal(JSON.parse(await readFile(join(project, ".agent", "handoff", "index.json"), "utf8")).schemaVersion, 5);
   assert.deepEqual((await getHandoffHistory(project, "W010")).records.map(({ revision }) => revision), [1, 2]);
   assert.equal((await readFile(join(project, first.path), "utf8")).includes("schema_version: 1"), true);
 });
@@ -642,7 +643,7 @@ test("corrupt history is isolated from current matching and reported by verifica
   await assert.rejects(verifyHandoffIndex(project), /invalid frontmatter/);
 });
 
-test("lazy migration rejects a missing indexed legacy revision without writing v4 state", async () => {
+test("lazy migration rejects a missing indexed legacy revision without writing v5 state", async () => {
   const project = await makeTempDirectory("codex-project-context-v3-missing-record-");
   await initializeProject(project);
   const recordsDirectory = join(project, ".agent", "handoff", "records", "development");

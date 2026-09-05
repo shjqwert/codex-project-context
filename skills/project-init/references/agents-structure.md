@@ -16,7 +16,7 @@ The project-specific content is authored from the validated Agent analysis; it i
 
 `Project Overview` renders only the submitted evidence-backed facts. Do not render specification-directory metadata or generic interpretation advice. Embedded-only facts such as target, toolchain, and debugger appear only when supported by repository evidence.
 
-`Build and Verification` renders one to three Agent-authored authorization rules relevant to the repository. Do not list detected or missing package managers and project commands.
+`Build and Verification` renders one to three concise evidence-backed build/test entry points and relevant project-specific restrictions. Do not infer successful execution or list unconfirmed commands; do not repeat an exhaustive global policy.
 
 Keep `Code Analysis` concise and evidence-based. Mention CodeGraph or Serena only according to current capability evidence, and retain normal project tools as a non-blocking fallback. Do not embed the official CodeGraph managed block.
 
@@ -24,11 +24,11 @@ Omit `Project References` when the analysis selects no non-OpenSpec references. 
 
 When a selected resource is the canonical `architecture/baseline.md` or `architecture/<domain>/baseline.md`, preserve its dedicated Architecture Baseline purpose. Do not describe a `pending-confirmation`, stale, conflicting, or unreadable baseline as confirmed current architecture; report that limitation in the Agent-authored analysis instead.
 
-Keep the `Project Context` and `Handoff Context` section roles stable, but render their content from actual project configuration and evidence. `Project Context` names only the context, plan, and handoff entry points that apply. It must not expose experimental integrations, component lists, source IDs, Hook behavior, Skill selection, schema internals, migration rules, or write-boundary implementation details.
+Keep the `Project Context` and `Handoff Context` section roles stable, with the context, Plan, Handoff and existing native OpenSpec entry points that apply. Keep resource entries and a concise RAG use principle in Project References when supported. Do not expose component lists, source IDs, Hook internals, schema/migration details or role contracts.
 
 Keep `Sol Advisor Integration` minimal: state the effective project policy (`inherit`, explicit allow, or explicit deny), the three-state authorization semantics, fail-closed invalid-state behavior, and ownership boundary. Route details, role prompts, model selection, and result protocols remain in the Sol Advisor Skill rather than the project file.
 
-`Handoff Context` combines four stable boundaries with up to three evidence-backed `handoffGuidance` lines: create records only for coherent cross-task continuation, read every reliably relevant record without a fixed count, do not force unrelated history when no reliable match exists, and keep current project evidence authoritative. Do not mention specifications, bug IDs, hardware, or other routing dimensions unless the analyzed project supports them.
+`Handoff Context` combines stable boundaries with up to three evidence-backed `handoffGuidance` lines: create records only for coherent cross-task continuation, inspect relevant summaries first and load only needed current sections without a fixed match-count cap, do not force unrelated history, and keep current evidence authoritative. Mention only routing dimensions supported by the project.
 
 Invocation policy:
 

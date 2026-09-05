@@ -57,7 +57,7 @@ test("UserPromptSubmit emits matching handoff cards and stays silent otherwise",
   assert.equal(unrelated.stdout, "");
 });
 
-test("UserPromptSubmit injects each unchanged match set once per task", async () => {
+test("UserPromptSubmit injects each unchanged card once per task", async () => {
   const project = await makeTempDirectory("codex-project-context-prompt-dedupe-");
   const stateDirectory = await makeTempDirectory("codex-project-context-hook-state-");
   await initializeProject(project);
@@ -187,9 +187,12 @@ test("UserPromptSubmit reports truncation without changing the complete handoff 
 
   assert.equal(result.status, 0, result.stderr);
   const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(context, /Matched 8 work item\(s\) and 8 current document\(s\)/);
+  const emittedCards = [...context.matchAll(/^W[0-9]+ revision /gmu)];
+  assert.ok(emittedCards.length > 0 && emittedCards.length < 8);
+  const config = JSON.parse(await readFile("hooks/hooks.json", "utf8"));
+  assert.ok(context.length <= config.hooks.UserPromptSubmit[0].hooks[0].additionalContextLimit);
   assert.match(context, /Hook routing output was truncated/);
-  assert.match(context, /handoff match CLI with the current prompt/);
+  assert.match(context, /handoff match CLI/);
   assert.equal(after, before);
 });
 
@@ -219,7 +222,7 @@ test("UserPromptSubmit deduplicates BM25 matches and keeps lexical queries read-
   }, undefined, stateDirectory);
 
   assert.equal(first.status, 0, first.stderr);
-  assert.match(JSON.parse(first.stdout).hookSpecificOutput.additionalContext, /bm25 lexical/);
+  assert.match(JSON.parse(first.stdout).hookSpecificOutput.additionalContext, /W001 revision 1 \[active; medium\]/);
   assert.equal(repeated.stdout, "");
   assert.equal(broad.stdout, "");
   assert.equal(await readFile(indexPath, "utf8"), before);
@@ -255,7 +258,7 @@ test("UserPromptSubmit retrieves bilingual aliases without emitting alias lists 
   assert.equal(first.status, 0, first.stderr);
   const aliasContext = JSON.parse(first.stdout).hookSpecificOutput.additionalContext;
   const exactContext = JSON.parse(exact.stdout).hookSpecificOutput.additionalContext;
-  assert.match(aliasContext, /bm25 lexical/);
+  assert.match(aliasContext, /W001 revision 1 \[active; medium\]/);
   assert.doesNotMatch(aliasContext, /电机过流安全重启|电流恢复后重新启动|motor safety restart|restart after current recovery/u);
   assert.ok(aliasContext.length <= exactContext.length + 120, `Alias Hook context grew unexpectedly: ${aliasContext.length}`);
   assert.ok(aliasContext.length < 1_400);

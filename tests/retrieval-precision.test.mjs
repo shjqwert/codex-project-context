@@ -122,7 +122,7 @@ test("candidate Hook cards do not instruct automatic reads and reliable promotio
   assert.doesNotMatch(text, /Read every reliably relevant/);
   const promoted = run("W001 and W002");
   assert.equal(promoted.status, 0, promoted.stderr);
-  assert.match(JSON.parse(promoted.stdout).hookSpecificOutput.additionalContext, /Read every reliably relevant/);
+  assert.match(JSON.parse(promoted.stdout).hookSpecificOutput.additionalContext, /Use the summaries first/);
   assert.equal(run("W001 and W002").stdout, "");
 });
 

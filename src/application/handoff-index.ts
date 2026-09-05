@@ -1,4 +1,5 @@
 import { isAbsolute } from "node:path";
+import { normalizeHandoffLinks } from "./change-links.js";
 import type {
   HandoffIndex,
   HandoffIndexEntry,
@@ -43,11 +44,11 @@ const LATIN_ALIAS_TERM = /\p{Script=Latin}/u;
 
 const HANDOFF_STATUSES = new Set<HandoffStatus>(["active", "blocked", "completed", "superseded"]);
 
-export const EMPTY_HANDOFF_INDEX: HandoffIndex = { schemaVersion: 4, entries: [] };
+export const EMPTY_HANDOFF_INDEX: HandoffIndex = { schemaVersion: 5, entries: [] };
 
 export function validateHandoffIndex(value: unknown): StoredHandoffIndex {
   if (!isRecord(value) || !Array.isArray(value.entries)) {
-    throw new Error("Handoff index must use schemaVersion 3 or 4.");
+    throw new Error("Handoff index must use schemaVersion 3, 4 or 5.");
   }
   assertOnlyKeys(value, ["schemaVersion", "entries"], "root");
   if (value.schemaVersion === 3) {
@@ -56,7 +57,10 @@ export function validateHandoffIndex(value: unknown): StoredHandoffIndex {
   if (value.schemaVersion === 4) {
     return { schemaVersion: 4, entries: value.entries.map(normalizeEntry) };
   }
-  throw new Error("Handoff index must use schemaVersion 3 or 4.");
+  if (value.schemaVersion === 5) {
+    return { schemaVersion: 5, entries: value.entries.map(normalizeEntry) };
+  }
+  throw new Error("Handoff index must use schemaVersion 3, 4 or 5.");
 }
 
 export function buildHandoffGroupKey(
@@ -89,7 +93,7 @@ function normalizeEntry(value: unknown): HandoffIndexEntry {
     throw new Error(`Unsupported handoff kind: ${kind}.`);
   }
   if (!isRecord(value.routing)) throw new Error("Handoff index routing must be an object.");
-  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases"], "routing");
+  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases", "planIds", "changeIds", "taskRefs"], "routing");
   const routing = normalizeRouting(value.routing);
   const status = requiredString(value.status, "status");
   if (!HANDOFF_STATUSES.has(status as HandoffStatus)) {
@@ -141,7 +145,7 @@ function normalizeLegacyEntry(value: unknown): LegacyHandoffIndexEntry {
   const kind = requiredString(value.kind, "kind");
   if (!HANDOFF_KINDS.has(kind as HandoffKind)) throw new Error(`Unsupported handoff kind: ${kind}.`);
   if (!isRecord(value.routing)) throw new Error("Handoff index routing must be an object.");
-  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases"], "routing");
+  assertOnlyKeys(value.routing, ["specRefs", "bugIds", "modules", "files", "symbols", "tests", "tags", "aliases", "planIds", "changeIds", "taskRefs"], "routing");
   const entry: LegacyHandoffIndexEntry = {
     id: requiredString(value.id, "id"),
     cycle: requiredString(value.cycle, "cycle"),
@@ -175,6 +179,7 @@ function normalizeRouting(value: Record<string, unknown>): HandoffRouting {
     tests: stringArray(value.tests, "routing.tests"),
     tags: stringArray(value.tags, "routing.tags"),
     aliases: normalizeHandoffAliases(value.aliases, "routing.aliases"),
+    ...normalizeHandoffLinks(value),
   };
 }
 

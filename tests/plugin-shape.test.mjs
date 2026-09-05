@@ -15,6 +15,10 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(cliSource, new RegExp(`const VERSION = "${packageMetadata.version.replaceAll(".", "\\.")}"`));
   assert.equal(manifest.skills, "./skills/");
   assert.equal("hooks" in manifest, false);
+  assert.equal(manifest.interface.defaultPrompt.length, 3);
+  assert.match(manifest.interface.defaultPrompt[0], /initialize or synchronize/);
+  assert.match(manifest.interface.defaultPrompt[1], /handoff/);
+  assert.match(manifest.interface.defaultPrompt[2], /project-level plan/);
 
   const hooks = JSON.parse(await readFile("hooks/hooks.json", "utf8"));
   assert.ok(hooks.hooks.SessionStart);
@@ -62,7 +66,7 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   }
 
   const handoffSchema = JSON.parse(await readFile("schemas/handoff-index.schema.json", "utf8"));
-  assert.equal(handoffSchema.properties.schemaVersion.const, 4);
+  assert.equal(handoffSchema.properties.schemaVersion.const, 5);
   assert.ok(handoffSchema.$defs.entry.required.includes("workId"));
   assert.ok(handoffSchema.$defs.entry.required.includes("revision"));
   assert.ok(handoffSchema.$defs.entry.required.includes("status"));
@@ -92,11 +96,13 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(initSkill, /standard input/);
   assert.doesNotMatch(initSkill, /temporary .*JSON/i);
   assert.match(initSkill, /CodeGraph first/);
-  assert.match(initSkill, /Context7/);
-  assert.match(initSkill, /available local reader/);
-  assert.doesNotMatch(initSkill, /MarkItDown/);
+  assert.match(initSkill, /Core discovery/);
+  const coreDiscovery = await readFile("skills/project-init/references/core-discovery.md", "utf8");
+  assert.match(coreDiscovery, /Context7/);
+  assert.match(coreDiscovery, /available\s+local reader/);
+  assert.doesNotMatch(coreDiscovery, /MarkItDown/);
   assert.match(initSkill, /session-local/);
-  assert.match(initSkill, /do not bulk-convert/);
+  assert.match(coreDiscovery, /bulk-convert discoveries/i);
   assert.match(initSkill, /inherit global Sol Advisor eligibility by default/);
   assert.match(initSkill, /--no-sol-advisor-implicit-delegation/);
   assert.match(initSkill, /never install or upgrade optional tools/);

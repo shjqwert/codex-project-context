@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { makeTempDirectory } from "./helpers/temp-directory.mjs";
@@ -82,5 +82,32 @@ test("concurrent equivalent project plans create one record", async () => {
   const plans = (await listProjectPlans(project)).plans;
   assert.equal(plans.length, 1);
   assert.equal(plans[0].dedupeKey.startsWith("sha256:"), true);
-  await assert.rejects(access(join(project, ".agent", ".project-context-write.lock")), /ENOENT/);
+  assert.ok((await readdir(join(project, ".agent", ".project-context-write.lock")))
+    .some((name) => /^generation-[1-9][0-9]*\.released$/u.test(name)));
+});
+
+test("plan query warns when a Change references a missing project plan", async () => {
+  const project = await makeTempDirectory("codex-project-context-orphan-plan-");
+  await initializeProject(project);
+  const changeDirectory = join(project, "openspec", "changes", "orphan-plan");
+  await mkdir(changeDirectory, { recursive: true });
+  await writeFile(join(changeDirectory, "proposal.md"), [
+    "# Orphan plan reference",
+    "",
+    "## Change Context",
+    "",
+    "- status: ready",
+    "- planId: P999",
+    "",
+    "## Why",
+    "",
+    "Expose a stale association without rewriting the Change.",
+    "",
+  ].join("\n"), "utf8");
+
+  const result = await listProjectPlans(project);
+  assert.deepEqual(result.plans, []);
+  assert.deepEqual(result.warnings, [
+    "Change orphan-plan references missing project plan P999: openspec/changes/orphan-plan/proposal.md",
+  ]);
 });

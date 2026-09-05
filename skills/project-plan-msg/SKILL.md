@@ -19,6 +19,13 @@ node <plugin-root>/dist/cli/main.js plan --project <absolute-project-root> --act
 
 Listing must not create `.agent/planMsg.md`.
 
+Listing adds a read-only `changes` array for each Plan from native
+`openspec/changes/` and its dated archive. Each proposal's fixed
+`## Change Context` section supplies `- status: ...` and optional
+`- planId: P001`; native `.openspec.yaml` is not a lifecycle store.
+Inspect returned warnings before assuming the result is complete. Do not copy
+Change state into the Plan register or complete a Plan when one Change closes.
+
 Before creation, compare the confirmed direction with every nonterminal plan. Reuse the existing plan when it clearly owns the same durable goal; do not create a second plan merely because a later OpenSpec or LikeC4 locator became available. Preserve the later locator in the owning specification, architecture change, or handoff when the existing plan format cannot be amended.
 
 ## Apply the Admission Rule

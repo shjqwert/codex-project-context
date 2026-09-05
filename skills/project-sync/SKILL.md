@@ -9,7 +9,7 @@ Synchronize only an already initialized project. Never use this Skill as an impl
 
 ## Prepare
 
-1. Read [resource-rules.md](references/resource-rules.md) and the shared [Agent analysis contract](../project-init/references/project-discovery.md) before classifying additions or removals.
+1. Read [resource-rules.md](references/resource-rules.md) and [Core discovery](../project-init/references/core-discovery.md); load only the applicable Build, Hardware, Architecture, and Change references before classifying additions or removals.
 2. Resolve the project root by locating `.agent/context.json` upward from the confirmed workspace.
 3. Record the current `AGENTS.md` content outside the plugin-managed boundary.
 4. Record the current context and handoff index schema versions and entry count.
@@ -40,7 +40,7 @@ Synchronization may update only:
 
 Synchronization preserves a current valid authorization byte-for-byte and always renders the minimal Sol Advisor integration section. One compatibility exception applies: when an initialized legacy project has neither an authorization file nor the new integration marker, synchronization writes `implicitDelegation: false` so its previous disabled behavior does not silently become enabled. A malformed authorization stops synchronization before project context or `AGENTS.md` writes. Sol Advisor availability is never probed and never blocks synchronization.
 
-Do not invoke experimental document-retrieval Skills or MCPs during synchronization. Their state, availability, and failures are outside the synchronization boundary.
+For a selected new or changed project schematic, follow [Hardware routing](../project-init/references/hardware-context.md) through RAG. RAG owns reuse, processing and manual matching; its knowledge state is not copied into context. No schematic means no missing placeholder. The sync CLI itself does not operate RAG.
 
 It must not create `.agent/planMsg.md`, modify handoff Markdown files, or replace user-authored `AGENTS.md` content.
 
