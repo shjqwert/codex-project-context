@@ -69,7 +69,7 @@ sections; no additional persistent schema or state store is introduced.
 
 The schema v5 index has one entry per work item and stores only current routing metadata. It does not copy section bodies or BM25 term statistics. Current Markdown rebuilds the cache. History corruption is isolated; current corruption blocks only the affected work and is never silently replaced.
 
-Schema-v3 immutable records remain readable. Records sharing a reliable legacy group become chronological virtual revisions, the oldest ID becomes the stable work ID, and later IDs remain exact retrieval aliases. Reading never migrates them. An explicit update materializes the first v4 current document.
+Schema-v3 immutable records remain readable. Records sharing a reliable legacy group become chronological virtual revisions, the oldest ID becomes the stable work ID, and later IDs remain exact retrieval aliases. Reading never migrates them. An explicit update materializes the first v5 current document.
 
 ## Retrieval
 

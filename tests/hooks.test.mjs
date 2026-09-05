@@ -222,7 +222,7 @@ test("UserPromptSubmit deduplicates BM25 matches and keeps lexical queries read-
   }, undefined, stateDirectory);
 
   assert.equal(first.status, 0, first.stderr);
-  assert.match(JSON.parse(first.stdout).hookSpecificOutput.additionalContext, /bm25 lexical/);
+  assert.match(JSON.parse(first.stdout).hookSpecificOutput.additionalContext, /W001 revision 1 \[active; medium\]/);
   assert.equal(repeated.stdout, "");
   assert.equal(broad.stdout, "");
   assert.equal(await readFile(indexPath, "utf8"), before);
@@ -258,7 +258,7 @@ test("UserPromptSubmit retrieves bilingual aliases without emitting alias lists 
   assert.equal(first.status, 0, first.stderr);
   const aliasContext = JSON.parse(first.stdout).hookSpecificOutput.additionalContext;
   const exactContext = JSON.parse(exact.stdout).hookSpecificOutput.additionalContext;
-  assert.match(aliasContext, /bm25 lexical/);
+  assert.match(aliasContext, /W001 revision 1 \[active; medium\]/);
   assert.doesNotMatch(aliasContext, /电机过流安全重启|电流恢复后重新启动|motor safety restart|restart after current recovery/u);
   assert.ok(aliasContext.length <= exactContext.length + 120, `Alias Hook context grew unexpectedly: ${aliasContext.length}`);
   assert.ok(aliasContext.length < 1_400);

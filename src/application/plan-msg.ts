@@ -123,12 +123,20 @@ export async function listProjectPlans(
   const planPath = resolve(projectRoot, ".agent", "planMsg.md");
   const document = await readPlanDocument(planPath);
   const related = await listProjectChanges(projectRoot);
+  const knownPlanIds = new Set(document.plans.map((plan) => plan.id));
+  const warnings = [
+    ...related.warnings,
+    ...related.changes.flatMap((change) =>
+      change.planId !== undefined && !knownPlanIds.has(change.planId)
+        ? [`Change ${change.id} references missing project plan ${change.planId}: ${change.path}`]
+        : []),
+  ];
   return {
     ok: true, path: planPath, projectRoot,
     plans: document.plans.map((plan) => ({
       ...plan, changes: related.changes.filter((change) => change.planId === plan.id),
     })),
-    ...(related.warnings.length === 0 ? {} : { warnings: related.warnings }),
+    ...(warnings.length === 0 ? {} : { warnings }),
   };
 }
 
