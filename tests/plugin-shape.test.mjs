@@ -15,6 +15,10 @@ test("plugin manifest, hooks, schemas, and skills expose the release contract", 
   assert.match(cliSource, new RegExp(`const VERSION = "${packageMetadata.version.replaceAll(".", "\\.")}"`));
   assert.equal(manifest.skills, "./skills/");
   assert.equal("hooks" in manifest, false);
+  assert.equal(manifest.interface.defaultPrompt.length, 3);
+  assert.match(manifest.interface.defaultPrompt[0], /initialize or synchronize/);
+  assert.match(manifest.interface.defaultPrompt[1], /handoff/);
+  assert.match(manifest.interface.defaultPrompt[2], /project-level plan/);
 
   const hooks = JSON.parse(await readFile("hooks/hooks.json", "utf8"));
   assert.ok(hooks.hooks.SessionStart);
