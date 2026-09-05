@@ -34,9 +34,9 @@ async function delay(milliseconds) {
 async function lockWithDeniedAcquisitions(count) {
   let source = await readFile("dist/infrastructure/project-write-lock.js", "utf8");
   source = source.replace(
-    /import \{ link, lstat, mkdir, open, readFile, readdir, rename, rm \} from "node:fs\/promises";/u,
+    /import \{ link, lstat, mkdir, open, readFile, readdir, rm, unlink \} from "node:fs\/promises";/u,
     `
-      import { link, lstat, mkdir, open as actualOpen, readFile, readdir, rename, rm } from 'node:fs/promises';
+      import { link, lstat, mkdir, open as actualOpen, readFile, readdir, rm, unlink } from 'node:fs/promises';
       let remaining = ${count};
       async function open(...args) {
         if (remaining-- > 0) throw Object.assign(new Error('acquisition denied'), {code:'EPERM'});
