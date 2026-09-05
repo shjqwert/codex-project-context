@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Development version `1.7.0` adds layered discovery, evidence-backed build entries, RAG schematic routing, native OpenSpec Change associations, and deduplication of emitted Hook cards. Actual tests, builds, installation and release validation have not been run for this version; tags and packaging follow the dedicated testing phase.
+`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Development version `1.7.0` adds layered discovery, evidence-backed build entries, RAG schematic routing, native OpenSpec Change associations, and deduplication of emitted Hook cards. The TypeScript build and full 91-test suite pass on the development branch; candidate installation, client validation, main merge, tags and release packaging remain pending.
 
 ## Capabilities
 
