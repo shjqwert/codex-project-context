@@ -26,7 +26,7 @@ When a selected resource is the canonical `architecture/baseline.md` or `archite
 
 Keep the `Project Context` and `Handoff Context` section roles stable, with the context, Plan, Handoff and existing native OpenSpec entry points that apply. Keep resource entries and a concise RAG use principle in Project References when supported. Do not expose component lists, source IDs, Hook internals, schema/migration details or role contracts.
 
-Keep `Sol Advisor Integration` minimal: state the effective project policy (`inherit`, explicit allow, or explicit deny), the three-state authorization semantics, fail-closed invalid-state behavior, and ownership boundary. Route details, role prompts, model selection, and result protocols remain in the Sol Advisor Skill rather than the project file.
+Keep `Sol Advisor Integration` minimal: state the effective project policy (`inherit`, explicit allow, or explicit deny), the three-state authorization semantics, fail-closed invalid-state behavior, and ownership boundary. Eligibility never requires delegation. Unavailable or quota-limited routes return ownership to the primary after existing work is checked. Route details, role prompts, model selection, and result protocols remain in the Sol Advisor Skill rather than the project file.
 
 `Handoff Context` combines stable boundaries with up to three evidence-backed `handoffGuidance` lines: create records only for coherent cross-task continuation, inspect relevant summaries first and load only needed current sections without a fixed match-count cap, do not force unrelated history, and keep current evidence authoritative. Mention only routing dimensions supported by the project.
 
