@@ -157,8 +157,9 @@ function renderSolAdvisorIntegration(policy: SolAdvisorDelegationPolicy): string
     policyLine,
     "- Policy comes from schema-v1 `.agent/authorizations.json`: a missing file or key inherits the global default, `true` allows, and `false` disables implicit delegation.",
     "- Invalid or unreadable policy fails closed to primary-only work; explicit current-user instructions override project defaults.",
+    "- Eligibility does not require delegation. The installed Advisor owns role and model selection; keep direct work local when delegation has no independent benefit.",
     "- Sol Advisor may read this policy but must not modify `AGENTS.md` or any `.agent` context, authorization, plan, or handoff file.",
-    "- If Sol Advisor or a required role is unavailable, continue in the primary session without substitution and without blocking ordinary project work.",
+    "- If Sol Advisor or a required route is unavailable or quota-limited, end any child ownership, inspect existing work, and continue in the primary session without impersonating that route or blocking ordinary project work.",
     "",
   ];
 }

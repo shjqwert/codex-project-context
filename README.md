@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Release `1.7.0` adds layered discovery, evidence-backed build entries, RAG schematic routing, native OpenSpec Change associations, and deduplication of emitted Hook cards. The TypeScript build and full 91-test suite pass; candidate installation and independent Codex client loading also pass.
+`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Release `1.7.1` clarifies optional Advisor delegation, unavailable-route takeover and conditional long-document extraction through RAG. The TypeScript build and full 91-test suite pass; real new-session Hook delivery, revision updates and unchanged-card deduplication have also been verified.
 
 ## Capabilities
 
@@ -44,7 +44,7 @@ Readers also accept schema-v4 current indexes, including association fields emit
 
 Project-level Sol Advisor policy has three states: a missing file/key inherits the global default, `true` explicitly allows, and `false` disables implicit delegation. Invalid or unreadable policy fails closed. `enable`, `disable`, and `inherit` select those states; the legacy `remove` action remains a compatibility alias for `disable` so an old off command cannot accidentally enable delegation under the new default. On the first explicit sync of a legacy initialized project with no authorization and no new integration marker, the plugin writes `false` to preserve its previous disabled behavior. Neither workflow requires Sol Advisor to be installed.
 
-This plugin is the only component that writes the project-managed `AGENTS.md` section, `.agent/context.json`, `.agent/authorizations.json`, `.agent/planMsg.md`, and `.agent/handoff/`. It never writes the user-level `~/.codex/AGENTS.md`. Sol Advisor may read project policy and context but does not modify these files.
+This plugin is the only component that writes the project-managed `AGENTS.md` section, `.agent/context.json`, `.agent/authorizations.json`, `.agent/planMsg.md`, and `.agent/handoff/`. It never writes the user-level `~/.codex/AGENTS.md`. Sol Advisor may read project policy and context but does not modify these files. Eligibility does not require delegation; Advisor owns role/model selection. An unavailable or quota-limited route returns work to the primary after child ownership ends and existing changes are inspected. RAG evidence is used directly when sufficient; only a separate bounded long-artifact extraction calls for Context Analyst.
 
 Handoff matching builds an in-memory BM25 corpus from schema v5 current entries on each query; it never stores term frequencies, searches history globally, or reads Markdown bodies during normal indexed matching. Exact current and legacy IDs, specification IDs, bug IDs, full paths, symbols, and explicit modules rank above lexical results. Optional aliases are bounded bilingual retrieval phrases excluded from state identity and complete Hook metadata. Natural-language ties prioritize active and blocked work over completed and superseded work.
 

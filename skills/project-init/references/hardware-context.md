@@ -26,7 +26,10 @@ PDFs, whole manuals or an entire directory because it was discovered.
 
 Generated project AGENTS may contain the original resource entry and one concise,
 evidence-backed principle: use RAG for the current task's bounded durable-document
-gap and return evidence directly to the primary session. Keep source IDs, parsed
+gap and return adequate evidence directly to the primary session. An identified
+long artifact may be assigned to Context Analyst only for a separate bounded
+extraction task under Advisor's routing; do not require a child after retrieval.
+Keep source IDs, parsed
 components, manual matches, processing status and knowledge bodies in RAG.
 Current code is read from the repository; transient J-Link values, register
 snapshots, HSS samples and capture references never enter RAG or handoffs.
