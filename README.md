@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Release `1.7.1` clarifies optional Advisor delegation, unavailable-route takeover and conditional long-document extraction through RAG. The TypeScript build and full 91-test suite pass; real new-session Hook delivery, revision updates and unchanged-card deduplication have also been verified.
+`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Release `1.7.2` clarifies instruction priority, scoped recovery and retained-context reuse, and removes mandatory repeat submissions from routine init/sync. Existing runtime and idempotence contracts remain unchanged; release validation is reported separately.
 
 ## Capabilities
 

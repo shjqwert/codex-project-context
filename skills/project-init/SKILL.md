@@ -1,6 +1,6 @@
 ---
 name: project-init
-description: Explicitly initialize a named project for durable Codex context by preparing missing CodeGraph and Serena project indexes when their installed CLIs are available, inspecting a bounded repository inventory, analyzing current evidence, authoring project-specific AGENTS.md guidance, and creating context and handoff metadata. Use only when the user explicitly invokes this Skill or asks to initialize project context; never trigger implicitly from missing files.
+description: Initialize durable context for an explicitly named project; use only on an explicit initialization request.
 ---
 
 # Project Init
@@ -73,11 +73,11 @@ The `init` command must not initialize or upgrade CodeGraph, Serena, OpenSpec, G
 2. Verify all three required project files exist.
 3. If `AGENTS.md` was new, require at most 200 lines and all applicable sections defined in [agents-structure.md](references/agents-structure.md).
 4. If `AGENTS.md` existed, confirm content outside the managed boundary remains unchanged.
-5. Re-submit the same analysis and confirm the managed section is not duplicated and output is byte-stable.
+5. Inspect the persisted result once and confirm the managed section appears exactly once. Repeated-submit idempotence checks belong to plugin regression tests or investigation of a concrete duplicate-write failure.
 6. Confirm every analysis line and reference in `.agent/context.json` retains its evidence paths.
 7. Confirm `Project Overview` contains only supported facts; `Build and Verification` contains concise evidence-backed entry points and applicable project-specific restrictions, without implying execution.
 8. Confirm Code Analysis reflects detected repository analysis capabilities without persisting session-local tools, OpenSpec paths are absent from `Project References`, broad Development, Specification, and Completion sections are absent, and `Handoff Context` uses evidence-backed, relevance-based reads without a fixed record count.
 9. Report `remind-user` advisories without turning them into confirmed project facts.
-10. Confirm the Sol Advisor integration section appears exactly once. For default inherited policy, confirm `.agent/authorizations.json` is absent; for explicit opt-out, confirm it contains `authorizations.solAdvisor.implicitDelegation` exactly `false`. Repeat initialization with the same choice and require byte-stable output.
+10. Confirm the Sol Advisor integration section appears exactly once. For default inherited policy, confirm `.agent/authorizations.json` is absent; for explicit opt-out, confirm it contains `authorizations.solAdvisor.implicitDelegation` exactly `false`. Reuse the successful result; do not repeat initialization solely to recheck unchanged state.
 
 Stop and report the exact validation failure instead of claiming initialization succeeded.

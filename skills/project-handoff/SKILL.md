@@ -1,6 +1,6 @@
 ---
 name: project-handoff
-description: Create or revision-update an evidence-based current handoff for coherent work that continues in another Codex task or window, with optional milestone checkpoints and lightweight current-state retrieval. May be selected implicitly; do not trigger for routine questions, trivial edits, or mechanical shutdown.
+description: Record or update evidence-based context for coherent work continuing in another task; skip routine questions and small one-off edits.
 ---
 
 # Project Handoff

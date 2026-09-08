@@ -1,6 +1,6 @@
 ---
 name: project-sync
-description: Explicitly inspect and synchronize an initialized project's Agent-authored Codex context after repository architecture, tools, source, tests, references, or stable guidance change. Use available CodeGraph, Serena, configuration, code, and documentation evidence to refresh only supported managed context. Use only when explicitly invoked or requested; never trigger automatically from filesystem changes.
+description: Refresh managed context for an initialized project on an explicit synchronization request.
 ---
 
 # Project Sync
@@ -53,7 +53,7 @@ If records exist but the index is missing or inconsistent, stop synchronization 
 3. Confirm content outside the boundary is unchanged.
 4. Confirm all indexed handoff entries remain present; reject unsupported index schemas instead of migrating them.
 5. Confirm overview facts, rules, references, advisories, and evidence paths reflect current project evidence.
-6. Re-submit the same analysis and require byte-stable output when the project did not change.
+6. Inspect the persisted result once. Keep repeated-submit byte-stability checks in plugin regression tests; repeat synchronization only for changed input, an uncertain outcome, or a concrete consistency failure.
 7. Report additions, removals, and classification changes separately.
 8. Confirm OpenSpec-owned paths are not rendered in `Project References`, broad Development, Specification, and Completion sections remain absent, and the context section names remain present.
 9. Report `remind-user` advisories.

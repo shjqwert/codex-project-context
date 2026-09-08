@@ -1,6 +1,6 @@
 ---
 name: project-plan-msg
-description: Record and transition a qualifying durable project-level plan in .agent/planMsg.md when a significant direction is explicitly tracked, confirmed, started, completed, rejected, or superseded across important capabilities, architecture directions, modules, tasks, or specification changes. May be selected implicitly for evidence-backed plan lifecycle changes; do not trigger for ordinary bugs, code tasks, temporary ideas, or development journals.
+description: Record consequential project-level plan transitions supported by user intent and evidence; exclude routine tasks and journals.
 ---
 
 # Project Plan Message
