@@ -27,7 +27,7 @@ PDFs, whole manuals or an entire directory because it was discovered.
 Generated project AGENTS may contain the original resource entry and one concise,
 evidence-backed principle: use RAG for the current task's bounded durable-document
 gap and return adequate evidence directly to the primary session. An identified
-long artifact may be assigned to Context Analyst only for a separate bounded
+long artifact may be assigned to a Scout only for a separate bounded
 extraction task under Advisor's routing; do not require a child after retrieval.
 Keep source IDs, parsed
 components, manual matches, processing status and knowledge bodies in RAG.

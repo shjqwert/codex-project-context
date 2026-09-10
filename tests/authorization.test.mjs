@@ -23,6 +23,10 @@ test("new projects inherit global Sol Advisor eligibility by default", async () 
   const agents = await readFile(join(project, "AGENTS.md"), "utf8");
   assert.match(agents, /## Sol Advisor Integration/);
   assert.match(agents, /inherits global Sol Advisor eligibility/);
+  assert.match(agents, /primary uses Project Context workflows/);
+  assert.match(agents, /Children return evidence to the primary without writing/);
+  assert.match(agents, /Child completion is not a cross-task handoff or project-plan transition/);
+  assert.doesNotMatch(agents, /Context Analyst|sol_advisor_|collaboration\.send_message/);
 
   const status = await getProjectStatus(project);
   assert.equal(status.solAdvisorDelegationPolicy, "inherit");

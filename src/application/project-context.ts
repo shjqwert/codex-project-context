@@ -92,7 +92,7 @@ export async function initializeProject(
 
     const indexExists = await pathExists(indexPath);
     if (indexExists) validateHandoffIndex(await readJson<unknown>(indexPath));
-    if (!indexExists && await pathExists(resolve(projectRoot, ".agent", "handoff", "records"))) {
+    if (!indexExists && await hasHandoffStorage(projectRoot)) {
       throw new Error("Handoff index is missing while records exist; rebuild the index before initialization.");
     }
     const solAdvisorDelegationPolicy = await resolveSolAdvisorDelegationPolicy(
@@ -153,7 +153,7 @@ export async function synchronizeProject(
 
     const indexExists = await pathExists(indexPath);
     if (indexExists) validateHandoffIndex(await readJson<unknown>(indexPath));
-    if (!indexExists && await pathExists(resolve(projectRoot, ".agent", "handoff", "records"))) {
+    if (!indexExists && await hasHandoffStorage(projectRoot)) {
       throw new Error("Handoff index is missing while records exist; rebuild the index before synchronization.");
     }
     const solAdvisorDelegationPolicy = await resolveSolAdvisorDelegationPolicy(
@@ -163,6 +163,11 @@ export async function synchronizeProject(
       true,
     );
     const solAdvisorImplicitDelegation = solAdvisorDelegationPolicy !== "deny";
+    const preparedAgents = await prepareManagedAgentsSection(
+      projectRoot,
+      context,
+      solAdvisorDelegationPolicy,
+    );
     await writeJsonAtomic(contextPath, context);
     if (!indexExists) {
       await writeJsonAtomic(indexPath, EMPTY_HANDOFF_INDEX);
@@ -170,11 +175,7 @@ export async function synchronizeProject(
     if (authorizations === undefined && solAdvisorDelegationPolicy === "deny") {
       await writeSolAdvisorImplicitDelegationAuthorization(projectRoot, false);
     }
-    const agentsPath = await updateManagedAgentsSection(
-      projectRoot,
-      context,
-      solAdvisorDelegationPolicy,
-    );
+    await writeTextAtomic(preparedAgents.agentsPath, preparedAgents.next);
 
     return {
       ok: true,
@@ -182,7 +183,7 @@ export async function synchronizeProject(
       projectRoot,
       contextPath,
       handoffIndexPath: indexPath,
-      agentsPath,
+      agentsPath: preparedAgents.agentsPath,
       capabilities: context.capabilities,
       profile: context.profile!,
       resourceCount: context.resources?.length ?? 0,
@@ -421,14 +422,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-async function updateManagedAgentsSection(
-  projectRoot: string,
-  context: ProjectContext,
-  solAdvisorDelegationPolicy: SolAdvisorDelegationPolicy,
-): Promise<string> {
-  const prepared = await prepareManagedAgentsSection(projectRoot, context, solAdvisorDelegationPolicy);
-  await writeTextAtomic(prepared.agentsPath, prepared.next);
-  return prepared.agentsPath;
+async function hasHandoffStorage(projectRoot: string): Promise<boolean> {
+  for (const directory of ["current", "history", "records"]) {
+    if (await pathExists(resolve(projectRoot, ".agent", "handoff", directory))) return true;
+  }
+  return false;
 }
 
 async function prepareManagedAgentsSection(

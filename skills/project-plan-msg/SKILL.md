@@ -7,6 +7,10 @@ description: Record consequential project-level plan transitions supported by us
 
 Use this Skill only for durable project-level direction. Read [plan-msg-format.md](references/plan-msg-format.md) before creating the first plan or resolving an ambiguous status transition.
 
+In delegated work, the primary applies this Skill after checking child evidence.
+Child assignment, completion and temporary ownership are not project-plan transitions;
+children return results without writing the plan register.
+
 ## Check Project and Existing Plans
 
 The project must already contain `.agent/context.json`. Never invoke `project-init` implicitly to make plan recording possible.

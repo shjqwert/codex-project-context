@@ -122,7 +122,8 @@ export async function matchHandoffs(
   const projectRoot = await requireProjectRoot(projectDirectory);
   const context = await readProjectContext(projectRoot);
   const indexPath = resolve(projectRoot, context.handoffIndex);
-  let index = await readOrRebuildIndex(projectRoot, indexPath, false);
+  let index = await withProjectWriteLock(projectRoot, () =>
+    readOrRebuildIndex(projectRoot, indexPath, false));
   let matches = matchHandoffEntries(index.entries, prompt);
   if (await matchedCurrentIsStaleOrInvalid(projectRoot, matches)) {
     index = await withProjectWriteLock(projectRoot, async () => {
@@ -151,7 +152,8 @@ export async function getHandoffHistory(
 }> {
   const projectRoot = await requireProjectRoot(projectDirectory);
   const context = await readProjectContext(projectRoot);
-  const index = await readOrRebuildIndex(projectRoot, resolve(projectRoot, context.handoffIndex), false);
+  const index = await withProjectWriteLock(projectRoot, () =>
+    readOrRebuildIndex(projectRoot, resolve(projectRoot, context.handoffIndex), false));
   const normalizedWorkId = normalizeWorkId(workId);
   const entry = index.entries.find((candidate) =>
     candidate.workId === normalizedWorkId || candidate.legacyRecordIds.includes(normalizedWorkId)
@@ -665,6 +667,8 @@ function normalizeCheckpointInput(input: HandoffCheckpointInput): HandoffCheckpo
   };
 }
 
+// Callers enabling repair must hold the project write lock, including read APIs.
+// Diagnostic callers disable repair and never persist a missing index.
 async function readOrRebuildIndex(
   projectRoot: string,
   indexPath: string,

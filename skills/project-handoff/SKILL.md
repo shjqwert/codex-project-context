@@ -7,6 +7,10 @@ description: Record or update evidence-based context for coherent work continuin
 
 Maintain one authoritative current Markdown document per coherent objective. Use current-task evidence, never reconstructed conversation guesses, and never bind handoff writes mechanically to `SessionEnd`.
 
+In delegated work, children return evidence in ordinary results; the primary checks
+and consolidates it before applying this Skill. Child completion or teammate messages
+alone do not create a cross-task handoff. Do not use handoff records as agent mailboxes.
+
 ## Decide Whether to Record
 
 Create or update a work item when verified implementation, diagnosis, constraints, failed approaches, or incomplete verification would otherwise need rediscovery in another task. Skip routine questions, trivial edits, unsupported summaries, and accepted specifications with no continuation risk.

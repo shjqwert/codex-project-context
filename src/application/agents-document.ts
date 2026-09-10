@@ -158,7 +158,8 @@ function renderSolAdvisorIntegration(policy: SolAdvisorDelegationPolicy): string
     "- Policy comes from schema-v1 `.agent/authorizations.json`: a missing file or key inherits the global default, `true` allows, and `false` disables implicit delegation.",
     "- Invalid or unreadable policy fails closed to primary-only work; explicit current-user instructions override project defaults.",
     "- Eligibility does not require delegation. The installed Advisor owns role and model selection; keep direct work local when delegation has no independent benefit.",
-    "- Sol Advisor may read this policy but must not modify `AGENTS.md` or any `.agent` context, authorization, plan, or handoff file.",
+    "- Sol Advisor reads relevant project context and policy; the primary uses Project Context workflows for authorized durable writes. Children return evidence to the primary without writing managed context, policy, plans, or handoffs.",
+    "- Child completion is not a cross-task handoff or project-plan transition. The primary checks evidence and records only changes that meet the corresponding Project Context admission rule.",
     "- If Sol Advisor or a required route is unavailable or quota-limited, end any child ownership, inspect existing work, and continue in the primary session without impersonating that route or blocking ordinary project work.",
     "",
   ];
