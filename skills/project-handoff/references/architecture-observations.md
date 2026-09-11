@@ -1,29 +1,28 @@
-# C4 observations across tasks
+# 跨任务架构观察
 
-Read this only when coherent work being handed off includes C4 state. It does not
+Read this only when coherent work being handed off includes architecture decisions or evidence, with or without a C4 model. It does not
 create a handoff for a routine status question or initialize a project implicitly.
 
 ## Ownership and identity
 
-The architecture workflow owns C4 metadata and its legal state transitions. Project
-Context records observations through the existing handoff command; it never edits C4,
+架构工作流拥有基线、目标设计、确认依据与验证结论，默认记录在其规范 Markdown 文档中。
+LikeC4 仅是可选结构模型，不承载强制批准状态。Project
+Context records observations through the existing handoff command; it never edits architecture sources,
 parses its AST, or treats a cached statement as user approval. Keep the same workId
 when the objective is unchanged and use expectedRevision for each update.
 
 Identify the target project, architecture domain, canonical Architecture Baseline path,
-change ID, root element FQN, model and change paths, and any existing plan ID. IDs from
-another project are not identities in this project. Record four separate declarations: baselineStatus, designStatus,
-implementationStatus and verificationStatus. Implemented never implies pass.
+change ID and any existing plan ID; include root element FQN and model paths only when a model exists. IDs from
+another project are not identities in this project. 分别描述当前基线、目标设计确认、实施进度和验证结论；
+这些是观察维度，不要求来源具有固定状态字段。Implemented never implies pass.
 
 ## Use existing sections
 
-- `currentState`: four declarations, observation time and observation quality
+- `currentState`: available architecture declarations, observation time and observation quality
   (`current`, `stale`, or `unverified`). These quality labels are not C4 states.
-- `decisionsAndConstraints`: explicit approval/decision evidence,
-  `designApprovalScope`, `designApprovalFingerprint`, and `designApprovalEvidence`;
-  distinguish direction approval, To-Be approval and implementation authorization.
-  The fingerprint must match current approval-scope content under the architecture
-  workflow's algorithm before implementation.
+- `decisionsAndConstraints`: 规范 Markdown 中的用户确认依据、具体范围及可定位的内容版本。
+  区分方向认可、具体设计确认和实施授权，不要求固定哈希算法或批准字段。
+  重大设计变化使原确认不再覆盖相关内容；文字排版修改不自动要求重批。
 - `verification`: applicable verification scope, target and active build variant,
   exact evidence identities and what was checked. Missing evidence remains visible.
 - `evidence`: source locators and fingerprints; `remainingWork`: concrete pending
@@ -38,8 +37,8 @@ Late architecture references belong here rather than a duplicate project plan.
 
 Record and compare identities for all applicable inputs, with a stated scope:
 
-1. Canonical Architecture Baseline content identity, architecture configuration,
-   specification, formal model and active changes. Keep the baseline identity separate
+1. Canonical Architecture Baseline Markdown content identity, architecture configuration,
+   specification, optional formal model and active changes. Keep the baseline identity separate
    from model and change identities; its hash detects change but is not user approval.
 2. Implementation sources and configuration, including the scoped file inventory so
    added or removed inputs are detected; a Git commit alone is insufficient with a dirty tree.
@@ -58,13 +57,9 @@ uncheckable evidence is `unverified`. Report "model declares pass; current evide
 has not been verified" in either case instead of claiming current verification success.
 Do not run hardware tests merely to fill a handoff; preserve the blocker.
 
-An input hash detects change; it is not a signature binding user approval. The
-architecture workflow separately records the explicit user evidence bound to the
-current `designApprovalFingerprint`; Project Context only observes both values and
-never creates approval. Status-only C4 edits also change bytes: the architecture
-workflow updates and validates its source first, then refreshes the observation.
-Material design changes return to its review contract. Project Context must never
-restore stale C4 values from the observation.
+内容哈希只检测变化，不代表用户批准。架构工作流记录与具体设计对应的用户证据；
+Project Context 只观察，不生成批准，不把模型缺失当成 Markdown 设计未确认。
+重大设计变化回到设计负责人；观察结果不能覆盖源文档。缓存与现行来源冲突时保留冲突及出处。
 
 A `confirmed` Architecture Baseline whose relevant claims conflict with current code,
 configuration, or the formal model remains a confirmed historical declaration but its
@@ -76,6 +71,6 @@ route the conflict back to the architecture workflow for audit or evolve review.
 Missing files or contradictory metadata mean unknown/stale, not completed. Normal
 closure needs explicit closure and verification evidence plus a current/history or Git
 locator for the retired change. Blocked/failed changes cannot be treated as closed just
-because a file disappeared. Preserve the model's four-dimensional declaration and
+because a file disappeared. Preserve the source declarations and
 describe the evidence limitation separately. Hooks route only lightweight current
 metadata; they do not scan models, test outputs or all historical observations.

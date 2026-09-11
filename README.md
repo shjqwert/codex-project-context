@@ -1,6 +1,6 @@
 # Codex Project Context
 
-`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. Release `1.7.3` protects current-format handoffs when an index is missing, validates managed AGENTS before synchronization writes, serializes automatic index repair, and clarifies integration with Sol Advisor 2.0. Release validation is reported separately.
+`codex-project-context` is a Codex plugin for durable project rules, long-term plans and cross-task handoffs. 发布 `1.7.4`：架构交接以规范 Markdown 中的确认依据为来源，LikeC4 可选；保留现有运行时与证据复用边界。发布验收单独记录。
 
 ## Capabilities
 
@@ -18,7 +18,7 @@ Core project context does not require Git, MCP, OpenSpec, CodeGraph, Serena, Con
 
 Retrieval preserves full query-topic coverage instead of discarding unknown topic terms. Explicit exclusions apply to identifier and lexical routing; a concrete unmatched continuation topic no longer falls back to unrelated recent work. Results include `disposition: reliable | candidate`: ambiguous candidates require metadata review before body reads. `match --explain` reports complete read-only evidence and rejection diagnostics; it cannot be combined with `--limit`. Scores and coverage are retrieval evidence, not semantic probabilities.
 
-C4 state remains four separate declarations owned by the architecture workflow. Canonical `architecture/baseline.md` and `architecture/<domain>/baseline.md` resources are discovered as documentation with dedicated routing for architecture intent, module boundaries, ownership and dependency constraints; file presence alone does not make a baseline confirmed or current. A qualifying handoff records baseline, model, implementation and verification observations with separate evidence freshness. Reusing pass requires unchanged applicable baseline, model, implementation/configuration, build/firmware and test/result identities; a hash or report path alone is insufficient. See [architecture observations](skills/project-handoff/references/architecture-observations.md). No new schema type, state database, automatic model scan or knowledge-service integration is introduced.
+架构工作流在规范 Markdown 中维护基线、目标设计确认、实施与验证依据；LikeC4 是可选结构来源，Project Context 只观察，不制造批准。 Canonical `architecture/baseline.md` and `architecture/<domain>/baseline.md` resources are discovered as documentation with dedicated routing for architecture intent, module boundaries, ownership and dependency constraints; file presence alone does not make a baseline confirmed or current. A qualifying handoff records baseline, model, implementation and verification observations with separate evidence freshness. Reusing pass requires unchanged applicable baseline, model, implementation/configuration, build/firmware and test/result identities; a hash or report path alone is insufficient. See [architecture observations](skills/project-handoff/references/architecture-observations.md). No new schema type, state database, automatic model scan or knowledge-service integration is introduced.
 
 ## Generated Project Context
 

@@ -25,7 +25,7 @@ import {
 } from "../application/project-context.js";
 import type { HandoffWriteInput, ProjectAnalysisDraft, ProjectPlanInput } from "../types.js";
 
-const VERSION = "1.7.3";
+const VERSION = "1.7.4";
 const VALUELESS_OPTIONS = new Set(["no-sol-advisor-implicit-delegation", "explain"]);
 
 await main().catch((error: unknown) => {

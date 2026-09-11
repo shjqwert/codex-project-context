@@ -31,7 +31,7 @@ Never let the CLI infer a mutable write target from `groupKey`, title similarity
 
 Read [handoff-format.md](references/handoff-format.md) completely. Read [examples.md](references/examples.md) when diagnosis, objective identity, checkpoint judgment, or migration behavior is uncertain.
 
-When C4 state is part of the continuing objective, read [architecture-observations.md](references/architecture-observations.md). Record declarations and evidence freshness in existing sections; do not infer current pass from a model hash or historical approval alone.
+When architecture decisions or evidence are part of the continuing objective, read [architecture-observations.md](references/architecture-observations.md), including Markdown-only projects. Record declarations and evidence freshness in existing sections; do not infer current pass from a model hash or historical approval alone.
 
 When the objective belongs to a Plan, Change or Change task, read
 [change-links.md](references/change-links.md) and qualify task identity by its

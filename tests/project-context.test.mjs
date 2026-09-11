@@ -90,6 +90,19 @@ test("Project References is omitted when only OpenSpec resources are detected", 
   assert.match(agents, /## Project Context/);
 });
 
+test("Markdown architecture routes without a model or approval metadata", async () => {
+  const project = await makeTempDirectory("codex-project-context-markdown-architecture-");
+  await mkdir(join(project, "architecture"), { recursive: true });
+  const baseline = "# 当前架构\n\n模块 A 拥有采样状态。\n\n## 确认依据\n用户确认记录见设计文档；运行验证待完成。\n";
+  await writeFile(join(project, "architecture", "baseline.md"), baseline, "utf8");
+  const inventory = await inspectProject(project);
+  assert.ok(inventory.resources.some(({ path }) => path === "architecture/baseline.md"));
+  assert.ok(!inventory.paths.some((path) => /\.(c4|likec4)$/u.test(path)));
+  await initializeProject(project);
+  assert.equal(await readFile(join(project, "architecture", "baseline.md"), "utf8"), baseline);
+  assert.match(await readFile(join(project, "AGENTS.md"), "utf8"), /architecture\/baseline\.md/);
+});
+
 test("LikeC4 architecture sources are discoverable and generated views are ignored", async () => {
   const project = await makeTempDirectory("codex-project-context-likec4-");
   const architecture = join(project, "architecture", "motor");
